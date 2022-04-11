@@ -5,7 +5,7 @@
 using _6bGenerics___WiredBrainCoffeeStorageApp.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace _6aGenerics___WiredBrainCoffeeStorageApp.Data
+namespace _6bGenerics___WiredBrainCoffeeStorageApp.Data
 {
     public class StorageAppDbContext : DbContext
     {

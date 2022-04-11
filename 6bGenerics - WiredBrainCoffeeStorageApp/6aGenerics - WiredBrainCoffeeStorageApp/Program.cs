@@ -1,4 +1,4 @@
-﻿using _6aGenerics___WiredBrainCoffeeStorageApp.Data;
+﻿using _6bGenerics___WiredBrainCoffeeStorageApp.Data;
 using _6bGenerics___WiredBrainCoffeeStorageApp.Entities;
 using _6bGenerics___WiredBrainCoffeeStorageApp.Repositories;
 using System;
