@@ -1,0 +1,15 @@
+D:\Visual Studio Projects\4bTypeSystem - BethanysPieShopHRM\4aTypeSystem - BethanysPieShopHRM\obj\Debug\net6.0\4bTypeSystem - BethanysPieShopHRM.csproj.AssemblyReference.cache
+D:\Visual Studio Projects\4bTypeSystem - BethanysPieShopHRM\4aTypeSystem - BethanysPieShopHRM\obj\Debug\net6.0\4bTypeSystem - BethanysPieShopHRM.GeneratedMSBuildEditorConfig.editorconfig
+D:\Visual Studio Projects\4bTypeSystem - BethanysPieShopHRM\4aTypeSystem - BethanysPieShopHRM\obj\Debug\net6.0\4bTypeSystem - BethanysPieShopHRM.AssemblyInfoInputs.cache
+D:\Visual Studio Projects\4bTypeSystem - BethanysPieShopHRM\4aTypeSystem - BethanysPieShopHRM\obj\Debug\net6.0\4bTypeSystem - BethanysPieShopHRM.AssemblyInfo.cs
+D:\Visual Studio Projects\4bTypeSystem - BethanysPieShopHRM\4aTypeSystem - BethanysPieShopHRM\obj\Debug\net6.0\4bTypeSystem - BethanysPieShopHRM.csproj.CoreCompileInputs.cache
+D:\Visual Studio Projects\4bTypeSystem - BethanysPieShopHRM\4aTypeSystem - BethanysPieShopHRM\bin\Debug\net6.0\4bTypeSystem - BethanysPieShopHRM.exe
+D:\Visual Studio Projects\4bTypeSystem - BethanysPieShopHRM\4aTypeSystem - BethanysPieShopHRM\bin\Debug\net6.0\4bTypeSystem - BethanysPieShopHRM.deps.json
+D:\Visual Studio Projects\4bTypeSystem - BethanysPieShopHRM\4aTypeSystem - BethanysPieShopHRM\bin\Debug\net6.0\4bTypeSystem - BethanysPieShopHRM.runtimeconfig.json
+D:\Visual Studio Projects\4bTypeSystem - BethanysPieShopHRM\4aTypeSystem - BethanysPieShopHRM\bin\Debug\net6.0\4bTypeSystem - BethanysPieShopHRM.dll
+D:\Visual Studio Projects\4bTypeSystem - BethanysPieShopHRM\4aTypeSystem - BethanysPieShopHRM\bin\Debug\net6.0\4bTypeSystem - BethanysPieShopHRM.pdb
+D:\Visual Studio Projects\4bTypeSystem - BethanysPieShopHRM\4aTypeSystem - BethanysPieShopHRM\obj\Debug\net6.0\4bTypeSystem - BethanysPieShopHRM.dll
+D:\Visual Studio Projects\4bTypeSystem - BethanysPieShopHRM\4aTypeSystem - BethanysPieShopHRM\obj\Debug\net6.0\refint\4bTypeSystem - BethanysPieShopHRM.dll
+D:\Visual Studio Projects\4bTypeSystem - BethanysPieShopHRM\4aTypeSystem - BethanysPieShopHRM\obj\Debug\net6.0\4bTypeSystem - BethanysPieShopHRM.pdb
+D:\Visual Studio Projects\4bTypeSystem - BethanysPieShopHRM\4aTypeSystem - BethanysPieShopHRM\obj\Debug\net6.0\4bTypeSystem - BethanysPieShopHRM.genruntimeconfig.cache
+D:\Visual Studio Projects\4bTypeSystem - BethanysPieShopHRM\4aTypeSystem - BethanysPieShopHRM\obj\Debug\net6.0\ref\4bTypeSystem - BethanysPieShopHRM.dll

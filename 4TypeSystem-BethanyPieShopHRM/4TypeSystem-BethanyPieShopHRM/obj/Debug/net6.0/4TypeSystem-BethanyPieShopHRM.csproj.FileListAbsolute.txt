@@ -1,0 +1,17 @@
+D:\Visual Studio Projects\4TypeSystem-BethanyPieShopHRM\4TypeSystem-BethanyPieShopHRM\bin\Debug\net6.0\4TypeSystem-BethanyPieShopHRM.exe
+D:\Visual Studio Projects\4TypeSystem-BethanyPieShopHRM\4TypeSystem-BethanyPieShopHRM\bin\Debug\net6.0\4TypeSystem-BethanyPieShopHRM.deps.json
+D:\Visual Studio Projects\4TypeSystem-BethanyPieShopHRM\4TypeSystem-BethanyPieShopHRM\bin\Debug\net6.0\4TypeSystem-BethanyPieShopHRM.runtimeconfig.json
+D:\Visual Studio Projects\4TypeSystem-BethanyPieShopHRM\4TypeSystem-BethanyPieShopHRM\bin\Debug\net6.0\4TypeSystem-BethanyPieShopHRM.dll
+D:\Visual Studio Projects\4TypeSystem-BethanyPieShopHRM\4TypeSystem-BethanyPieShopHRM\bin\Debug\net6.0\4TypeSystem-BethanyPieShopHRM.pdb
+D:\Visual Studio Projects\4TypeSystem-BethanyPieShopHRM\4TypeSystem-BethanyPieShopHRM\obj\Debug\net6.0\4TypeSystem-BethanyPieShopHRM.csproj.AssemblyReference.cache
+D:\Visual Studio Projects\4TypeSystem-BethanyPieShopHRM\4TypeSystem-BethanyPieShopHRM\obj\Debug\net6.0\4TypeSystem-BethanyPieShopHRM.GeneratedMSBuildEditorConfig.editorconfig
+D:\Visual Studio Projects\4TypeSystem-BethanyPieShopHRM\4TypeSystem-BethanyPieShopHRM\obj\Debug\net6.0\4TypeSystem-BethanyPieShopHRM.AssemblyInfoInputs.cache
+D:\Visual Studio Projects\4TypeSystem-BethanyPieShopHRM\4TypeSystem-BethanyPieShopHRM\obj\Debug\net6.0\4TypeSystem-BethanyPieShopHRM.AssemblyInfo.cs
+D:\Visual Studio Projects\4TypeSystem-BethanyPieShopHRM\4TypeSystem-BethanyPieShopHRM\obj\Debug\net6.0\4TypeSystem-BethanyPieShopHRM.csproj.CoreCompileInputs.cache
+D:\Visual Studio Projects\4TypeSystem-BethanyPieShopHRM\4TypeSystem-BethanyPieShopHRM\obj\Debug\net6.0\4TypeSystem-BethanyPieShopHRM.dll
+D:\Visual Studio Projects\4TypeSystem-BethanyPieShopHRM\4TypeSystem-BethanyPieShopHRM\obj\Debug\net6.0\refint\4TypeSystem-BethanyPieShopHRM.dll
+D:\Visual Studio Projects\4TypeSystem-BethanyPieShopHRM\4TypeSystem-BethanyPieShopHRM\obj\Debug\net6.0\4TypeSystem-BethanyPieShopHRM.pdb
+D:\Visual Studio Projects\4TypeSystem-BethanyPieShopHRM\4TypeSystem-BethanyPieShopHRM\obj\Debug\net6.0\4TypeSystem-BethanyPieShopHRM.genruntimeconfig.cache
+D:\Visual Studio Projects\4TypeSystem-BethanyPieShopHRM\4TypeSystem-BethanyPieShopHRM\obj\Debug\net6.0\ref\4TypeSystem-BethanyPieShopHRM.dll
+D:\Visual Studio Projects\4TypeSystem-BethanyPieShopHRM\4TypeSystem-BethanyPieShopHRM\bin\Debug\net6.0\Newtonsoft.Json.dll
+D:\Visual Studio Projects\4TypeSystem-BethanyPieShopHRM\4TypeSystem-BethanyPieShopHRM\obj\Debug\net6.0\4TypeSystem-BethanyPieShopHRM.csproj.CopyComplete
