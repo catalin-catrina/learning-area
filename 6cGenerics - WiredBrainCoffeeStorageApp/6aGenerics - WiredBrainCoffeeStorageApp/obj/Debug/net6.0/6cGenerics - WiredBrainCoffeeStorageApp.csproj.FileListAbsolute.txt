@@ -1,0 +1,27 @@
+D:\Visual Studio Projects\6cGenerics - WiredBrainCoffeeStorageApp\6aGenerics - WiredBrainCoffeeStorageApp\obj\Debug\net6.0\6cGenerics - WiredBrainCoffeeStorageApp.csproj.AssemblyReference.cache
+D:\Visual Studio Projects\6cGenerics - WiredBrainCoffeeStorageApp\6aGenerics - WiredBrainCoffeeStorageApp\obj\Debug\net6.0\6cGenerics - WiredBrainCoffeeStorageApp.GeneratedMSBuildEditorConfig.editorconfig
+D:\Visual Studio Projects\6cGenerics - WiredBrainCoffeeStorageApp\6aGenerics - WiredBrainCoffeeStorageApp\obj\Debug\net6.0\6cGenerics - WiredBrainCoffeeStorageApp.AssemblyInfoInputs.cache
+D:\Visual Studio Projects\6cGenerics - WiredBrainCoffeeStorageApp\6aGenerics - WiredBrainCoffeeStorageApp\obj\Debug\net6.0\6cGenerics - WiredBrainCoffeeStorageApp.AssemblyInfo.cs
+D:\Visual Studio Projects\6cGenerics - WiredBrainCoffeeStorageApp\6aGenerics - WiredBrainCoffeeStorageApp\obj\Debug\net6.0\6cGenerics - WiredBrainCoffeeStorageApp.csproj.CoreCompileInputs.cache
+D:\Visual Studio Projects\6cGenerics - WiredBrainCoffeeStorageApp\6aGenerics - WiredBrainCoffeeStorageApp\bin\Debug\net6.0\6cGenerics - WiredBrainCoffeeStorageApp.exe
+D:\Visual Studio Projects\6cGenerics - WiredBrainCoffeeStorageApp\6aGenerics - WiredBrainCoffeeStorageApp\bin\Debug\net6.0\6cGenerics - WiredBrainCoffeeStorageApp.deps.json
+D:\Visual Studio Projects\6cGenerics - WiredBrainCoffeeStorageApp\6aGenerics - WiredBrainCoffeeStorageApp\bin\Debug\net6.0\6cGenerics - WiredBrainCoffeeStorageApp.runtimeconfig.json
+D:\Visual Studio Projects\6cGenerics - WiredBrainCoffeeStorageApp\6aGenerics - WiredBrainCoffeeStorageApp\bin\Debug\net6.0\6cGenerics - WiredBrainCoffeeStorageApp.dll
+D:\Visual Studio Projects\6cGenerics - WiredBrainCoffeeStorageApp\6aGenerics - WiredBrainCoffeeStorageApp\bin\Debug\net6.0\6cGenerics - WiredBrainCoffeeStorageApp.pdb
+D:\Visual Studio Projects\6cGenerics - WiredBrainCoffeeStorageApp\6aGenerics - WiredBrainCoffeeStorageApp\bin\Debug\net6.0\Microsoft.EntityFrameworkCore.dll
+D:\Visual Studio Projects\6cGenerics - WiredBrainCoffeeStorageApp\6aGenerics - WiredBrainCoffeeStorageApp\bin\Debug\net6.0\Microsoft.EntityFrameworkCore.Abstractions.dll
+D:\Visual Studio Projects\6cGenerics - WiredBrainCoffeeStorageApp\6aGenerics - WiredBrainCoffeeStorageApp\bin\Debug\net6.0\Microsoft.EntityFrameworkCore.InMemory.dll
+D:\Visual Studio Projects\6cGenerics - WiredBrainCoffeeStorageApp\6aGenerics - WiredBrainCoffeeStorageApp\bin\Debug\net6.0\Microsoft.Extensions.Caching.Abstractions.dll
+D:\Visual Studio Projects\6cGenerics - WiredBrainCoffeeStorageApp\6aGenerics - WiredBrainCoffeeStorageApp\bin\Debug\net6.0\Microsoft.Extensions.Caching.Memory.dll
+D:\Visual Studio Projects\6cGenerics - WiredBrainCoffeeStorageApp\6aGenerics - WiredBrainCoffeeStorageApp\bin\Debug\net6.0\Microsoft.Extensions.DependencyInjection.dll
+D:\Visual Studio Projects\6cGenerics - WiredBrainCoffeeStorageApp\6aGenerics - WiredBrainCoffeeStorageApp\bin\Debug\net6.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll
+D:\Visual Studio Projects\6cGenerics - WiredBrainCoffeeStorageApp\6aGenerics - WiredBrainCoffeeStorageApp\bin\Debug\net6.0\Microsoft.Extensions.Logging.dll
+D:\Visual Studio Projects\6cGenerics - WiredBrainCoffeeStorageApp\6aGenerics - WiredBrainCoffeeStorageApp\bin\Debug\net6.0\Microsoft.Extensions.Logging.Abstractions.dll
+D:\Visual Studio Projects\6cGenerics - WiredBrainCoffeeStorageApp\6aGenerics - WiredBrainCoffeeStorageApp\bin\Debug\net6.0\Microsoft.Extensions.Options.dll
+D:\Visual Studio Projects\6cGenerics - WiredBrainCoffeeStorageApp\6aGenerics - WiredBrainCoffeeStorageApp\bin\Debug\net6.0\Microsoft.Extensions.Primitives.dll
+D:\Visual Studio Projects\6cGenerics - WiredBrainCoffeeStorageApp\6aGenerics - WiredBrainCoffeeStorageApp\obj\Debug\net6.0\6cGenerics - WiredBrainCoffeeStorageApp.csproj.CopyComplete
+D:\Visual Studio Projects\6cGenerics - WiredBrainCoffeeStorageApp\6aGenerics - WiredBrainCoffeeStorageApp\obj\Debug\net6.0\6cGenerics - WiredBrainCoffeeStorageApp.dll
+D:\Visual Studio Projects\6cGenerics - WiredBrainCoffeeStorageApp\6aGenerics - WiredBrainCoffeeStorageApp\obj\Debug\net6.0\refint\6cGenerics - WiredBrainCoffeeStorageApp.dll
+D:\Visual Studio Projects\6cGenerics - WiredBrainCoffeeStorageApp\6aGenerics - WiredBrainCoffeeStorageApp\obj\Debug\net6.0\6cGenerics - WiredBrainCoffeeStorageApp.pdb
+D:\Visual Studio Projects\6cGenerics - WiredBrainCoffeeStorageApp\6aGenerics - WiredBrainCoffeeStorageApp\obj\Debug\net6.0\6cGenerics - WiredBrainCoffeeStorageApp.genruntimeconfig.cache
+D:\Visual Studio Projects\6cGenerics - WiredBrainCoffeeStorageApp\6aGenerics - WiredBrainCoffeeStorageApp\obj\Debug\net6.0\ref\6cGenerics - WiredBrainCoffeeStorageApp.dll
