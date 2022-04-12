@@ -30,7 +30,7 @@
             var classroomCourse = new CourseRecord("Working with C# Records", "Roland Guijit");
 
             // a record instance is immutable, we can't change the properties of a record after it has been instantiated
-            classroomCourse.Name = "Another name";
+            //classroomCourse.Name = "Another name";
         }
 
         static void PrintCourse(Course course)
