@@ -1,0 +1,15 @@
+C:\pluralsight-learning\7Records\7Records\bin\Debug\net6.0\7Records.exe
+C:\pluralsight-learning\7Records\7Records\bin\Debug\net6.0\7Records.deps.json
+C:\pluralsight-learning\7Records\7Records\bin\Debug\net6.0\7Records.runtimeconfig.json
+C:\pluralsight-learning\7Records\7Records\bin\Debug\net6.0\7Records.dll
+C:\pluralsight-learning\7Records\7Records\bin\Debug\net6.0\7Records.pdb
+C:\pluralsight-learning\7Records\7Records\obj\Debug\net6.0\7Records.csproj.AssemblyReference.cache
+C:\pluralsight-learning\7Records\7Records\obj\Debug\net6.0\7Records.GeneratedMSBuildEditorConfig.editorconfig
+C:\pluralsight-learning\7Records\7Records\obj\Debug\net6.0\7Records.AssemblyInfoInputs.cache
+C:\pluralsight-learning\7Records\7Records\obj\Debug\net6.0\7Records.AssemblyInfo.cs
+C:\pluralsight-learning\7Records\7Records\obj\Debug\net6.0\7Records.csproj.CoreCompileInputs.cache
+C:\pluralsight-learning\7Records\7Records\obj\Debug\net6.0\7Records.dll
+C:\pluralsight-learning\7Records\7Records\obj\Debug\net6.0\refint\7Records.dll
+C:\pluralsight-learning\7Records\7Records\obj\Debug\net6.0\7Records.pdb
+C:\pluralsight-learning\7Records\7Records\obj\Debug\net6.0\7Records.genruntimeconfig.cache
+C:\pluralsight-learning\7Records\7Records\obj\Debug\net6.0\ref\7Records.dll
