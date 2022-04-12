@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\CatalinCatrina\\source\\repos\\6bGenerics - WiredBrainCoffeeStorageApp\\6aGenerics - WiredBrainCoffeeStorageApp\\6bGenerics - WiredBrainCoffeeStorageApp.csproj": {}
+    "C:\\pluralsight-learning\\6bGenerics - WiredBrainCoffeeStorageApp\\6aGenerics - WiredBrainCoffeeStorageApp\\6bGenerics - WiredBrainCoffeeStorageApp.csproj": {}
   },
   "projects": {
-    "C:\\Users\\CatalinCatrina\\source\\repos\\6bGenerics - WiredBrainCoffeeStorageApp\\6aGenerics - WiredBrainCoffeeStorageApp\\6bGenerics - WiredBrainCoffeeStorageApp.csproj": {
+    "C:\\pluralsight-learning\\6bGenerics - WiredBrainCoffeeStorageApp\\6aGenerics - WiredBrainCoffeeStorageApp\\6bGenerics - WiredBrainCoffeeStorageApp.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\CatalinCatrina\\source\\repos\\6bGenerics - WiredBrainCoffeeStorageApp\\6aGenerics - WiredBrainCoffeeStorageApp\\6bGenerics - WiredBrainCoffeeStorageApp.csproj",
+        "projectUniqueName": "C:\\pluralsight-learning\\6bGenerics - WiredBrainCoffeeStorageApp\\6aGenerics - WiredBrainCoffeeStorageApp\\6bGenerics - WiredBrainCoffeeStorageApp.csproj",
         "projectName": "6bGenerics - WiredBrainCoffeeStorageApp",
-        "projectPath": "C:\\Users\\CatalinCatrina\\source\\repos\\6bGenerics - WiredBrainCoffeeStorageApp\\6aGenerics - WiredBrainCoffeeStorageApp\\6bGenerics - WiredBrainCoffeeStorageApp.csproj",
+        "projectPath": "C:\\pluralsight-learning\\6bGenerics - WiredBrainCoffeeStorageApp\\6aGenerics - WiredBrainCoffeeStorageApp\\6bGenerics - WiredBrainCoffeeStorageApp.csproj",
         "packagesPath": "C:\\Users\\CatalinCatrina\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\CatalinCatrina\\source\\repos\\6bGenerics - WiredBrainCoffeeStorageApp\\6aGenerics - WiredBrainCoffeeStorageApp\\obj\\",
+        "outputPath": "C:\\pluralsight-learning\\6bGenerics - WiredBrainCoffeeStorageApp\\6aGenerics - WiredBrainCoffeeStorageApp\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\CatalinCatrina\\AppData\\Roaming\\NuGet\\NuGet.Config",

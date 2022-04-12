@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "XasFmGJ4MNH9pM2EorUAVpKXj1irKEQWiVv63NpHaqtqiAt/94ZSDTayYMR8jj948kM+xCYcRiZMTh2/yVvUzw==",
+  "dgSpecHash": "LoDXEafIKTlHatZcc1r8UG7X6W0DLrLEwZl25amoSUDu7C/0VwXN5JlRlUn/w+5aElZfYf23pU7lp0uFfono0A==",
   "success": true,
-  "projectFilePath": "C:\\Users\\CatalinCatrina\\source\\repos\\6bGenerics - WiredBrainCoffeeStorageApp\\6aGenerics - WiredBrainCoffeeStorageApp\\6bGenerics - WiredBrainCoffeeStorageApp.csproj",
+  "projectFilePath": "C:\\pluralsight-learning\\6bGenerics - WiredBrainCoffeeStorageApp\\6aGenerics - WiredBrainCoffeeStorageApp\\6bGenerics - WiredBrainCoffeeStorageApp.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\CatalinCatrina\\.nuget\\packages\\microsoft.entityframeworkcore\\6.0.3\\microsoft.entityframeworkcore.6.0.3.nupkg.sha512",
     "C:\\Users\\CatalinCatrina\\.nuget\\packages\\microsoft.entityframeworkcore.abstractions\\6.0.3\\microsoft.entityframeworkcore.abstractions.6.0.3.nupkg.sha512",
