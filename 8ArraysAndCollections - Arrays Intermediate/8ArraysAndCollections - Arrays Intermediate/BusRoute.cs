@@ -31,11 +31,12 @@
 
         public bool Serves(string? destination)
         {
-            foreach (var place in PlacesServed)
-            {
-                if (place == destination) return true;
-            }
-            return false;
+            return Array.Exists(PlacesServed, place => place == destination);
+            //foreach (var place in PlacesServed)
+            //{
+            //    if (place == destination) return true;
+            //}
+            //return false;
         }
 
         public override string ToString()
