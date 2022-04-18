@@ -17,14 +17,18 @@ namespace _10LINQ.EntityClasses
         public override string ToString()
         {
             StringBuilder sb = new StringBuilder();
+
             sb.Append(Name);
-            sb.AppendLine($"    ID: {ProductID}");
-            sb.Append($"    Color: {Color}");
-            sb.AppendLine($"    Size: {(Size ?? "n/a")}");
-            sb.Append($"    Cost: {StandardCost}");
-            sb.AppendLine($"    Price: {ListPrice}");
+            sb.AppendLine($"  ID: {ProductID}");
+            sb.Append($"   Color: {Color}");
+            sb.AppendLine($"   Size: {(Size ?? "n/a")}");
+            sb.Append($"   Cost: {StandardCost:c}");
+            sb.AppendLine($"   Price: {ListPrice:c}");
             if (NameLength.HasValue) sb.AppendLine($"   Name Length: {NameLength}");
-            if (TotalSales.HasValue) sb.AppendLine($"  Total Sales: {TotalSales}");
+
+            if (TotalSales.HasValue) sb.AppendLine($"   Total Sales: {TotalSales:c}");
+
+
             return sb.ToString();
         }
     }

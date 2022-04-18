@@ -7,12 +7,14 @@ namespace _10LINQ.ViewModelClasses
     public class SamplesViewModel
     {
         public List<Product> Products { get; set; }
+        public List<SalesOrderDetail> Sales { get; set; }
         public bool UseQuerySyntax { get; set; }
         public string ResultText { get; set; }
 
         public SamplesViewModel()
         {
             Products = ProductRepository.GetAll();
+            Sales = SalesOrderRetailRepository.GetAll();
         }
 
         // Put all products into a collection by looping
@@ -425,8 +427,12 @@ namespace _10LINQ.ViewModelClasses
                 ResultText = "Multiple elements found";
             }
 
-
             Products.Clear();
+        }
+
+        public void ForEach()
+        {
+
         }
     }
 }
