@@ -1,18 +1,16 @@
 ﻿namespace _9ExtensionMethods
 {
-    public interface IUnit
+    class Program
     {
-        double Value { get; }
-    }
-
-    public sealed class TemperatureConverter : IUnit
-    {
-        public double Value { get; }
-        public TemperatureConverter (double Value)
+        static void Main(string[] args)
         {
-            Value = Value;
-        }
+            Celsius temp = new Celsius(20);
 
-        public double ToFahrenheit() => Value * 9 / 5 + 32;
+            double fahrenheit = temp.Fahrenheit;
+            double romer = temp.Romer;
+
+            Console.WriteLine(fahrenheit);
+            Console.WriteLine(romer);
+        }
     }
 }
