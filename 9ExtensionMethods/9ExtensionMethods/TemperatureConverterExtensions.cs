@@ -17,5 +17,6 @@ namespace _9ExtensionMethods
         {
             return temperature.Value * 21 / 40 + 7.5;
         }
+
     }
 }
