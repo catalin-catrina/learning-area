@@ -8,5 +8,6 @@ namespace _9ExtensionMethods
 {
     public static class TemperatureConverterExtensions
     {
+
     }
 }
