@@ -526,7 +526,7 @@ namespace _10LINQ.ViewModelClasses
             ResultText = $"Total products: {Products.Count}";
         }
 
-        // Distinct()
+        // Distinct() selects distinct elements only
         public void Distinct()
         {
             List<string> colors;
@@ -547,6 +547,197 @@ namespace _10LINQ.ViewModelClasses
 
             Console.WriteLine($"Total colors {colors.Count}");
 
+            Products.Clear();
+        }
+
+        // All() searches all items in collection and returns true if all items match condition else false
+        // Use All() to see if all items in a collection meet a specified condition
+        public void All()
+        {
+            string search = " ";
+            bool value;
+
+            if (UseQuerySyntax)
+            {
+                value = (from prod in Products select prod).All(prod => prod.Name.Contains(search));
+            }
+            else
+            {
+                value = Products.All(prod => prod.Name.Contains(search));
+            }
+
+            ResultText = $"Do all Name properties contain a '{search}'? {value}";
+
+            Products.Clear();
+        }
+
+        // Any() searches all items in collection and returns true if any items match condition else false
+        // Use Any() to see if at least one item in a collection meets a specified condition
+        public void Any()
+        {
+            string search = "z";
+            bool value;
+
+            if (UseQuerySyntax)
+            {
+                value = (from prod in Products select prod).Any(prod => prod.Name.Contains(search));
+            }
+            else
+            {
+                value = Products.Any(prod => prod.Name.Contains(search));
+            }
+
+            ResultText = $"Does any Name property contain a '{search}'? {value}";
+
+            Products.Clear();
+        }
+
+
+        // Use the LINQ Contains operator to see if a collection contains a specific value
+        public void LINQContains()
+        {
+            List<int> numbers = new List<int> { 1, 2, 3, 4, 5 };
+            bool value;
+
+            if (UseQuerySyntax)
+            {
+                value = (from val in numbers select val).Contains(3);
+            }
+            else
+            {
+                value = numbers.Contains(3);
+            }
+
+            ResultText = $"Is the number 3 in the collection? {value}";
+
+            Products.Clear();
+        }
+
+        //  Use the LINQ Contains operator to see if a collection contains a specific object using an EqualityComparer class to perform the comparison
+        public void LINQContainsUsingComparer()
+        {
+            int search = 744;
+            bool value;
+            ProductIdComparer comparer = new ProductIdComparer();
+            Product prodtoFind = new Product { ProductID = search };
+
+            if (UseQuerySyntax)
+            {
+                value = (from prod in Products select prod).Contains(prodtoFind, comparer);
+            }
+            else
+            {
+                value = Products.Contains(prodtoFind, comparer);
+            }
+            
+            ResultText = $"Product ID: {search} is in Products Collection = {value}";
+
+            Products.Clear();
+        }
+
+        // SequenceEqual() returns true if all the items match the items in the other collection, otherwise false
+        // SequenceEqual() can compare primitives and objects but it needs to implement EqualityComparer for objects
+        // otherwise it compares their references (addresses)
+        // SequenceEqual() compares two different collections to see if they are equal
+        // When using simple data types such as int, string, a direct comparison between values is performed
+        public void SequenceEqualIntegers()
+        {
+            bool value;
+            List<int> list1 = new List<int> { 1, 2, 3, 4, 5 };
+            List<int> list2 = new List<int> { 1, 2, 3, 4, 5 };
+
+            if (UseQuerySyntax)
+            {
+                value = (from num in list1 select num).SequenceEqual(list2);
+            }
+            else
+            {
+                value = list1.SequenceEqual(list2);
+            }
+
+            if (value)
+            {
+                ResultText = "Lists are equal";
+            }
+            else
+            {
+                ResultText = "Lists are not equal";
+            }
+
+            Products.Clear();
+        }
+
+        // Use SequenceEqual to compare Object types (Product types - products)
+        // returns false because even though properties are the same, and the values, list1 and list2 are references to different objects on the heap
+        public void SequenceEqualObjects()
+        {
+            bool value;
+
+            List<Product> list1 = new List<Product> 
+            { 
+                new Product { ProductID = 1, Name = "Product 1"},
+                new Product { ProductID = 2, Name = "Product 2" } 
+            };
+
+            List<Product> list2 = new()
+            {
+                new Product { ProductID = 1, Name = "Product 1" },
+                new Product { ProductID = 2, Name = "Product 2" }
+            };
+
+            if (UseQuerySyntax)
+            {
+                value = (from item in list1 select item).SequenceEqual(list2);
+            }
+            else
+            {
+                value = list1.SequenceEqual(list2);
+            }
+
+            if (value)
+            {
+                ResultText = "Lists are equal";
+            }
+            else
+            {
+                ResultText = "Lists are not equal";
+            }
+
+            Products.Clear();
+        }
+
+        // Use an EqualityComparer class to determine if the objects are the same based on the values in properties.
+        public void SequenceEqualUsingComparer()
+        {
+            bool value;
+            ProductComparer pc = new ProductComparer(); 
+            List<Product> list1 = ProductRepository.GetAll();
+            List<Product> list2 = ProductRepository.GetAll();
+
+            // If we remove an item, or we change the value of a property of any of the Product objects, they are not equal anymore
+            //list1.RemoveAt(0);
+
+            if (UseQuerySyntax)
+            {
+                // Query Syntax
+                value = (from prod in list1 select prod).SequenceEqual(list2, pc);
+            }
+            else
+            {
+                // Method Syntax
+                value = list1.SequenceEqual(list2, pc);
+            }
+
+            if (value)
+            {
+                ResultText = "Lists are Equal";
+            }
+            else
+            {
+                ResultText = "Lists are NOT Equal";
+            }
+
+            // Clear List
             Products.Clear();
         }
     }

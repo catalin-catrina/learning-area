@@ -62,7 +62,25 @@ namespace _10LINQ
             // SkipWhile() bypasses elements in a sequence as long as a specified condition is true and then returns the remaining elements.
             //vm.SkipWhile();
             // Distinct() selects distinct elements only
-            vm.Distinct();
+            //vm.Distinct(); 
+            // All() returns true if all elements satisfy condition; otherwise false
+            //vm.All();
+            // Any() returns true if any element satisfies condition, otherwise false
+            //vm.Any();
+            // Contains() - used to check a list of primitives (ints, strings, etc)
+            //vm.LINQContains();
+            // However, when using Contains() with objects the default is to compare the objects' references
+            // But we may need to look at a value of a property in that object, so we need to implement an EqualityComparer<T> class to
+            // tell LINQ how to do the comparison (against which object and which property you wish to compare)
+            //vm.LINQContainsUsingComparer();
+            // SequenceEqual() compares two different collections to see if they are equal
+            // When using simple data types such as int, string, a direct comparison between values is performed
+            //vm.SequenceEqualIntegers();
+            // When using a collection of objects, SequenceEqual() performs a comparison to see if the two object references point to the same object
+            // unless we override the default behaviour of the Equals() method in the EqualityComparer class
+            //vm.SequenceEqualObjects(); // false because this compares references
+            // Use an EqualityComparer class to determine if the objects are the same based on the values in properties.
+            vm.SequenceEqualUsingComparer();
 
             // Display Product Collection
             foreach (var item in vm.Products)
