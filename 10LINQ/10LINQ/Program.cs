@@ -10,7 +10,7 @@ namespace _10LINQ
             SamplesViewModel vm = new SamplesViewModel
             {
                 // Use query syntax or method syntax?
-                UseQuerySyntax = false
+                UseQuerySyntax = true
             };
 
             // Select all products using a foreach loop
@@ -49,6 +49,20 @@ namespace _10LINQ
             //vm.Single();
             // The SingleOrDefault method returns the only element that matches the criteria, null if no elements matched, or an exception if multiple matched
             //vm.SingleOrDefault();
+            // ForEach allows you to iterate over a collection to perform assignments within each object.
+            //vm.ForEach();
+            // you can also call a method inside a ForEach to do the operations / assignments for you
+            //vm.ForEachCallingMethod();
+            // Use Take() to select a specified number of items from the beginning of a collection
+            //vm.Take();
+            // Use TakeWhile() until a condition is no longer true
+            //vm.TakeWhile();
+            // Skip() allows us to skip the first x items in the collection
+            //vm.Skip();
+            // SkipWhile() bypasses elements in a sequence as long as a specified condition is true and then returns the remaining elements.
+            //vm.SkipWhile();
+            // Distinct() selects distinct elements only
+            vm.Distinct();
 
             // Display Product Collection
             foreach (var item in vm.Products)

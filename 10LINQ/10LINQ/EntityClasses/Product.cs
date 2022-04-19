@@ -24,8 +24,8 @@ namespace _10LINQ.EntityClasses
             sb.AppendLine($"   Size: {(Size ?? "n/a")}");
             sb.Append($"   Cost: {StandardCost:c}");
             sb.AppendLine($"   Price: {ListPrice:c}");
-            if (NameLength.HasValue) sb.AppendLine($"   Name Length: {NameLength}");
 
+            if (NameLength.HasValue) sb.AppendLine($"   Name Length: {NameLength}");
             if (TotalSales.HasValue) sb.AppendLine($"   Total Sales: {TotalSales:c}");
 
 

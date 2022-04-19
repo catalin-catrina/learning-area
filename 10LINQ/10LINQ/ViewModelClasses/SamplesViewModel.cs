@@ -430,9 +430,125 @@ namespace _10LINQ.ViewModelClasses
             Products.Clear();
         }
 
+        // ForEach allows you to iterate over a collection to perform assignments within each object.
+        // In this sample, assign the Length of the Name property to a property called NameLength
+        // When using the Query syntax, assign the result to a temporary variable.
         public void ForEach()
         {
+            if (UseQuerySyntax)
+            {
+                Products = (from prod in Products let temp = prod.NameLength = prod.Name.Length select prod).ToList();
+            }
+            else
+            {
+                Products.ForEach(prod => prod.NameLength = prod.Name.Length);
+                // same thing as
+                //Products.Select(prod => prod).ToList().ForEach(prod => prod.NameLength = prod.Name.Length);
+            }
+            ResultText = $"Total products: {Products.Count}";
+        }
 
+        // In the SalesForSpecificProduct method we pass in a product and look for all SALES that match that PRODUCT's id
+        // then we sum the LineTotal property of all the sales that match
+        public void ForEachCallingMethod()
+        {
+            if (UseQuerySyntax)
+            {
+                Products = (from prod in Products let tmp = prod.TotalSales = SalesForSpecificProduct(prod) select prod).ToList();
+            }
+            else
+            {
+                Products.ForEach(prod => prod.TotalSales = SalesForSpecificProduct(prod));
+            }
+            ResultText = $"Total products: {Products.Count}";
+        }
+        public decimal SalesForSpecificProduct(Product prod)
+        {
+            return Sales.Where(sale => sale.ProductID == prod.ProductID).Sum(sale => sale.LineTotal);
+        }
+
+        // Use Take() to select a specified number of items from the beginning of a collection
+        public void Take()
+        {
+            if (UseQuerySyntax)
+            {
+                Products = (from prod in Products orderby prod.Name select prod).Take(5).ToList();
+            }
+            else
+            {
+                Products = Products.OrderBy(prod => prod.Name).Take(5).ToList();
+            }
+            ResultText = $"Total products: {Products.Count}";
+        }
+
+        // TakeWhile() - select elements until a condition is no longer true
+        public void TakeWhile()
+        {
+            if (UseQuerySyntax)
+            {
+                Products = (from prod in Products orderby prod.Name select prod).TakeWhile(prod => prod.Name.StartsWith("A")).ToList();
+            }
+            else
+            {
+                Products = Products.OrderBy(prod => prod.Name).TakeWhile(prod => prod.Name.StartsWith("A")).ToList();
+            }
+            ResultText = $"Total products: {Products.Count}";
+        }
+
+        // Skip() - skip the first x items in the collection
+        public void Skip()
+        {
+            if (UseQuerySyntax)
+            {
+                Products = (from prod in Products orderby prod.Name select prod).Skip(20).ToList();
+            }
+            else
+            {
+                Products = Products.OrderBy(prod => prod.Name).Skip(20).ToList();
+            }
+
+            ResultText = $"Total products: {Products.Count}";
+        }
+
+        // SkipWhile() - skip while the condition is true, and then return everything after that follows
+        // - documentation definition - Bypasses elements in a sequence as long as a specified condition is true and then returns the remaining elements.
+        public void SkipWhile()
+        {
+            if (UseQuerySyntax)
+            {
+                Products = (from prod in Products orderby prod.Name select prod).SkipWhile(prod => prod.Name.StartsWith("A")).ToList();
+            }
+            else
+            {
+                Products = Products.OrderBy(prod => prod.Name).SkipWhile(prod => prod.Name.StartsWith("A")).ToList();
+            }
+
+            ResultText = $"Total products: {Products.Count}";
+        }
+
+        // Distinct()
+        public void Distinct()
+        {
+            List<string> colors;
+
+            if (UseQuerySyntax)
+            {
+                colors = (from prod in Products select prod.Color).Distinct().ToList();
+            }
+            else
+            {
+                colors = Products.Select(prod => prod.Color).Distinct().ToList();
+            }
+
+            foreach(string color in colors)
+            {
+                Console.WriteLine($"Color: {color}");
+            }
+
+            Console.WriteLine($"Total colors {colors.Count}");
+
+            Products.Clear();
         }
     }
 }
+ 
