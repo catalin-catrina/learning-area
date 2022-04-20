@@ -107,7 +107,14 @@ namespace _10LINQ
             //vm.GroupedSubQuery();
             //vm.Count();
             //vm.CountFiltered();
-            vm.Minimum();
+            //vm.Minimum();
+            //vm.Maximum();
+            //vm.Average();
+            //vm.Sum();
+            //vm.AggregateSum();
+            //vm.AggregateCustom();
+            //vm.AggregateUsingGrouping();
+            //vm.AggregateUsingGroupingMoreEfficient();
 
             // Display Product Collection
             foreach (var item in vm.Products)

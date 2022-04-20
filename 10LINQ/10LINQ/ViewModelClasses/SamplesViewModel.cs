@@ -1367,6 +1367,7 @@ namespace _10LINQ.ViewModelClasses
             Products.Clear();
         }
 
+        // Min() returns the minimum value of a properrty in a collection
         public void Minimum()
         {
             decimal? value;
@@ -1391,6 +1392,249 @@ namespace _10LINQ.ViewModelClasses
                 ResultText = "No list prices exist";
             }
 
+            Products.Clear();
+        }
+
+        // Max() returns the minimum value of a properrty in a collection
+        public void Maximum()
+        {
+            decimal? value;
+
+            if (UseQuerySyntax)
+            {
+                value = (from prod in Products select prod.ListPrice).Max();
+                // Alternate syntax
+                //value = (from prod in Products select prod).Max(prod => prod.ListPrice);
+            }
+            else
+            {
+                value = Products.Max(prod => prod.ListPrice);
+            }
+
+            if (value.HasValue)
+            {
+                ResultText = $"Max list price: {value.Value}";
+            }
+            else
+            {
+                ResultText = $"No list prices found";
+            }
+
+            Products.Clear();
+        }
+
+        public void Average()
+        {
+            decimal? value;
+
+            if (UseQuerySyntax)
+            {
+                value = (from prod in Products select prod.ListPrice).Average();
+                //value = (from prod in Products select prod).Average(prod => prod.ListPrice);
+            }
+            else
+            {
+                value = Products.Average(prod => prod.ListPrice);
+            }
+
+            if (value.HasValue)
+            {
+                ResultText = $"Average list price: {value}";
+            }
+            else
+            {
+                ResultText = $"No list prices exist";
+            }
+
+            Console.WriteLine(value);
+            Console.WriteLine(value.Value);
+            Console.WriteLine(value == value.Value); // true
+
+            Products.Clear();
+        }
+
+        public void Sum()
+        {
+            decimal? value;
+
+            if (UseQuerySyntax)
+            {
+                value = (from prod in Products select prod.ListPrice).Sum();
+                //value = (from prod in Products select prod).Sum(prod => prod.ListPrice);
+            }
+            else
+            {
+                value = Products.Sum(prod => prod.ListPrice);
+            }
+
+            if (value.HasValue)
+            {
+                ResultText = $"Total list price: {value}";
+            }
+            else
+            {
+                ResultText = $"No list prices exist";
+            }
+
+            Products.Clear();
+        }
+
+        // Aggregate method - iterate over colelction - suply a custom method for calculating - return single value
+        public void AggregateSum()
+        {
+            decimal? value = 0;
+
+            if (UseQuerySyntax)
+            {
+                // The first parameter of the aggregate method initializez an internal variable that they create in this Aggregate method
+                // In this case we initialize it to 0 and it's a decimal
+                // The second parameter is an anonymous function to which you pass the sum (that 0 (zero) from before) and each
+                // product as it loops through, and then you perform your calculation
+                // and we do sum = sum + prod.ListPrice so we're simulating a Sum, which is already built into LINQ
+                value = (from prod in Products select prod).Aggregate(0M, (sum, prod) => sum += prod.ListPrice);
+            }
+            else
+            {
+                value = Products.Aggregate(0M, (sum, prod) => sum = sum + prod.ListPrice);
+            }
+
+            if (value.HasValue)
+            {
+                ResultText = $"Total of all list prices = {value.Value}";
+            }
+            else
+            {
+                ResultText = $"No list price found";
+            }
+
+            Products.Clear();
+        }
+
+        // Aggregate method with a custom anonymous function
+        public void AggregateCustom()
+        {
+            decimal? value = 0;
+
+            if (UseQuerySyntax)
+            {
+                // as long as you're able to express everything on one line you don't need to call a custom function
+                // but you could call a custom function here and pass in the sum and sale
+                value = (from sale in Sales select sale).Aggregate(0M, (sum, sale) => sum += (sale.OrderQty * sale.UnitPrice));
+            }
+            else
+            {
+                value = Sales.Aggregate(0M, (sum, sale) => sum += (sale.OrderQty * sale.UnitPrice));
+            }
+
+            if (value.HasValue)
+            {
+                ResultText = $"Total of all list prices = {value.Value}";
+            }
+            else
+            {
+                ResultText = "No list prices available";
+            }
+
+            Products.Clear();
+        }
+
+        // Group products then use aggregate method
+        public void AggregateUsingGrouping()
+        {
+            StringBuilder sb =new StringBuilder();
+
+            if (UseQuerySyntax)
+            {
+                // group products by size in "sizeGroup" 
+                // select a new anonymous object for which we define some properties
+                // we then take that anonymous object and put it into "result"
+                // order it by size and select that result
+                var stats = (from prod in Products
+                             group prod by prod.Size into sizeGroup
+                             where sizeGroup.Count() > 0
+                             select new
+                             {
+                                 Size = sizeGroup.Key,
+                                 TotalProducts = sizeGroup.Count(),
+                                 Max = sizeGroup.Max(s => s.ListPrice),
+                                 Min = sizeGroup.Min(s => s.ListPrice),
+                                 Average = sizeGroup.Average(s => s.ListPrice)
+                             } 
+                             into result orderby result.Size select result);
+
+                // Loop through each product statistic
+                foreach(var stat in stats)
+                {
+                    sb.AppendLine($"Size: {stat.Size} Count: { stat.TotalProducts}");
+                    sb.AppendLine($"    Min: {stat.Min}");
+                    sb.AppendLine($"    Max: {stat.Max}");
+                    sb.AppendLine($"    Average: {stat.Average}");
+                }
+            }
+            else
+            {
+                var stats = Products.GroupBy(sale => sale.Size).Where(sizeGroup => sizeGroup.Count() > 0)
+                    .Select(sizeGroup => new {
+                    Size = sizeGroup.Key,
+                    TotalProducts = sizeGroup.Count(),
+                    Max = sizeGroup.Max(s => s.ListPrice),
+                    Min = sizeGroup.Min(s => s.ListPrice),
+                    Average = sizeGroup.Average(s => s.ListPrice)
+                });
+
+                // Loop through each product statistic
+                foreach (var stat in stats)
+                {
+                    sb.AppendLine($"Size: {stat.Size} Count: { stat.TotalProducts}");
+                    sb.AppendLine($"    Min: {stat.Min}");
+                    sb.AppendLine($"    Max: {stat.Max}");
+                    sb.AppendLine($"    Average: {stat.Average}");
+                }
+            }
+            ResultText = sb.ToString();
+            Products.Clear();
+        }
+
+        // A more efficient way of doing the same grouping and aggregation as before
+        // We'll create our own class to hold accumulators, create one property for each count, min, max etc
+        // We'll still use Aggregate() but we're going to only loop over the data one time to gather statistics
+        // In the anonymous class above we kept using sizeGroup.Min, sizeGroup.Max, so that means it had to loop over
+        // that group of products in that grouping to actually gather each individual statistic
+        // Now we're just going to do it a single time for each product that we come to
+        public void AggregateUsingGroupingMoreEfficient()
+        {
+            StringBuilder sb = new StringBuilder();
+
+            // Method syntax only
+            var stats = Products.GroupBy(sale => sale.Size)
+                .Where(sizegroup => sizegroup.Count() > 0)
+                .Select(sizeGroup =>
+            {
+                var results = sizeGroup.Aggregate(new ProductStats(), 
+                    (acc, prod) => acc.Accumulate(prod), 
+                    acc => acc.ComputeAverage());
+
+                return new
+                {
+                    // Remember in the last example we called Count(), Min(), Max() and Average() for each property
+                    // Now, the values have already been calculated. This is why this is more efficient
+                    Size = sizeGroup.Key,
+                    results.TotalProducts,
+                    results.Min,
+                    results.Max,
+                    results.Average
+                };
+            });
+
+            foreach (var stat in stats)
+            {
+                sb.AppendLine($"Size: {stat.Size} Count: { stat.TotalProducts}");
+                sb.AppendLine($"    Min: {stat.Min}");
+                sb.AppendLine($"    Max: {stat.Max}");
+                sb.AppendLine($"    Average: {stat.Average}");
+            }
+
+            ResultText = sb.ToString();
             Products.Clear();
         }
     }
