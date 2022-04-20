@@ -635,6 +635,11 @@ namespace _10LINQ.ViewModelClasses
             Products.Clear();
         }
 
+        /// <summary>
+        /// COMPARE COLLECTIONS - SequenceEqual(), Except(), Intersect(), Concat()
+        /// Primitive data types - automatic checking
+        /// Object data types - need a comparer class
+        /// </summary>
         // SequenceEqual() returns true if all the items match the items in the other collection, otherwise false
         // SequenceEqual() can compare primitives and objects but it needs to implement EqualityComparer for objects
         // otherwise it compares their references (addresses)
@@ -738,6 +743,654 @@ namespace _10LINQ.ViewModelClasses
             }
 
             // Clear List
+            Products.Clear();
+        }
+
+        // Except() selects everything in a collection except the items that are also in another collection
+        public void ExceptIntegers()
+        {
+            List<int> exceptions;
+            List<int> list1 = new List<int> { 1, 2, 3, 4 };
+            List<int> list2 = new List<int> { 3, 4, 5 };
+
+            if (UseQuerySyntax)
+            {
+                exceptions = (from item in list1 select item).Except(list2).ToList();
+            }
+            else
+            {
+                exceptions = list1.Except(list2).ToList();
+            }
+
+            foreach (var item in exceptions)
+            {
+                ResultText = ResultText + $"Number: {item} {Environment.NewLine}";
+            }
+
+            Products.Clear();
+        }
+
+        // Except() with objects - again by default it compares objects' references, so we implemented EqualityComparer to compare property values
+        // Except() selects everything in a collection that's not in another
+        public void Except()
+        {
+            ProductComparer pc = new ProductComparer();
+            List<Product> list1 = ProductRepository.GetAll();
+            List<Product> list2 = ProductRepository.GetAll();
+
+            list2.RemoveAll(prod => prod.Color == "Black");
+
+            if (UseQuerySyntax)
+            {
+                Products = (from prod in list1 select prod).Except(list2, pc).ToList();
+            }
+            else
+            {
+                Products = list1.Except(list2, pc).ToList();
+            }
+
+            ResultText = $"Results count: {Products.Count}";
+        }
+
+        // Intersect() selects everything that's in both collections
+        public void Intersect()
+        {
+            ProductComparer pc = new ProductComparer();
+            List<Product> list1 = ProductRepository.GetAll();
+            List<Product> list2 = ProductRepository.GetAll();
+
+            list1.RemoveAll(prod => prod.Color == "Black");
+            list2.RemoveAll(prod => prod.Color == "Red");
+
+            if (UseQuerySyntax)
+            {
+                Products = (from prod in list1 select prod).Intersect(list2, pc).ToList();
+            }
+            else
+            {
+                Products = list1.Intersect(list2, pc).ToList();
+            }
+
+            ResultText = $"Results count: {Products.Count}";
+        }
+
+        // Union() adds two collections together but it checks for duplicates so it needs an EqualityComparer implementation
+        public void Union()
+        {
+            ProductComparer pc = new ProductComparer();
+            List<Product> list1 = ProductRepository.GetAll();
+            List<Product> list2 = ProductRepository.GetAll();
+
+            if (UseQuerySyntax)
+            {
+                Products = (from prod in list1 select prod).Union(list2, pc).OrderBy(prod => prod.Name).ToList();
+            }
+            else
+            {
+                Products = list1.Union(list2, pc).OrderBy(prod => prod.Name).ToList();
+            }
+
+            ResultText = $"Results count: {Products.Count}";
+        }
+
+        // Concat() adds two collections together without checking for duplicates, so it doesn't need an EqualityComparer implementation
+        public void Concat()
+        {
+            List<Product> list1 = ProductRepository.GetAll();
+            List<Product> list2 = ProductRepository.GetAll();
+
+            if (UseQuerySyntax)
+            {
+                Products = (from prod in list1 select prod).Concat(list2).ToList();
+            }
+            else
+            {
+                Products = list1.Concat(list2).ToList();
+            }
+
+            ResultText = $"Results count: {Products.Count}";
+        }
+
+        /// <summary>
+        /// JOINING COLLECTIONS - Inner joins, group joins and left outer joins
+        /// </summary>
+        // Equijoin / Inner Join (in SQL) - Two or more collections needed - at least one property in each must share equal values
+        // Inner join with one field
+        public void InnerJoin()
+        {
+            StringBuilder sb = new StringBuilder();
+            int count = 0;
+
+            if (UseQuerySyntax)
+            {
+                var query = (from prod in Products
+                             join sale in Sales on prod.ProductID equals sale.ProductID
+                             select new
+                             {
+                                 prod.ProductID,
+                                 prod.Name,
+                                 prod.Color,
+                                 prod.StandardCost,
+                                 prod.ListPrice,
+                                 prod.Size,
+                                 sale.SalesOrderID,
+                                 sale.OrderQty,
+                                 sale.UnitPrice,
+                                 sale.LineTotal
+                             });
+
+                foreach (var item in query)
+                {
+                    count++;
+                    sb.AppendLine($"Sales Order: {item.SalesOrderID}");
+                    sb.AppendLine($"    Product ID: {item.ProductID}");
+                    sb.AppendLine($"    Product name: {item.Name}");
+                    sb.AppendLine($"    Size: {item.Size}");
+                    sb.AppendLine($"    Order qty: {item.OrderQty}");
+                    sb.AppendLine($"    Line total: {item.LineTotal}");
+                }
+            }
+            else
+            {
+                var query = Products.Join(Sales, prod => prod.ProductID, sale => sale.ProductID, (prod, sale) => new
+                {
+                    prod.ProductID,
+                    prod.Name,
+                    prod.Color,
+                    prod.StandardCost,
+                    prod.ListPrice,
+                    prod.Size,
+                    sale.SalesOrderID,
+                    sale.OrderQty,
+                    sale.UnitPrice,
+                    sale.LineTotal
+                });
+
+                foreach (var item in query)
+                {
+                    count++;
+                    sb.AppendLine($"Sales Order: {item.SalesOrderID}");
+                    sb.AppendLine($"    Product ID: {item.ProductID}");
+                    sb.AppendLine($"    Product name: {item.Name}");
+                    sb.AppendLine($"    Size: {item.Size}");
+                    sb.AppendLine($"    Order qty: {item.OrderQty}");
+                    sb.AppendLine($"    Line total: {item.LineTotal}");
+                }
+            }
+
+            ResultText = $"{sb} {Environment.NewLine} Total sales: {count}";
+            
+            Products.Clear();
+        }
+
+        // Inner join with two fields
+        // When we want to join on more than one property, we create an anonymous class (new { })
+        public void InnerJoinTwoFields()
+        {
+            short qty = 6;
+            int count = 0;
+
+            StringBuilder sb = new StringBuilder();
+
+            if (UseQuerySyntax)
+            {
+                var query = (from prod in Products join sale in Sales on 
+                             new { prod.ProductID, Qty = qty } equals new { sale.ProductID, Qty = sale.OrderQty } 
+                             select new 
+                             {
+                                 prod.ProductID,
+                                 prod.Name,
+                                 prod.Color,
+                                 prod.StandardCost,
+                                 prod.ListPrice,
+                                 prod.Size,
+                                 sale.SalesOrderID,
+                                 sale.OrderQty,
+                                 sale.UnitPrice,
+                                 sale.LineTotal
+                             });
+
+                foreach (var item in query)
+                {
+                    count++;
+                    sb.AppendLine($"Sales Order: {item.SalesOrderID}");
+                    sb.AppendLine($"    Product ID: {item.ProductID}");
+                    sb.AppendLine($"    Product name: {item.Name}");
+                    sb.AppendLine($"    Size: {item.Size}");
+                    sb.AppendLine($"    Order qty: {item.OrderQty}");
+                    sb.AppendLine($"    Line total: {item.LineTotal}");
+                }
+            }
+            else
+            {
+                var query = Products.Join(Sales,
+                    prod => new {prod.ProductID, Qty = qty}, 
+                    sale => new {sale.ProductID, Qty = sale.OrderQty},
+                    (prod, sale) => new
+                    {
+                        prod.ProductID,
+                        prod.Name,
+                        prod.Color,
+                        prod.StandardCost,
+                        prod.ListPrice,
+                        prod.Size,
+                        sale.SalesOrderID,
+                        sale.OrderQty,
+                        sale.UnitPrice,
+                        sale.LineTotal
+                    });
+
+                foreach (var item in query)
+                {
+                    count++;
+                    sb.AppendLine($"Sales Order: {item.SalesOrderID}");
+                    sb.AppendLine($"    Product ID: {item.ProductID}");
+                    sb.AppendLine($"    Product name: {item.Name}");
+                    sb.AppendLine($"    Size: {item.Size}");
+                    sb.AppendLine($"    Order qty: {item.OrderQty}");
+                    sb.AppendLine($"    Line total: {item.LineTotal}");
+                }
+            }
+
+            ResultText = $"{sb} {Environment.NewLine} Total sales: {count}";
+
+            Products.Clear();
+        }
+
+        // Group join - create new object with Sales collection for each Product - one to many type relationship
+        // Query syntax uses 'join' and 'into' keywords, method syntax used GroupJoin()
+        public void GroupJoin()
+        {
+            StringBuilder sb= new StringBuilder();
+            IEnumerable<ProductSales> query;
+
+            if (UseQuerySyntax)
+            {
+                query = (from prod in Products
+                         join sale in Sales on prod.ProductID equals sale.ProductID into sales
+                         select new ProductSales
+                         {
+                             Product = prod,
+                             Sales = sales
+                         });
+            }
+            else
+            {
+                query = Products.GroupJoin(Sales, prod => prod.ProductID, sale => sale.ProductID, (prod, sales) => new ProductSales
+                {
+                    Product = prod,
+                    Sales = sales.ToList()
+                });
+            }
+
+            foreach (var ps in query)
+            {
+                sb.AppendLine($"Product: {ps.Product}");
+                if (ps.Sales.Count() > 0)
+                {
+                    sb.AppendLine($"    **SALES FOR {ps.Product.Name}");
+                    foreach (var sale in ps.Sales)
+                    {
+                        sb.AppendLine($"    SalesOrderID: {sale.SalesOrderID}");
+                        sb.AppendLine($"    Qty: {sale.OrderQty}");
+                        sb.AppendLine($"    Total: {sale.LineTotal}");
+                    }
+                }
+                else
+                {
+                    sb.AppendLine($"No sales for product {ps.Product.Name}");
+                }
+                sb.AppendLine();
+            }
+
+            ResultText = sb.ToString();
+
+            Products.Clear();
+        }
+
+        // Left outer join (technically there is no such thing as LINQ but we can simulate one)
+        // let's say we want to see all products and then IF there are sales we want to write them out otherwise no values printed for that product
+        // inner join using 'into' and a second 'from' statement. a null object may be returned for "right" collection, so we use 
+        // DefaultIfEmpty() method for "right" collection (which returns am empty object for the right side - Sales in our case)
+        // The method syntax uses SelectMany(), Where() and DefaultIfEmpty()
+        public void LeftOuterJoin()
+        {
+            StringBuilder sb = new StringBuilder();
+            int count = 0;
+
+            if (UseQuerySyntax)
+            {
+                // join Products and Sales on prod.ProductID == sale.ProductID and put everything into sales (which is an anonymous variable
+                // that we can name however we want). We then say fr
+                // we say sales.DefaultIfEmpty() because if there are no sales for a particular product, give us a default empty SalesOrderDetail object
+                // There is always gonna be a prod in Products because it's on the left side of the join,
+                // but the Sales might be empty so we use "?" after a variable name (null-conditional operator), which only retrieves the value
+                // from the variable if it is non-null
+                var query = (from prod in Products join sale in Sales on prod.ProductID equals sale.ProductID into sales 
+                             from sale in sales.DefaultIfEmpty() select new
+                             {
+                                 prod.ProductID,
+                                 prod.Name,
+                                 prod.Color,
+                                 prod.StandardCost,
+                                 prod.ListPrice,
+                                 prod.Size,
+                                 sale?.SalesOrderID,
+                                 sale?.OrderQty,
+                                 sale?.UnitPrice,
+                                 sale?.LineTotal
+                             }).OrderBy(ps => ps.Name);
+
+                foreach (var item in query)
+                {
+                    count++;
+                    sb.AppendLine($"Product Name: {item.Name} ({item.ProductID})");
+                    sb.AppendLine($"    Order ID: {item.SalesOrderID}");
+                    sb.AppendLine($"    Size: {item.Size}");
+                    sb.AppendLine($"    Order Qty: {item.OrderQty}");
+                    sb.AppendLine($"    Total: {item.LineTotal}");
+                }
+            }
+            else {
+                // The first parameter to SelectMany() is the sales data matched in with the product data on the ProductID
+                // if there are Sales for that specific Product, each Product and each Sale object is passed onto the
+                // second parameter - (prod,sale) => new {etc}, which is a function that accepts two values: in our case "prod" and "sale"
+                // So the SelectMany() will then create this anonymous class from the Product and the Sale data
+                var query = Products.SelectMany(sale => Sales.Where(s => sale.ProductID == s.ProductID).DefaultIfEmpty(), 
+                    (prod, sale) => new
+                    {
+                        prod.ProductID,
+                        prod.Name,
+                        prod.Color,
+                        prod.StandardCost,
+                        prod.ListPrice,
+                        prod.Size,
+                        sale?.SalesOrderID,
+                        sale?.OrderQty,
+                        sale?.UnitPrice,
+                        sale?.LineTotal
+                    }).OrderBy(ps => ps.Name);
+
+                foreach (var item in query)
+                {
+                    count++;
+                    sb.AppendLine($"Product Name: {item.Name} ({item.ProductID})");
+                    sb.AppendLine($"    Order ID: {item.SalesOrderID}");
+                    sb.AppendLine($"    Size: {item.Size}");
+                    sb.AppendLine($"    Order Qty: {item.OrderQty}");
+                    sb.AppendLine($"    Total: {item.LineTotal}");
+                }
+            }
+
+            Console.WriteLine(sb.ToString());
+
+            Products.Clear();
+        }
+
+        /// <summary>
+        ///  Creating groups of data using GroupBy
+        ///  group by creates a one-to-many structure
+        ///  order by is optional and can order before grouping or after
+        ///  we can filter grouped data using the where expression
+        ///  we can build our own grouped subquery
+        /// </summary>
+        // 
+        public void GroupBy()
+        {
+            StringBuilder sb = new StringBuilder();
+            // IGrouping<key, T>
+            IEnumerable<IGrouping<string, Product>> query;
+
+            if (UseQuerySyntax)
+            {
+                // the orderby is optional, add if you want the resulting group to be ordered
+                query = (from prod in Products orderby prod.Size group prod by prod.Size);
+            }
+            else
+            {
+                query = Products.OrderBy(prod => prod.Size).GroupBy(prod => prod.Size);
+            }
+
+            // loop through the keys (in this case the size)
+            foreach (var item in query)
+            {
+                // the value in the "key" property is whatever data you grouped upon
+                sb.AppendLine($"Size: {item.Key} Count: {item.Count()}");
+
+                // loop through the products in each size
+                foreach (var prod in item)
+                {
+                    sb.Append($"    ProductID: {prod.ProductID}");
+                    sb.Append($"    Name: {prod.Name}");
+                    sb.AppendLine($"    Color: {prod.Color}");
+                }
+            }
+
+            ResultText = sb.ToString();
+
+            Products.Clear();
+        }
+
+        // Group by using "into" and "select" and order by "Key" property
+        public void GroupByIntoSelect()
+        {
+            StringBuilder sb = new StringBuilder();
+            IEnumerable<IGrouping<string, Product>> group;
+
+            if (UseQuerySyntax)
+            {
+                group = (from prod in Products orderby prod.Size group prod by prod.Size into sizes select sizes);
+            }
+            else
+            {
+                group = Products.OrderBy(prod => prod.Size).GroupBy(prod => prod.Size);
+            }
+
+            foreach (var size in group)
+            {
+                sb.AppendLine($"Size: {size.Key} Count: {size.Count()}");
+                foreach (var prod in size)
+                {
+                    sb.Append($"    ProductID: {prod.ProductID}");
+                    sb.Append($"    Name: {prod.Name}");
+                    sb.AppendLine($"    Color: {prod.Color}");
+                }
+            }
+
+            ResultText = sb.ToString();
+
+            Products.Clear();
+        }
+
+        // orderby can either order the data first then grouping, or after you grouped order by your key-value
+        public void GroupByOrderKey()
+        {
+            StringBuilder sb = new StringBuilder();
+            IEnumerable<IGrouping<string, Product>> group;
+
+            if (UseQuerySyntax)
+            {
+                // if you want to do the ordering on the key that you get back from the grouping, you need to use the "into" 
+                group = (from prod in Products group prod by prod.Size into sizes orderby sizes.Key select sizes);
+            }
+            else
+            {
+                group = Products.GroupBy(prod => prod.Size).OrderBy(sizes => sizes.Key).Select(sizes => sizes);
+            }
+
+            foreach (var size in group)
+            {
+                sb.AppendLine($"Size: {size.Key} Count: {size.Count()}");
+                foreach (var prod in size)
+                {
+                    sb.Append($"    ProductID: {prod.ProductID}");
+                    sb.Append($"    Name: {prod.Name}");
+                    sb.AppendLine($"    Color: {prod.Color}");
+                }
+            }
+
+            ResultText = sb.ToString();
+
+            Products.Clear();
+        }
+
+        // Filter the Grouped results using where expresison
+        public void GroupByWhere()
+        {
+            StringBuilder sb = new StringBuilder();
+            IEnumerable<IGrouping<string, Product>> sizeGroup;
+
+            if (UseQuerySyntax)
+            {
+                sizeGroup = (from prod in Products group prod by prod.Size into sizes where sizes.Count() > 2 select sizes);
+            }
+            else
+            {
+                sizeGroup = Products.GroupBy(prod => prod.Size).Where(sizes => sizes.Count() > 2).Select(sizes => sizes);
+            }
+
+            foreach (var size in sizeGroup)
+            {
+                sb.AppendLine($"Size: {size.Key} Count: {size.Count()}");
+                foreach (var prod in size)
+                {
+                    sb.Append($"    ProductID: {prod.ProductID}");
+                    sb.Append($"    Name: {prod.Name}");
+                    sb.AppendLine($"    Color: {prod.Color}");
+                }
+            }
+
+            ResultText = sb.ToString();
+
+            Products.Clear();
+        }
+
+        // Creating a one-to-many structure using a subquery
+        // create a collection of Products for a Sale - Similar to the GroupJoin() - add another query within select
+        public void GroupedSubQuery()
+        {
+            StringBuilder sb = new StringBuilder();
+            IEnumerable<SaleProducts> salesGroup;
+
+            // Get all products for a sales order id
+            if (UseQuerySyntax)
+            {
+                salesGroup = (from sale in Sales
+                              group sale by sale.SalesOrderID into sales
+                              select new SaleProducts
+                              {
+                                  SalesOrderID = sales.Key,
+                                  Products = (from prod in Products
+                                              join sale in Sales on prod.ProductID equals sale.ProductID
+                                              where sale.SalesOrderID == sales.Key
+                                              select prod).ToList()
+                              });
+            }
+            else
+            {
+                salesGroup = Sales.GroupBy(sale => sale.SalesOrderID).Select(sales => new SaleProducts
+                {
+                    SalesOrderID = sales.Key,
+                    Products = Products.Join(sales, prod => prod.ProductID, sale => sale.ProductID, (prod, sale) => prod).ToList()
+                });
+            }
+
+            foreach (var sale in salesGroup)
+            {
+                sb.AppendLine($"Sales ID: {sale.SalesOrderID}");
+
+                if (sale.Products.Count > 0)
+                {
+                    // Loop through the products in each sale
+                    foreach (var prod in sale.Products)
+                    {
+                        sb.Append($"    ProductID: {prod.ProductID}");
+                        sb.Append($"    Name: {prod.Name}");
+                        sb.AppendLine($"    Color: {prod.Color}");
+                    }
+                }
+                else
+                {
+                    sb.AppendLine("     Product ID not found for this sale");
+                }
+            }
+
+            ResultText = sb.ToString();
+
+            Products.Clear();
+        }
+
+        /// <summary>
+        /// Aggregating data in collections
+        /// Use aggregate functions: Count, Min, Max, Average and Sum
+        /// Use Aggregate() - building your own type of count, min, max, average and sum
+        /// Aggregate by a group of data
+        /// More efficient aggregation
+        /// 
+        /// Aggregate functions calculate a single value from property in collections - method applied after every query
+        /// </summary>
+        // Count and Count using a filter
+        public void Count()
+        {
+            int value;
+            if (UseQuerySyntax)
+            {
+                value = (from prod in Products select prod).Count();
+            }
+            else
+            {
+                value = Products.Count();
+            }
+            ResultText = $"Total products: {value}";
+            Products.Clear();
+        }
+
+        public void CountFiltered()
+        {
+            int value;
+            string filter = "Red";
+
+            if (UseQuerySyntax)
+            {
+                value = (from prod in Products select prod).Count(prod => prod.Color == filter);
+                // same thing as
+                //value = (from prod in Products where prod.Color == filter).Count();
+            }
+            else
+            {
+                value = Products.Count(prod => prod.Color == filter);
+                // same thing as
+                //Products.Where(prod => prod.Color == filter).Count();
+            }
+
+            ResultText = $"Total products with a color of red: {value}";
+            Products.Clear();
+        }
+
+        public void Minimum()
+        {
+            decimal? value;
+            
+            if (UseQuerySyntax)
+            {
+                value = (from prod in Products select prod.ListPrice).Min();
+                // Alternate syntax
+                //value = (from prod in Products select prod).Min(prod => prod.ListPrice);
+            }
+            else
+            {
+                value = Products.Min(prod => prod.ListPrice);
+            }
+
+            if (value.HasValue)
+            {
+                ResultText = $"Minimum List Price: {value.Value}";
+            } 
+            else
+            {
+                ResultText = "No list prices exist";
+            }
+
             Products.Clear();
         }
     }

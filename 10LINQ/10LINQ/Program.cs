@@ -10,7 +10,7 @@ namespace _10LINQ
             SamplesViewModel vm = new SamplesViewModel
             {
                 // Use query syntax or method syntax?
-                UseQuerySyntax = true
+                UseQuerySyntax = false
             };
 
             // Select all products using a foreach loop
@@ -80,7 +80,34 @@ namespace _10LINQ
             // unless we override the default behaviour of the Equals() method in the EqualityComparer class
             //vm.SequenceEqualObjects(); // false because this compares references
             // Use an EqualityComparer class to determine if the objects are the same based on the values in properties.
-            vm.SequenceEqualUsingComparer();
+            //vm.SequenceEqualUsingComparer();
+            // Except() selects everything in x that's not in y
+            //vm.ExceptIntegers();
+            // Except() needs an implementation of EqualityComparer for objects - by default it compares references but we want it to compare property values
+            //vm.Except();
+            // Intersect() selects values that are in both collections
+            //vm.Intersect();
+            // Union() puts together two collections but checks for duplicates
+            //vm.Union();
+            // Concat() puts together two collections but doesn't check for duplicates so it doesn't need an EqualityComparer implementation
+            //vm.Concat();
+            // InnerJoin (equijoin) with one field
+            //vm.InnerJoin();
+            // Inner join with two fields
+            //vm.InnerJoinTwoFields();
+            // Group join - create new object with Sales collection for each Product
+            // Query syntax uses 'join' and 'into' keywords, method syntax used GroupJoin()
+            //vm.GroupJoin();
+            // Left outer join (technically there is no such thing as LINQ but we can simulate one)
+            //vm.LeftOuterJoin();
+            //vm.GroupBy();
+            //vm.GroupByIntoSelect();
+            //vm.GroupByOrderKey();
+            //vm.GroupByWhere();
+            //vm.GroupedSubQuery();
+            //vm.Count();
+            //vm.CountFiltered();
+            vm.Minimum();
 
             // Display Product Collection
             foreach (var item in vm.Products)
