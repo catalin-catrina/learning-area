@@ -115,6 +115,12 @@ namespace _10LINQ
             //vm.AggregateCustom();
             //vm.AggregateUsingGrouping();
             //vm.AggregateUsingGroupingMoreEfficient();
+            //vm.DeferredExecution();
+            //vm.DeferredExecutionWithExtensionMethod();
+            //vm.DeferredExecutionWithNonStreamingExtensionMethodVsWhere();
+            //vm.DeferredExecutionWithStreamingExtensionMethod();
+            //vm.DeferredExecutionWithStreamingExtensionMethodStreamingOperation();
+            //vm.DeferredExecutionWithStreamingExtensionMethodNonStreamingOperation();
 
             // Display Product Collection
             foreach (var item in vm.Products)

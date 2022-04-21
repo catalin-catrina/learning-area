@@ -11,17 +11,20 @@ namespace _10LINQ.ViewModelClasses
         public bool UseQuerySyntax { get; set; }
         public string ResultText { get; set; }
 
+        public List<ProductLastModule> ProductsLastModule { get; set; } // for module 11 only
+
         public SamplesViewModel()
         {
             Products = ProductRepository.GetAll();
             Sales = SalesOrderRetailRepository.GetAll();
+            ProductsLastModule = ProductRepositoryLastModule.GetAll();
         }
 
         // Put all products into a collection by looping
         public void GetAllLooping()
         {
             List<Product> list = new List<Product>();
-            foreach(Product item in Products)
+            foreach (Product item in Products)
             {
                 list.Add(item);
             }
@@ -61,13 +64,13 @@ namespace _10LINQ.ViewModelClasses
                 // Query Syntax
                 list.AddRange(from prod in Products select prod.Name);
             }
-            else 
+            else
             {
                 // Method syntax
                 list.AddRange(Products.Select(prod => prod.Name));
             }
 
-            foreach(string item in list)
+            foreach (string item in list)
             {
                 sb.AppendLine(item);
             }
@@ -108,12 +111,12 @@ namespace _10LINQ.ViewModelClasses
             {
                 // Query syntax
                 var products = (from prod in Products
-                                          select new
-                                          {
-                                              Identifier = prod.ProductID,
-                                              ProductName = prod.Name,
-                                              ProductSize = prod.Size
-                                          });
+                                select new
+                                {
+                                    Identifier = prod.ProductID,
+                                    ProductName = prod.Name,
+                                    ProductSize = prod.Size
+                                });
 
                 // Loop through anonymous class
                 foreach (var prod in products)
@@ -540,7 +543,7 @@ namespace _10LINQ.ViewModelClasses
                 colors = Products.Select(prod => prod.Color).Distinct().ToList();
             }
 
-            foreach(string color in colors)
+            foreach (string color in colors)
             {
                 Console.WriteLine($"Color: {color}");
             }
@@ -629,7 +632,7 @@ namespace _10LINQ.ViewModelClasses
             {
                 value = Products.Contains(prodtoFind, comparer);
             }
-            
+
             ResultText = $"Product ID: {search} is in Products Collection = {value}";
 
             Products.Clear();
@@ -678,10 +681,10 @@ namespace _10LINQ.ViewModelClasses
         {
             bool value;
 
-            List<Product> list1 = new List<Product> 
-            { 
+            List<Product> list1 = new List<Product>
+            {
                 new Product { ProductID = 1, Name = "Product 1"},
-                new Product { ProductID = 2, Name = "Product 2" } 
+                new Product { ProductID = 2, Name = "Product 2" }
             };
 
             List<Product> list2 = new()
@@ -715,7 +718,7 @@ namespace _10LINQ.ViewModelClasses
         public void SequenceEqualUsingComparer()
         {
             bool value;
-            ProductComparer pc = new ProductComparer(); 
+            ProductComparer pc = new ProductComparer();
             List<Product> list1 = ProductRepository.GetAll();
             List<Product> list2 = ProductRepository.GetAll();
 
@@ -919,7 +922,7 @@ namespace _10LINQ.ViewModelClasses
             }
 
             ResultText = $"{sb} {Environment.NewLine} Total sales: {count}";
-            
+
             Products.Clear();
         }
 
@@ -934,9 +937,9 @@ namespace _10LINQ.ViewModelClasses
 
             if (UseQuerySyntax)
             {
-                var query = (from prod in Products join sale in Sales on 
-                             new { prod.ProductID, Qty = qty } equals new { sale.ProductID, Qty = sale.OrderQty } 
-                             select new 
+                var query = (from prod in Products join sale in Sales on
+                             new { prod.ProductID, Qty = qty } equals new { sale.ProductID, Qty = sale.OrderQty }
+                             select new
                              {
                                  prod.ProductID,
                                  prod.Name,
@@ -964,8 +967,8 @@ namespace _10LINQ.ViewModelClasses
             else
             {
                 var query = Products.Join(Sales,
-                    prod => new {prod.ProductID, Qty = qty}, 
-                    sale => new {sale.ProductID, Qty = sale.OrderQty},
+                    prod => new { prod.ProductID, Qty = qty },
+                    sale => new { sale.ProductID, Qty = sale.OrderQty },
                     (prod, sale) => new
                     {
                         prod.ProductID,
@@ -1001,7 +1004,7 @@ namespace _10LINQ.ViewModelClasses
         // Query syntax uses 'join' and 'into' keywords, method syntax used GroupJoin()
         public void GroupJoin()
         {
-            StringBuilder sb= new StringBuilder();
+            StringBuilder sb = new StringBuilder();
             IEnumerable<ProductSales> query;
 
             if (UseQuerySyntax)
@@ -1066,7 +1069,7 @@ namespace _10LINQ.ViewModelClasses
                 // There is always gonna be a prod in Products because it's on the left side of the join,
                 // but the Sales might be empty so we use "?" after a variable name (null-conditional operator), which only retrieves the value
                 // from the variable if it is non-null
-                var query = (from prod in Products join sale in Sales on prod.ProductID equals sale.ProductID into sales 
+                var query = (from prod in Products join sale in Sales on prod.ProductID equals sale.ProductID into sales
                              from sale in sales.DefaultIfEmpty() select new
                              {
                                  prod.ProductID,
@@ -1096,7 +1099,7 @@ namespace _10LINQ.ViewModelClasses
                 // if there are Sales for that specific Product, each Product and each Sale object is passed onto the
                 // second parameter - (prod,sale) => new {etc}, which is a function that accepts two values: in our case "prod" and "sale"
                 // So the SelectMany() will then create this anonymous class from the Product and the Sale data
-                var query = Products.SelectMany(sale => Sales.Where(s => sale.ProductID == s.ProductID).DefaultIfEmpty(), 
+                var query = Products.SelectMany(sale => Sales.Where(s => sale.ProductID == s.ProductID).DefaultIfEmpty(),
                     (prod, sale) => new
                     {
                         prod.ProductID,
@@ -1319,7 +1322,7 @@ namespace _10LINQ.ViewModelClasses
 
             Products.Clear();
         }
-
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         /// <summary>
         /// Aggregating data in collections
         /// Use aggregate functions: Count, Min, Max, Average and Sum
@@ -1371,7 +1374,7 @@ namespace _10LINQ.ViewModelClasses
         public void Minimum()
         {
             decimal? value;
-            
+
             if (UseQuerySyntax)
             {
                 value = (from prod in Products select prod.ListPrice).Min();
@@ -1386,7 +1389,7 @@ namespace _10LINQ.ViewModelClasses
             if (value.HasValue)
             {
                 ResultText = $"Minimum List Price: {value.Value}";
-            } 
+            }
             else
             {
                 ResultText = "No list prices exist";
@@ -1541,7 +1544,7 @@ namespace _10LINQ.ViewModelClasses
         // Group products then use aggregate method
         public void AggregateUsingGrouping()
         {
-            StringBuilder sb =new StringBuilder();
+            StringBuilder sb = new StringBuilder();
 
             if (UseQuerySyntax)
             {
@@ -1559,11 +1562,11 @@ namespace _10LINQ.ViewModelClasses
                                  Max = sizeGroup.Max(s => s.ListPrice),
                                  Min = sizeGroup.Min(s => s.ListPrice),
                                  Average = sizeGroup.Average(s => s.ListPrice)
-                             } 
+                             }
                              into result orderby result.Size select result);
 
                 // Loop through each product statistic
-                foreach(var stat in stats)
+                foreach (var stat in stats)
                 {
                     sb.AppendLine($"Size: {stat.Size} Count: { stat.TotalProducts}");
                     sb.AppendLine($"    Min: {stat.Min}");
@@ -1575,12 +1578,12 @@ namespace _10LINQ.ViewModelClasses
             {
                 var stats = Products.GroupBy(sale => sale.Size).Where(sizeGroup => sizeGroup.Count() > 0)
                     .Select(sizeGroup => new {
-                    Size = sizeGroup.Key,
-                    TotalProducts = sizeGroup.Count(),
-                    Max = sizeGroup.Max(s => s.ListPrice),
-                    Min = sizeGroup.Min(s => s.ListPrice),
-                    Average = sizeGroup.Average(s => s.ListPrice)
-                });
+                        Size = sizeGroup.Key,
+                        TotalProducts = sizeGroup.Count(),
+                        Max = sizeGroup.Max(s => s.ListPrice),
+                        Min = sizeGroup.Min(s => s.ListPrice),
+                        Average = sizeGroup.Average(s => s.ListPrice)
+                    });
 
                 // Loop through each product statistic
                 foreach (var stat in stats)
@@ -1610,8 +1613,8 @@ namespace _10LINQ.ViewModelClasses
                 .Where(sizegroup => sizegroup.Count() > 0)
                 .Select(sizeGroup =>
             {
-                var results = sizeGroup.Aggregate(new ProductStats(), 
-                    (acc, prod) => acc.Accumulate(prod), 
+                var results = sizeGroup.Aggregate(new ProductStats(),
+                    (acc, prod) => acc.Accumulate(prod),
                     acc => acc.ComputeAverage());
 
                 return new
@@ -1635,6 +1638,156 @@ namespace _10LINQ.ViewModelClasses
             }
 
             ResultText = sb.ToString();
+            Products.Clear();
+        }
+
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        /// <summary>
+        /// DEFERRED EXECUTION 
+        /// - a LINQ query is a data structure ready to execute but is not executed yet
+        /// - so query is not executed until a value is needed
+        /// - execution happens when you use a foreach(), or the Count() method, or the ToList(), OrderBy() etc.
+        /// Example:
+        /// IEnumerable<Product> query = (from prod in Products where prod.Color == "Red" select prod); // create a query (data structure)
+        /// foreach(var item in query) Console.WriteLine(item.Name); // here the query starts executing because we need it for something
+        /// 
+        /// IMMEDIATE EXECUTION
+        /// - Query is ready to executed immediately
+        /// - An operator/method that requires all items to be processed (ToList, OrderBy, etc)
+        /// Example:
+        /// // create a query (data structure) and because ToList() is applied, the query is executed immediately
+        /// IEnumerable<Product> query = (from prod in Products select prod).ToList();
+        /// 
+        /// STREAMING OPERATORS 
+        /// - Results can be returned prior to the entire collection is read
+        /// - Distinct(), GroupBy(), Join(), Select(), Skip(), Take(), Union(), Where()
+        /// - these methods can start giving us values back in a foreach even though it hasn't necessarily gone through the whole collection yet
+        /// - it's giving each one as it finds it, as we move through the list
+        /// Example:
+        /// // both Select() and Where() are deferred and streaming operations, if they weren't, then the Products collection would have
+        /// // to be looped through two times, once for the Select() and once for the Where()
+        /// var results = Products.Select(p => p).Where(p => p.Color = "Red");
+        /// 
+        /// NON-STREAMING OPERATIONS
+        /// - All data in a collection must be read before a result can be returned
+        /// - Except(), GroupBy(), GroupJoin(), Intersect(), Join(), OrderBy(), ThenBy()
+        /// </summary>
+        // Deferred execution - with foreach and with enumerator
+        const string COLOR = "Red";
+
+        public void DeferredExecution()
+        {
+            IEnumerable<ProductLastModule> query;
+
+            // Create LINQ query
+            query = ProductsLastModule.Where(prod => prod.Color == COLOR);
+
+            Console.WriteLine("");
+
+            foreach (ProductLastModule product in query)
+            {
+                Console.WriteLine(product);
+            }
+
+            // same as foreach
+            // query - being an IEnumerable, has a method called GetEnumerator(), which returns an IEnumerator that we store in the variable enumerator
+            //IEnumerator<ProductLastModule> enumerator = query.GetEnumerator();
+            //while(enumerator.MoveNext())
+            //{
+            //    Console.WriteLine(enumerator.Current.Name);
+            //}
+
+            Products.Clear();
+        }
+
+        // Creating our own "where" with a filtering extension method
+        // the filter here goes through the whole collection one time to gather each one of those items
+        // and it does so using that if predicate
+        // using FilterSimple we go through all products and then spit out those that match condition
+        public void DeferredExecutionWithExtensionMethod()
+        {
+            IEnumerable<ProductLastModule> query;
+
+            query = ProductsLastModule.FilterSimple(prod => prod.Color == COLOR);
+
+            foreach (ProductLastModule product in query)
+            {
+                Console.WriteLine(product);
+            }
+
+            Products.Clear();
+        }
+
+        public void DeferredExecutionWithNonStreamingExtensionMethodVsWhere()
+        {
+            IEnumerable<ProductLastModule> query;
+
+            // FilterSimple will go through all the items and then take 1, the first one that matches condition
+            query = ProductsLastModule.FilterSimple(prod => prod.Color == COLOR).Take(1);
+
+            // Where will take 1, the one that matches, and stop printing the rest
+            //query = ProductsLastModule.Where(prod => prod.Color == COLOR).Take(1);
+
+            foreach(ProductLastModule product in query)
+            {
+                Console.WriteLine(product);
+            }
+
+            Products.Clear();
+        }
+
+        public void DeferredExecutionWithStreamingExtensionMethod()
+        {
+            IEnumerable<ProductLastModule> query;
+
+            // FilterSimpleStreaming is now like "Where" method from Microsoft
+            query = ProductsLastModule.FilterSimpleStreaming(prod => prod.Color == COLOR);
+
+            //query = ProductsLastModule.Where(prod => prod.Color == COLOR);
+
+            foreach (ProductLastModule product in query)
+            {
+                Console.WriteLine(product);
+            }
+
+            Products.Clear();
+        }
+
+        public void DeferredExecutionWithStreamingExtensionMethodStreamingOperation()
+        {
+            IEnumerable<ProductLastModule> query;
+
+            // FilterSimpleStreaming is now like "Where" method from Microsoft
+            query = ProductsLastModule.FilterSimpleStreaming(prod => prod.Color == COLOR).Take(1);
+
+            //query = ProductsLastModule.Where(prod => prod.Color == COLOR).Take(1);
+
+            Console.WriteLine("");
+            foreach (ProductLastModule product in query)
+            {
+                Console.WriteLine(product);
+            }
+
+            Products.Clear();
+        }
+
+        public void DeferredExecutionWithStreamingExtensionMethodNonStreamingOperation()
+        {
+            IEnumerable<ProductLastModule> query;
+
+            // FilterSimpleStreaming is now like "Where" method from Microsoft
+            // Since orderby is a non-streaming operation (it needs all results to be able to order), this whole thing now becomes non-streaming
+            query = ProductsLastModule.FilterSimpleStreaming(prod => prod.Color == COLOR).OrderBy(prod => prod.Color);
+            // we can first only filter and then order to order less items though
+
+            //query = ProductsLastModule.Where(prod => prod.Color == COLOR).OrderBy(prod => prod.Color);
+
+            Console.WriteLine("");
+            foreach (ProductLastModule product in query)
+            {
+                Console.WriteLine(product);
+            }
+
             Products.Clear();
         }
     }
