@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32328.378
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "11ExceptionHandling", "11ExceptionHandling\11ExceptionHandling.csproj", "{B86E3BB1-6844-4DF9-BB4F-8E0B2A5F634B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "11ExceptionHandling.Tests.NUnit", "11ExceptionHandling.Tests.NUnit\11ExceptionHandling.Tests.NUnit.csproj", "{307AA81E-12CF-42FF-9D8C-EA60AC88CA4F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B86E3BB1-6844-4DF9-BB4F-8E0B2A5F634B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B86E3BB1-6844-4DF9-BB4F-8E0B2A5F634B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B86E3BB1-6844-4DF9-BB4F-8E0B2A5F634B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B86E3BB1-6844-4DF9-BB4F-8E0B2A5F634B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{307AA81E-12CF-42FF-9D8C-EA60AC88CA4F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{307AA81E-12CF-42FF-9D8C-EA60AC88CA4F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{307AA81E-12CF-42FF-9D8C-EA60AC88CA4F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{307AA81E-12CF-42FF-9D8C-EA60AC88CA4F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F1207C59-F4B5-40B6-827C-248F3C2ACF64}
+	EndGlobalSection
+EndGlobal
