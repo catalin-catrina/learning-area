@@ -33,15 +33,18 @@ namespace MyClassesTest
 
             WriteDescription(this.GetType());
 
-            SetGoodFileName();
-
-            if (!string.IsNullOrEmpty(_GoodFileName))
+            if (TestContext.TestName.StartsWith("AssertIsTrueAndIsFalse"))
             {
-                TestContext.WriteLine("Creating file name: " + _GoodFileName);
-                // Create the "good" file
-                File.AppendAllText(_GoodFileName, "some text");
+                SetGoodFileName();
+
+                if (!string.IsNullOrEmpty(_GoodFileName))
+                {
+                    TestContext.WriteLine("Creating file name: " + _GoodFileName);
+                    // Create the "good" file
+                    File.AppendAllText(_GoodFileName, "some text");
+                }
             }
-         
+
         }
 
         // TestCleanup() runs after each test method
