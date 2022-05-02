@@ -17,7 +17,13 @@ namespace ACM.BL
     {
         // in c#, the properties of the object default to valid values so there is no need to initialize them in the constructor
         // parameterless constructor is the default constructor
-        public Customer()
+        //public Customer()
+        //{
+
+        //}
+
+        // constructor chaining. calling the other constructor with an id of 0 when the default constructor is called
+        public Customer() : this(0)
         {
 
         }
@@ -28,6 +34,7 @@ namespace ACM.BL
         public Customer(int id)
         {
             CustomerId = id;
+            AddressList = new List<Address>();
         }
 
         // Auto-implemented property
@@ -84,6 +91,15 @@ namespace ACM.BL
         // using the static modifier on a class member denotes that the member belongs to the class itself rather than any specific instance
         public static int InstanceCount { get; set; }
 
+        // We could add two properties to the Customer class, each of type Address
+        //public Address WorkAddress { get; set; }
+        //public Address HomeAddress { get; set; }
+
+        // Alternatively, we can create a List of addresses that more easily allows for any number of related addresses
+        // Composition relationship (has a relationship) between the Customer and Address classes - established by a property
+        // we need to initialize the list in the constructor because lists don't have a good default value, if we don't initialize Lists in the constructor we will get a null value exception
+        public List<Address> AddressList { get; set; }
+
         public bool Validate()
         {
             var isValid = true;
@@ -92,23 +108,6 @@ namespace ACM.BL
             if (string.IsNullOrWhiteSpace(LastName)) isValid = false;
 
             return isValid;
-        }
-
-        // Retrieve(int customerId) is called method's signature
-        public Customer Retrieve(int customerId)
-        {
-            return new Customer();
-        }
-
-        // When two methods have the same name but different parameters its called overloading
-        public List<Customer> Retrieve()
-        {
-            return new List<Customer>();
-        }
-
-        public bool Save()
-        {
-            return true;
         }
     }
 }
