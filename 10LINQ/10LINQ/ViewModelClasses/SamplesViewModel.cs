@@ -638,11 +638,9 @@ namespace _10LINQ.ViewModelClasses
             Products.Clear();
         }
 
-        /// <summary>
-        /// COMPARE COLLECTIONS - SequenceEqual(), Except(), Intersect(), Concat()
-        /// Primitive data types - automatic checking
-        /// Object data types - need a comparer class
-        /// </summary>
+        // COMPARE COLLECTIONS - SequenceEqual(), Except(), Intersect(), Concat()
+        // Primitive data types - automatic checking
+        // Object data types - need a comparer class
         // SequenceEqual() returns true if all the items match the items in the other collection, otherwise false
         // SequenceEqual() can compare primitives and objects but it needs to implement EqualityComparer for objects
         // otherwise it compares their references (addresses)
