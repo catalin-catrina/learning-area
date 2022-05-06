@@ -15,7 +15,7 @@ import { ProductListComponent } from './products/product-list.component';
   // here we import BrowserModule which every browser app must import
   imports: [BrowserModule],
   // start up component of the app; the start up component should contain the selector we use in the index.html file
-  // bootswtrap here lists AppComponent as the startup component for our app
+  // bootstrap here lists AppComponent as the startup component for our app
   bootstrap: [AppComponent],
 })
 // we define the angular module using a class
