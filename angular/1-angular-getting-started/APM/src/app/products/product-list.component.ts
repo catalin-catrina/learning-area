@@ -1,6 +1,7 @@
 // we used this component as a directive in the app component by adding this component's selector, pm-products, as a directive in the containing component's template (app component's template), and by declaring this component in the app's angular module (main module, called app.module.ts)
 
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { IProduct } from './product';
 import { ProductService } from './product.service';
 
@@ -10,11 +11,14 @@ import { ProductService } from './product.service';
   // We use the "styles" or "styleUrls" properties of the @Component decorator to encapsulate unique styles for a component
   styleUrls: ['./product-list.component.css'],
 })
-export class ProductListComponent implements OnInit {
+export class ProductListComponent implements OnInit, OnDestroy {
   pageTitle: string = 'Product List';
   imageWidth: number = 50;
   imageMargin: number = 2;
   showImage: boolean = false;
+  errorMessage: string = '';
+  // adding the ! after the variable name means we will assign it at some point later
+  sub!: Subscription;
 
   // listFilter: string = 'cart';
   private _listFilter: string = '';
@@ -29,7 +33,7 @@ export class ProductListComponent implements OnInit {
 
   filteredProducts: IProduct[] = [];
 
-  // products: any[] = [
+  // products: any[] = [];
   products: IProduct[] = [];
 
   // Longer way of injecting a service
@@ -37,7 +41,6 @@ export class ProductListComponent implements OnInit {
   // constructor(productService: ProductService) {
   //   this._productService = productService;
   // }
-
   // shorter syntax of injecting a service as a dependency
   constructor(private productService: ProductService) {}
 
@@ -52,8 +55,19 @@ export class ProductListComponent implements OnInit {
   ngOnInit(): void {
     console.log('In OnInit');
     // this.listFilter = 'cart';
-    this.products = this.productService.getProducts();
-    this.filteredProducts = this.products;
+    // We subscribe to the returned observable, passing in observer object
+    // the obs obj provides functions for responding to our 3 notifications: next, error, complete
+    this.sub = this.productService.getProducts().subscribe({
+      next: (products) => {
+        this.products = products;
+        this.filteredProducts = this.products;
+      },
+      error: (err) => (this.errorMessage = err),
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.sub.unsubscribe();
   }
 
   toggleImage(): void {
