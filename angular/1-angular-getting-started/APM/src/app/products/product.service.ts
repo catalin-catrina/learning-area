@@ -5,8 +5,7 @@ import { IProduct } from "./product";
     // the service will be available throughout the entire app
     providedIn: "root"
 
-        // if we want to use the service in a specific component and its children, we declare it as a property in the component (not here): 
-    // providers: [ProductService]
+    // if we want to use the service in a specific component and its children, we declare it as a property in the component (not here): providers: [ProductService] 
 })
 export class ProductService {
     getProducts(): IProduct[] {
