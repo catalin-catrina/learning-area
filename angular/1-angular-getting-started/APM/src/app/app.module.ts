@@ -34,6 +34,10 @@ import { RouterModule } from '@angular/router';
     BrowserModule,
     FormsModule,
     HttpClientModule,
+    // 2. second step to do routing in an app is to add RouterModule to an Angular module imports array, then add each route to the array passed to the RouterModule's forRoot() method, and remember that order matters. the router will pick the first route that matches.
+    // each route definition requires a path which defines the url path segment for the route
+    // empty path '' == default route; '**' == wildcard route
+    // most route definitions also include a component which is a reference to the component itself (its not a string and its not in "")
     RouterModule.forRoot([
       { path: 'products', component: ProductListComponent },
       { path: 'products/:id', component: ProductDetailComponent },
