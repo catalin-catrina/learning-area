@@ -6,6 +6,7 @@ import { IProduct } from './product';
 import { ProductService } from './product.service';
 
 @Component({
+  // selector is only useful if a component is used as a directive (html tag)
   selector: 'pm-products',
   templateUrl: './product-list.component.html',
   // We use the "styles" or "styleUrls" properties of the @Component decorator to encapsulate unique styles for a component

@@ -13,9 +13,22 @@ import { Component } from '@angular/core';
   selector: 'pm-root',
   // template is the view's HTML
   template: `
-    <div>
-      <h1>{{ pageTitle }}</h1>
-      <pm-products></pm-products>
+    <nav class="navbar navbar-expand navbar-light bg-light">
+      <a class="navbar-brand">{{ pageTitle }}</a>
+      <ul class="nav nav-pills">
+        <!-- 3. once we have the routes configured, we tie those routes to actions. first we identify which actions to tie to which routes, then we add the routerLink directive as an attribute to any clickable element in a component's template. 
+        - enclose routerLink in square brackets and bind it to a link parameters array. the first element of the link parameters array is the route's path, all other elements are values for the route parameters 
+        - use the RouterOutlet (router-outlet) directive to identify where to display the routed component's view. this is most often specified in the host component template
+        - when a route is activated, the route component's view is displayed at the location of the <router-outlet>
+      -->
+        <li><a class="nav-link" [routerLink]="['/welcome']">Home</a></li>
+        <li><a class="nav-link" routerLink="/products">Product List</a></li>
+      </ul>
+    </nav>
+    <div class="container">
+      <!-- when the app launches, the default route is activated so the welcome view displays -->
+      <!-- when we click on Product List the routerLink directive now activates the ProductList route so the ProductList view appears -->
+      <router-outlet></router-outlet>
     </div>
   `,
 })
