@@ -13,6 +13,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { ProductDetailComponent } from './products/product-detail.component';
 import { WelcomeComponent } from './home/welcome.component';
 import { RouterModule } from '@angular/router';
+import { ProductDetailGuard } from './products/product-detail.guard';
 
 // we idenfity the class as an angular module by attaching the NgModule decorator and passing in metadata defining the details of this angular module
 @NgModule({
@@ -40,7 +41,14 @@ import { RouterModule } from '@angular/router';
     // most route definitions also include a component which is a reference to the component itself (its not a string and its not in "")
     RouterModule.forRoot([
       { path: 'products', component: ProductListComponent },
-      { path: 'products/:id', component: ProductDetailComponent },
+      {
+        path: 'products/:id',
+        // hooking up the product detail guard to the appropiate route
+        // we add the canActivate property to the route definition for the ProductDetailComponent and set it to an array
+        // in the array we specify each guard we want to execute when activating the route
+        canActivate: [ProductDetailGuard],
+        component: ProductDetailComponent,
+      },
       { path: 'welcome', component: WelcomeComponent },
       // '' is a default path and is triggered when the app loads
       { path: '', redirectTo: 'welcome', pathMatch: 'full' },
