@@ -14,6 +14,7 @@ import { ProductDetailComponent } from './products/product-detail.component';
 import { WelcomeComponent } from './home/welcome.component';
 import { RouterModule } from '@angular/router';
 import { ProductDetailGuard } from './products/product-detail.guard';
+import { ProductModule } from './products/product.module';
 
 // we idenfity the class as an angular module by attaching the NgModule decorator and passing in metadata defining the details of this angular module
 @NgModule({
@@ -55,6 +56,7 @@ import { ProductDetailGuard } from './products/product-detail.guard';
       // ** is a wildcard path and is triggered when the url does not match any paths defined here in the configuration. often used for displaying a 404 not found page
       { path: '**', redirectTo: 'welcome', pathMatch: 'full' },
     ]),
+    ProductModule,
   ],
   // start up component of the app; the start up component should contain the selector we use in the index.html file
   // bootstrap here lists AppComponent as the startup component for our app
