@@ -1,0 +1,126 @@
+<div class="container">
+  <h2>User settings</h2>
+  <!-- #form is now a variable we can use anywhere within this template -->
+
+  <!-- adding ngNativeValidate to the form tag allows us to use native HTML validation on inputs like required, min/max, minlength/maxlength etc-->
+
+  <!-- validation classes in Angular:
+    - ng-untouched (how a field starts out with),
+    - ng-touched (after we complete a field or tab out of it ng-touched is added and ng-untouched removed)
+    - ng-pristine (class for unmodified field)
+    - ng-dirty (as soon as we modify a field the ng-pristine class is removed and ng-dirty class is added)
+    - ng-valid (as long as a field is valid, ng-valid will be a class on that field)
+    - ng-invalid
+  -->
+  <form #form="ngForm" ngNativeValidate>
+    <div class="mb-3">
+      <label for="name" class="form-label">Name</label>
+      <!-- we add the ngModel directive on all form inputs to keep track -->
+      <!-- when we'll print form.value, the name property of the html element will be the key, and what we type / select will be the value-->
+      <!-- by adding the [()] syntax around ngModel, we add two-way-binding-->
+      <!-- we bind the input to the name property of the userSettings property of the UserSettingsFormComponent class -->
+      <input
+        id="name"
+        type="text"
+        name="name"
+        class="form-control"
+        [(ngModel)]="userSettings.name"
+        required
+        #propertyTest="ngModel"
+      />
+    </div>
+
+    <div class="mb-3 form-check">
+      <input
+        id="emailOffers"
+        type="checkbox"
+        class="form-check-input"
+        name="emailOffers"
+        [(ngModel)]="userSettings.emailOffers"
+      />
+      <label for="emailOffers" class="form-check-label"
+        >Email special offers</label
+      >
+    </div>
+
+    <p>User Interface Style</p>
+    <div class="mb-3">
+      <div class="form-check">
+        <input
+          id="lightInterface"
+          type="radio"
+          name="interfaceStyle"
+          class="form-check-input"
+          value="light"
+          checked
+          [ngModel]="userSettings.interfaceStyle"
+        />
+        <label for="lightInterface" class="form-check-label">Light</label>
+      </div>
+
+      <div class="form-check">
+        <input
+          id="mediumInterface"
+          type="radio"
+          name="interfaceStyle"
+          class="form-check-input"
+          value="medium"
+          [ngModel]="userSettings.interfaceStyle"
+        />
+        <label for="mediumInterface" class="form-check-label">Medium</label>
+      </div>
+
+      <div class="form-check">
+        <input
+          id="darkInterface"
+          type="radio"
+          name="interfaceStyle"
+          class="form-check-input"
+          value="dark"
+          [ngModel]="userSettings.interfaceStyle"
+        />
+        <label for="darkInterface" class="form-check-label">Dark</label>
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <label for="subscriptionType">Subscription Type</label>
+      <select
+        id="subscriptionType"
+        name="subscriptionType"
+        class="form-control"
+        [(ngModel)]="userSettings.subscriptionType"
+      >
+        <option value="Monthly">Monthly</option>
+        <option value="Annual">Annual</option>
+        <option value="Lifetime">Lifetime</option>
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label for="notes"></label>
+      <textarea
+        name="notes"
+        id="notes"
+        class="form-control"
+        cols="30"
+        rows="3"
+        [(ngModel)]="userSettings.notes"
+      ></textarea>
+    </div>
+
+    <button class="btn btn-primary">Send</button>
+  </form>
+</div>
+
+<!-- we'll pipe the form variable through the JSON filter to actually see something useful -->
+<!-- Otherwise it will print "Object" -->
+<!-- the value property is an object which will get the key-value pairs of all the form elements to which we added ngModel -->
+<h4>{{ form.value | json }}</h4>
+<br />
+<h4>dirty: {{ propertyTest.dirty | json }}</h4>
+<h4>pristine: {{ propertyTest.pristine }}</h4>
+<h4>touched: {{ propertyTest.touched }}</h4>
+<h4>untouched: {{ propertyTest.untouched }}</h4>
+<h4>valid: {{ propertyTest.valid }}</h4>
+<h4>invalid: {{ propertyTest.invalid }}</h4>
