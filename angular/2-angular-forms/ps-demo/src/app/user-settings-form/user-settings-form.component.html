@@ -1,24 +1,23 @@
 <div class="container">
   <h2>User settings</h2>
+  <!-- we add #form="ngForm" in the <form> tag-->
   <!-- #form is now a variable we can use anywhere within this template -->
+
+  <!-- we add the ngModel directive on all form inputs to keep track -->
+  <!-- when we'll print form.value, the name property of the html element will be the key, and what we type / select will be the value-->
+  <!-- by adding the [()] syntax around ngModel, we add two-way-binding-->
+  <!-- we bind the input to the name property of the userSettings property of the UserSettingsFormComponent class -->
 
   <!-- adding ngNativeValidate to the form tag allows us to use native HTML validation on inputs like required, min/max, minlength/maxlength etc-->
 
-  <!-- validation classes in Angular:
-    - ng-untouched (how a field starts out with),
-    - ng-touched (after we complete a field or tab out of it ng-touched is added and ng-untouched removed)
-    - ng-pristine (class for unmodified field)
-    - ng-dirty (as soon as we modify a field the ng-pristine class is removed and ng-dirty class is added)
-    - ng-valid (as long as a field is valid, ng-valid will be a class on that field)
-    - ng-invalid
+  <!-- validation classes in Angular: ng-untouched ng-touched ng-pristine ng-dirty ng-valid ng-invalid
   -->
-  <form #form="ngForm" ngNativeValidate>
+
+  <!-- one way to handle validation is to use native HTML validation by including ngNativeValidate in the form tag, which allows us to use keywords like required and minlength, and so we use angular classes like invalid or untouched to hide or show error messages based on that. -->
+  <!--
+      <form #form="ngForm" ngNativeValidate>
     <div class="mb-3">
       <label for="name" class="form-label">Name</label>
-      <!-- we add the ngModel directive on all form inputs to keep track -->
-      <!-- when we'll print form.value, the name property of the html element will be the key, and what we type / select will be the value-->
-      <!-- by adding the [()] syntax around ngModel, we add two-way-binding-->
-      <!-- we bind the input to the name property of the userSettings property of the UserSettingsFormComponent class -->
       <input
         id="name"
         type="text"
@@ -26,8 +25,41 @@
         class="form-control"
         [(ngModel)]="userSettings.name"
         required
-        #propertyTest="ngModel"
+        #nameField="ngModel"
       />
+      <div
+        [hidden]="nameField.valid || nameField.untouched"
+        class="alert alert-danger"
+      >
+        Enter a name
+      </div>
+    </div>
+  </form>
+  -->
+
+  <!-- the other way is to only show error messages after user submits the form, to avoid filling user screen with error messages before he submits -->
+  <!-- for this we work with the ngSubmit event, and because it's an event it's in (), and call a custom onSubmit method to which we pass in the form (the "form" variable we pass comes from the form in #form="ngForm") -->
+  <!-- the (blur) event triggers when field loses focus -->
+  <form #form="ngForm" (ngSubmit)="onSubmit(form)">
+    <div class="mb-3">
+      <label for="name" class="form-label">Name</label>
+      <input
+        id="name"
+        type="text"
+        name="name"
+        class="form-control"
+        [(ngModel)]="userSettings.name"
+        required
+        #nameField="ngModel"
+        (blur)="onBlur(nameField)"
+        [class.field-error]="form.submitted && nameField.invalid"
+      />
+      <div
+        [hidden]="!form.submitted || nameField.valid"
+        class="alert alert-danger"
+      >
+        Enter a name
+      </div>
     </div>
 
     <div class="mb-3 form-check">
@@ -118,9 +150,10 @@
 <!-- the value property is an object which will get the key-value pairs of all the form elements to which we added ngModel -->
 <h4>{{ form.value | json }}</h4>
 <br />
-<h4>dirty: {{ propertyTest.dirty | json }}</h4>
-<h4>pristine: {{ propertyTest.pristine }}</h4>
-<h4>touched: {{ propertyTest.touched }}</h4>
-<h4>untouched: {{ propertyTest.untouched }}</h4>
-<h4>valid: {{ propertyTest.valid }}</h4>
-<h4>invalid: {{ propertyTest.invalid }}</h4>
+
+<!-- <h4>dirty: {{ nameField.dirty | json }}</h4>
+<h4>pristine: {{ nameField.pristine }}</h4>
+<h4>touched: {{ nameField.touched }}</h4>
+<h4>untouched: {{ nameField.untouched }}</h4>
+<h4>valid: {{ nameField.valid }}</h4>
+<h4>invalid: {{ nameField.invalid }}</h4> -->
