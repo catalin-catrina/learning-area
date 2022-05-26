@@ -25,10 +25,10 @@ ng g c -c OnPush	ng generate component --change-detection OnPush		change detecti
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 
-ng g c myCoolComponent -m moduleOfChoice				create component and declare it in moduleOfChoice module
+ng g c myCoolComponent -m moduleOfChoice	create component and declare it in moduleOfChoice module
 
-ng g d			ng generate directive		creates directive in root folder (app)
-ng g d --flat false					creates directive in its own folder
+ng g d		ng generate directive		creates directive in root folder (app)
+ng g d --flat false				creates directive in its own folder
 
 ng g s		ng generate service		creates a service and its test file 
 
