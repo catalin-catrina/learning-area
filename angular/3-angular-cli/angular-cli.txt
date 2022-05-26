@@ -2,18 +2,20 @@ npm install -g @angular/cli
 
 ng v	ng --version
 
---dry-run	-d	flag for all commands, doesn't write files to disk, just for practice
+--dry-run	-d	flag for all commands, doesn't write files to disk
 
 ng new my-app
 ng new my-app --defaults			will skip prompts for routing and css
 ng new my-app --defaults --skip-install		will skip prompts for routing and css and skips npm install
+
+ng add @angular/material
 
 ng g c			ng generate component
 ng g c --flat   	ng generate component --flat			if you don't want a component folder
 ng g c --prefix my	ng generate component --prefix my		prefix the component with "my"
 ng g c -s		ng generate component --inline-style		if you want style in .ts file
 ng g c -t		ng generate component --inline-template 	if you want template in .ts file
-ng g c --spec		ng generate component --spec			turn off generating a spec file
+ng g c --skip-tests	ng generate component --spec			turn off generating a spec file
 
 ng g c -v		ng generate component --view-encapsulation		view encapsulation strategy
 ng g c -c OnPush	ng generate component --change-detection OnPush		change detection strategy set to OnPush
@@ -37,9 +39,9 @@ ng g p shared/my-pipe				creates a pipe in shared folder
 
 ng g m 						creates a module in its own folder
 
-ng g cl models/customer		creates a customer class in models folder
-ng g i models/person		creates a person interface in models folder
-ng g e models/countries		creates a countries enum in models folder		
+ng g cl models/customer				creates a customer class in models folder
+ng g i models/person				creates a person interface in models folder
+ng g e models/countries				creates a countries enum in models folder		
 
 ng l	ng lint		runs the linting tool on angular app code. It checks the code quality of angular project specified
 
@@ -53,4 +55,4 @@ ng e	ng e2e		end to end test
 
 ng help			lists available commands
 
-ng doc keyword	ng d keyword	searches for "keyword" in official documentation opened in browser			
+ng doc keyword	ng d keyword			searches for "keyword" in official documentation opened in browser			
