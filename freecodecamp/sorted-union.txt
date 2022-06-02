@@ -1,0 +1,23 @@
+function uniteUnique(arr) {
+  let finalArray = [];
+  let argumentsArray = [];
+
+  for (let i = 0; i < arguments.length; i++) {
+    argumentsArray.push(arguments[i])
+  }
+
+  console.log(argumentsArray)
+
+  for (let i = 0; i < argumentsArray.length; i++) {
+    for (let j = 0; j < argumentsArray[i].length; j++) {
+      if (!finalArray.includes(argumentsArray[i][j])) {
+      finalArray.push(argumentsArray[i][j])
+    }
+    }
+  }
+
+  console.log(finalArray)
+  return finalArray
+}
+
+uniteUnique([1, 3, 2], [5, 2, 1, 4], [2, 1]);
