@@ -1,0 +1,17 @@
+function fearNotLetter(str) {
+  const asciArray = []
+  for (let i = 0; i < str.length; i++) {
+    asciArray.push(str[i].charCodeAt())
+  }
+  for (let i = 0; i < asciArray.length; i++) {
+    let expected = asciArray[i-1] + 1;
+    if (i > 0) {
+      if ((asciArray[i]) != expected) {
+        // return String.fromCharCode(asciArray[i])
+        return String.fromCharCode(asciArray[i] - 1)
+      }
+    }
+  }
+}
+
+fearNotLetter("abce");
