@@ -1,0 +1,26 @@
+function myReplace(str, before, after) {
+  let wordsArray = str.split(" ");
+  let newArray = [];
+
+  for (let word of wordsArray) {
+    if (word.toLowerCase() == before.toLowerCase()) {
+      if (word[0] == word[0].toUpperCase()) {
+        word = after[0].toUpperCase() + after.substring(1)
+        newArray.push(word)
+        continue
+      } 
+      else {
+        word = after.toLowerCase();
+        newArray.push(word)
+        continue
+      }
+    }
+    newArray.push(word)
+  }
+  let myNewString = newArray.join(" ")
+  console.log(newArray)
+  console.log(myNewString)
+  return myNewString
+}
+
+myReplace("I think we should look up there", "up", "Down")
