@@ -1,2 +1,0 @@
-To prevent null and undefined errors in our templates use the safe navigation operator "?"
-{{product?.productName}}
