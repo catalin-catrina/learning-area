@@ -11,7 +11,7 @@ namespace ContosoUniversity.Models
         public int Credits { get; set; }
 
         // The Enrollments property is a navigation property. A Course entity can be related to any number of Enrollment entities.
-        public ICollection<Enrollment> Enrollments{ get; set; }
+        public ICollection<Enrollment> Enrollments { get; set; }
 
     }
 }
