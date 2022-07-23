@@ -1,0 +1,26 @@
+<div>
+  <h1>Upcoming Angular Events</h1>
+  <hr />
+  <div class="row">
+    <div class="col-md-6" *ngFor="let event of events">
+      <event-thumbnail
+        (click)="handleThumbnailClick(event.name)"
+        [event]="event"
+      ></event-thumbnail>
+    </div>
+  </div>
+</div>
+
+<!-- theory -->
+<app-practice
+  [showPractice]="showPractice"
+  *ngIf="showPractice"
+  #practice
+  [getValueFromParent]="myName"
+  (sendEventToParent)="parentResponse($event)"
+  ><div style="margin-top: 50px; border: 1px solid #eee; padding: 10px">
+    <h2>Demonstration template variables</h2>
+    <p>{{ practice.demo1 }}</p>
+    <button (click)="practice.demo2()">Print the actual best beer</button>
+  </div>
+</app-practice>
