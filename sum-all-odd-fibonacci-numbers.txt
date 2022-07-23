@@ -1,0 +1,22 @@
+function sumFibs(num) {
+  let fibArray = [1, 1];
+  let current = 0
+  let sum = 0;
+
+  while (current < num) {
+    current = fibArray[fibArray.length - 1] + fibArray[fibArray.length - 2]
+    if (current > num ) break 
+    fibArray.push(current);
+  }
+
+  for (let i = 0; i < fibArray.length; i++) {
+    if (fibArray[i] % 2 != 0) {
+      sum += fibArray[i];
+    }
+  }
+
+  return sum;
+
+}
+
+sumFibs(1000);
