@@ -1,0 +1,12 @@
+<nav class="navbar navbar-expand navbar-light bg-light">
+  <a class="navbar-brand">{{ pageTitle }}</a>
+  <ul class="nav nav-pills">
+    <!-- we only use the [routerLink]="['']" syntax when we pass in multiple parameters in the array-->
+    <!-- but if we only pass in the route, aka and no IDs and stuff like that, we can use the second syntax -->
+    <li><a class="nav-link" [routerLink]="['/welcome']">Home</a></li>
+    <li><a class="nav-link" routerLink="/products">Product List</a></li>
+  </ul>
+</nav>
+<div class="container">
+  <router-outlet></router-outlet>
+</div>
