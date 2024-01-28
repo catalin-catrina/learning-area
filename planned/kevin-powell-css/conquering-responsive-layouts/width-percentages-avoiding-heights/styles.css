@@ -1,0 +1,22 @@
+* {
+  box-sizing: border-box;
+}
+
+.container {
+  width: 80%;
+  max-width: 1200px;
+  background-color: blueviolet;
+  margin: 0 auto;
+  padding: 2rem;
+  font-size: 25px;
+}
+
+.child {
+  width: 50%;
+  background-color: orangered;
+  padding: 1.5rem;
+}
+
+.link {
+  height: 50px;
+}

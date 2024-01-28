@@ -1,0 +1,92 @@
+/* html {
+  font-size: 62.5%;
+}
+
+body {
+  font-size: 1rem;
+}
+
+@media (min-width: 800px) {
+  body {
+    font-size: 1.3rem;
+  }
+}
+
+@media (min-width: 1200px) {
+  body {
+    font-size: 1.6rem;
+  }
+} */
+
+/* same as html but with class specificty */
+/* another way to define a responsive font-size without a single media query */
+:root {
+  font-size: calc(0.5em + 0.4vw);
+}
+
+h1 {
+  color: #2f4f4f;
+  margin-bottom: 10px;
+}
+
+.nav {
+  margin-top: 10px;
+  list-style: none;
+  padding-left: 0;
+}
+
+.nav li {
+  display: inline-block;
+}
+
+.nav a {
+  color: #fff;
+  background-color: #13a4a4;
+  padding: 5px;
+  border-radius: 2px;
+  text-decoration: none;
+}
+
+#main-nav .featured {
+  background-color: orange;
+}
+
+a:link {
+  color: blue;
+  text-decoration: none;
+}
+
+a:visited {
+  color: purple;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+a:active {
+  color: red;
+}
+
+/* font shorthand property */
+.subtitle {
+  font-style: normal;
+  font-weight: 300;
+  /* font-size: 20px; */
+  line-height: 1.7;
+  font-family: sans-serif;
+  /* font: normal 300 20px/1.7 sans-serif; */
+}
+
+/* border/padding shorthand */
+.button {
+  /* left will take the value of the right (10) when only 3 values are written */
+  padding: 5px 10px 5px;
+}
+
+/* other properties start with left right, instead of top bottom */
+.second-button {
+  background-color: orange;
+  /* 10px x/horizontal offset, 5px y/vertical offset */
+  box-shadow: 10px 5px #6f9090;
+}

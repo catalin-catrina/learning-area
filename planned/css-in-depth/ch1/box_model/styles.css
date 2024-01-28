@@ -1,0 +1,143 @@
+/* *,
+::before,
+::after {
+  box-sizing: border-box;
+} */
+
+/******************************************************************  
+/* this is a better strat that uses inheritance, to use in existing projects that may break when setting the box sizing to border box. we set the box-sizing to inherit the box sizing property of its parent (in our case :root), or if a third party component breaks, we set its box sizing to content box and all elements within will inherit that instead */
+:root {
+  box-sizing: border-box;
+}
+
+*,
+::before,
+::after {
+  box-sizing: inherit;
+}
+
+.third-party-component {
+  box-sizing: content-box;
+}
+/* ------------------------------------------------------------- */
+
+body {
+  background-color: #eee;
+  font-family: Helvetica, Arial, sans-serif;
+}
+
+header {
+  color: #fff;
+  background-color: #0072b0;
+  border-radius: 0.5em;
+
+  /* solution to prevent margins of child element (h1) collapsing with those outside the container */
+  overflow: auto;
+}
+
+main {
+  display: block;
+}
+
+/* floats and adding a gutter with calc() function technique */
+.main {
+  background-color: #fff;
+  border-radius: 0.5em;
+
+  float: left;
+  width: 70%;
+}
+
+.sidebar {
+  padding: 1.5em;
+  background-color: #fff;
+  border-radius: 0.5em;
+
+  float: left;
+  width: calc(30% - 1.5em);
+  margin-left: 1.5em;
+}
+
+/* defining two equal sized colums using display: table */
+.wrapper {
+  margin-left: -1.5em;
+  margin-right: -1.5em;
+}
+
+.container {
+  margin-top: 20px;
+}
+
+.container2 {
+  display: table;
+  width: 100%;
+
+  /* border-spacing defines the margin between table-cells (margin does not work in display: table, problem is we not only get 1.5em between table cells, but also between table cells and the container, a workournd solution is to use a wrapper with negative left-right margins to compensate for the margin border-spacing gives us */
+  border-spacing: 1.5em 0;
+}
+
+.main2 {
+  display: table-cell;
+  width: 70%;
+  background-color: #fff;
+  border-radius: 0.5em;
+}
+
+.sidebar2 {
+  display: table-cell;
+  width: 30%;
+
+  /* margins can't be applied to table-cell elements */
+  /* to define space between cells we use border-spacing (horizontal - vertical)*/
+  /* margin-left: 1.5em; */
+
+  padding: 1.5em;
+  background-color: #fff;
+  border-radius: 0.5em;
+}
+
+/* defining two equal sized colums using display: flex */
+/* flex items have same height by default, and it doesn't matter if the widths and margins of the items add up to more than 100%, flexbox sorts it out */
+.container3 {
+  display: flex;
+}
+
+.main3 {
+  width: 70%;
+  background-color: #fff;
+  border-radius: 0.5em;
+}
+
+.sidebar3 {
+  width: 30%;
+  background-color: #fff;
+  border-radius: #fff;
+  margin-left: 1.5em;
+  padding: 1.5em;
+}
+
+.container4 {
+  display: flex;
+}
+
+.main4 {
+  width: 70%;
+}
+
+.sidebar4 {
+  width: 30%;
+  padding: 1.5em;
+}
+
+.button-link {
+  display: block;
+  padding: 0.5em;
+  color: #fff;
+  background-color: #0090c9;
+  text-align: center;
+  text-decoration: none;
+  text-transform: uppercase;
+
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
