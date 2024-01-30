@@ -1,0 +1,4 @@
+this is file 2
+added one more line to file2
+added a new line to file 2 in new_feature branch
+yea adding this line too to cause a merge conflict
