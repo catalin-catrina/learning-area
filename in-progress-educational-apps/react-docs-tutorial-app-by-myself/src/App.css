@@ -1,0 +1,38 @@
+.container {
+  display: grid;
+  grid-template-columns: 50px 50px 50px;
+}
+
+.square {
+  width: 50px;
+  height: 50px;
+  cursor: default;
+  caret-color: transparent;
+  font-size: 1.4rem;
+  font-family: Arial;
+  text-align: center;
+  border: 1px solid black;
+}
+
+.square-content {
+  position: relative;
+  top: 12px;
+}
+
+.square-1,
+.square-2,
+.square-3,
+.square-4,
+.square-5,
+.square-6 {
+  border-bottom: none;
+}
+
+.square-1,
+.square-2,
+.square-4,
+.square-5,
+.square-7,
+.square-8 {
+  border-right: none;
+}
