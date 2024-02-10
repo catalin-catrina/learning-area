@@ -1,11 +1,7 @@
 import Square from './Square';
 import { decideWinner } from './decideWinner';
-import { useState } from 'react';
 
-const Board = () => {
-  const [squares, setSquares] = useState(Array(9).fill(null));
-  const [isXTurn, setisXTurn] = useState(true);
-
+const Board = ({ squares, isXTurn, handleClickFurtherInGameComponent }) => {
   const winner = decideWinner(squares);
   let message;
   if (winner) message = `${winner} won the game!`;
@@ -18,8 +14,8 @@ const Board = () => {
 
     const newSquares = [...squares];
     newSquares[i] = isXTurn ? 'X' : '0';
-    setSquares(newSquares);
-    setisXTurn(!isXTurn);
+
+    handleClickFurtherInGameComponent(newSquares);
   };
 
   return (
