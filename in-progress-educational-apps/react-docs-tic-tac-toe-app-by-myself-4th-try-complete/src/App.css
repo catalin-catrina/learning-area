@@ -1,0 +1,62 @@
+.container {
+  width: 100%;
+  font-size: 2rem;
+  text-align: center;
+}
+
+.squares-container {
+  display: grid;
+  grid-template-columns: 20% 20% 20%;
+  padding: 50px;
+  /* margin: 0 auto; */
+  justify-content: center;
+}
+
+.square {
+  cursor: default;
+  caret-color: transparent;
+  font-size: 4rem;
+  font-family: Arial;
+  text-align: center;
+  border: 1px solid black;
+  padding: 40px;
+  height: 70px;
+}
+
+.square-1,
+.square-2,
+.square-3,
+.square-4,
+.square-5,
+.square-6 {
+  border-bottom: none;
+}
+
+.square-1,
+.square-2,
+.square-4,
+.square-5,
+.square-7,
+.square-8 {
+  border-right: none;
+}
+
+.message {
+  padding-top: 5%;
+}
+
+button {
+  font-size: 1.2rem;
+  color: #fff;
+  background-color: royalblue;
+  border-radius: 10px;
+  border: none;
+  padding: 15px;
+  margin: 10px;
+}
+
+.history {
+  display: grid;
+  grid-template-columns: 20% 20% 20%;
+  justify-content: center;
+}
