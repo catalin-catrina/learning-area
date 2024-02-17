@@ -1,0 +1,79 @@
+:root {
+  --primary-color: hsl(322, 100%, 66%);
+  --pale-cyan: hsl(193, 100%, 96%);
+  --dark-cyan: hsl(192, 100%, 9%);
+  --grayish-blue: hsl(208, 11%, 55%);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Open Sans", sans-serif;
+  margin: 0;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "Poppins";
+  font-weight: 600;
+}
+
+p {
+  font-weight: 400;
+}
+
+img {
+  max-width: 100%;
+}
+
+.header {
+  background: url("./images/bg-hero-desktop.svg"), var(--pale-cyan);
+}
+
+.header__container {
+  width: 90%;
+  margin: 0 auto;
+}
+
+.header__container__top {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 3%;
+}
+
+.header__container__logo {
+  width: 15%;
+}
+
+.button {
+  border: none;
+  border-radius: 40px;
+  box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.15);
+  padding: 10px 35px;
+}
+
+.button--secondary {
+  background-color: #fff;
+  color: var(--dark-cyan);
+  font-weight: 700;
+}
+
+.button--primary {
+  background-color: var(--primary-color);
+  color: #fff;
+  font-weight: 700;
+}
+
+.header__container__content {
+  padding-top: 5%;
+  display: flex;
+  align-items: center;
+}
