@@ -41,6 +41,7 @@ img {
 
 .container {
   width: 90%;
+  max-width: 1440px;
   margin: 0 auto;
 }
 
@@ -85,7 +86,7 @@ img {
 }
 
 .box {
-  border: 1px solid rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.15);
   border-radius: 10px;
   padding: 5% 10%;
   display: flex;
@@ -111,6 +112,24 @@ img {
   margin-bottom: 10%;
 }
 
+.section__cta {
+  height: 250px;
+}
+
+.section__cta__container {
+  background-color: #fff;
+  box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.15);
+  width: 50%;
+  margin: 0 auto;
+  padding: 5%;
+  text-align: center;
+
+  position: relative;
+
+  top: 40%;
+  z-index: 2;
+}
+
 .footer {
   background-color: var(--dark-cyan);
   color: #fff;
@@ -123,9 +142,40 @@ img {
 
 .footer__col {
   flex: 1 1 0;
-  padding: 5% 0 5% 10%;
+  padding: 10% 0 5% 10%;
 }
 
 .footer__col > img {
   color: #fff;
+}
+
+@media only screen and (max-width: 500px) {
+  .header__container__content {
+    flex-direction: column;
+    gap: 5vh;
+  }
+
+  .box {
+    flex-direction: column;
+  }
+
+  .main-container-left {
+    width: 100%;
+  }
+
+  .main-container-right {
+    width: 100%;
+  }
+
+  .footer__container {
+    flex-direction: column;
+  }
+
+  .footer__col {
+    padding: 10px 0 0 0;
+  }
+
+  .footer__col:first-of-type {
+    padding-top: 20vh;
+  }
 }
