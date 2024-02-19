@@ -12,13 +12,19 @@
       href="./images/favicon-32x32.png"
     />
 
-    <!-- fonts -->
+    <!-- google fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
       rel="stylesheet"
     />
+
+    <!-- font awesome -->
+    <script
+      src="https://kit.fontawesome.com/194a2d6209.js"
+      crossorigin="anonymous"
+    ></script>
 
     <!-- title -->
     <title>
@@ -30,7 +36,7 @@
   </head>
   <body>
     <header class="header">
-      <div class="header__container">
+      <div class="container header__container">
         <div class="header__container__top">
           <div class="header__container__logo">
             <img src="images/logo.svg" alt="logo" />
@@ -62,9 +68,9 @@
       </div>
     </header>
     <main class="main">
-      <div class="main__content">
+      <div class="container main__content">
         <div class="main__content__container">
-          <div class="box box--text__left">
+          <div class="box">
             <div class="main-container-left">
               <h2 class="main__header">Lorem, ipsum.</h2>
               <p class="main__paragraph">
@@ -74,10 +80,19 @@
               </p>
             </div>
             <div class="main-container-right">
-              <img src="./images/illustration-grow-together.svg" />
+              <img
+                class="main__image"
+                src="./images/illustration-grow-together.svg"
+              />
             </div>
           </div>
-          <div class="box box--text__right">
+          <div class="box">
+            <div class="main-container-right">
+              <img
+                class="main__image"
+                src="./images/illustration-flowing-conversation.svg"
+              />
+            </div>
             <div class="main-container-left">
               <h2 class="main__header">Lorem, ipsum.</h2>
               <p class="main__paragraph">
@@ -85,12 +100,9 @@
                 voluptatem eos accusamus reprehenderit esse et dolor dolores
                 sint magnam quia.
               </p>
-            </div>
-            <div class="main-container-right">
-              <img src="./images/illustration-flowing-conversation.svg" />
             </div>
           </div>
-          <div class="box box--text__left">
+          <div class="box">
             <div class="main-container-left">
               <h2 class="main__header">Lorem, ipsum.</h2>
               <p class="main__paragraph">
@@ -100,19 +112,55 @@
               </p>
             </div>
             <div class="main-container-right">
-              <img src="" alt="" />
+              <img
+                class="main__image"
+                src="./images/illustration-your-users.svg"
+              />
             </div>
           </div>
         </div>
       </div>
     </main>
-    <!-- <footer>
-      <p class="attribution">
-        Challenge by
-        <a href="https://www.frontendmentor.io?ref=challenge" target="_blank"
-          >Frontend Mentor</a
-        >. Coded by <a href="#">Your Name Here</a>.
-      </p>
-    </footer> -->
+
+    <section class="section__cta">
+      <h2 class="section__cta-header">Lorem ipsum dolor sit amet?</h2>
+      <button class="button button--primary">Get Started For Free</button>
+    </section>
+
+    <footer class="footer">
+      <div class="container footer__container">
+        <div class="footer__col">
+          <p>
+            Lorem ipsum dolor sit amet, consectetur adipisicing elit. Earum illo
+            consequuntur dolore cum fugit quas.
+          </p>
+          <p>+00-12345567889</p>
+          <p>email@example.com</p>
+        </div>
+        <div class="footer__col">
+          <p>About us</p>
+          <p>What we do</p>
+          <p>FAQ</p>
+        </div>
+        <div class="footer__col">
+          <p>Careers</p>
+          <p>Blog</p>
+          <p>Contact Us</p>
+        </div>
+        <div class="footer__col">
+          <i class="fa-brands fa-x-twitter"></i>
+          <i class="fa-brands fa-facebook"></i>
+          <i class="fa-brands fa-instagram"></i>
+          <p class="attribution">
+            Challenge by
+            <a
+              href="https://www.frontendmentor.io?ref=challenge"
+              target="_blank"
+              >Frontend Mentor</a
+            >. Coded by <a href="#">Catalin Catrina</a>.
+          </p>
+        </div>
+      </div>
+    </footer>
   </body>
 </html>

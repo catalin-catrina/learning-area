@@ -26,6 +26,11 @@ h6 {
   font-weight: 600;
 }
 
+a {
+  /* text-decoration: none; */
+  color: #fff;
+}
+
 p {
   font-weight: 400;
 }
@@ -34,13 +39,14 @@ img {
   max-width: 100%;
 }
 
-.header {
-  background: url("./images/bg-hero-desktop.svg"), var(--pale-cyan);
-}
-
-.header__container {
+.container {
   width: 90%;
   margin: 0 auto;
+}
+
+.header {
+  background: url("./images/bg-hero-desktop.svg"), var(--pale-cyan);
+  margin-bottom: 10%;
 }
 
 .header__container__top {
@@ -76,4 +82,50 @@ img {
   padding-top: 5%;
   display: flex;
   align-items: center;
+}
+
+.box {
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 10px;
+  padding: 5% 10%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.main-container-left {
+  width: 40%;
+}
+
+.main-container-right {
+  width: 40%;
+}
+
+.main__content__container {
+  display: grid;
+  grid-template-columns: 100%;
+  gap: 100px;
+}
+
+.main {
+  margin-bottom: 10%;
+}
+
+.footer {
+  background-color: var(--dark-cyan);
+  color: #fff;
+}
+
+.footer__container {
+  display: flex;
+  justify-content: space-between;
+}
+
+.footer__col {
+  flex: 1 1 0;
+  padding: 5% 0 5% 10%;
+}
+
+.footer__col > img {
+  color: #fff;
 }
