@@ -1,0 +1,54 @@
+.container {
+  width: 60%;
+  margin: 5% auto;
+  font-family: "Inter", sans-serif;
+  color: #deebf8;
+}
+
+img {
+  max-width: 100%;
+}
+
+.nav__container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #21222a;
+}
+
+.logo-item {
+  display: flex;
+  align-items: center;
+  gap: 2%;
+}
+
+.item {
+  padding: 2% 4%;
+}
+
+.item:last-child {
+  font-weight: 600;
+}
+
+.logo-text {
+  color: #61dafb;
+}
+
+.header__container {
+  background-color: #282d35;
+}
+
+h1 {
+  padding: 2rem;
+  margin: 0;
+}
+
+ul {
+  margin: 0 0 5% 5%;
+  padding-bottom: 5%;
+}
+
+li {
+  list-style-image: url(./assets/ellpise.png);
+  padding: 1rem;
+}
