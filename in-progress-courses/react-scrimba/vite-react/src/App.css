@@ -1,8 +1,13 @@
+* {
+  box-sizing: border-box;
+}
+
 .container {
-  width: 60%;
+  width: 50%;
   margin: 5% auto;
   font-family: "Inter", sans-serif;
   color: #deebf8;
+  overflow: hidden;
 }
 
 img {
@@ -10,20 +15,24 @@ img {
 }
 
 .nav__container {
+  background-color: #21222a;
+}
+
+.nav__container__inner {
+  width: 90%;
+  margin: 0 auto;
+}
+
+.nav__flex-container {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background-color: #21222a;
 }
 
 .logo-item {
   display: flex;
   align-items: center;
   gap: 2%;
-}
-
-.item {
-  padding: 2% 4%;
 }
 
 .item:last-child {
@@ -38,17 +47,41 @@ img {
   background-color: #282d35;
 }
 
+.header__container__inner {
+  width: 90%;
+  margin: 0 auto;
+
+  padding: 5% 0 5% 0;
+}
+
+.header__flex-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header__flex-container > ul {
+  width: 70%;
+}
+
+.header__flex-container > div {
+  width: 30%;
+  margin-right: -8%;
+}
+
 h1 {
-  padding: 2rem;
   margin: 0;
 }
 
 ul {
-  margin: 0 0 5% 5%;
   padding-bottom: 5%;
 }
 
 li {
-  list-style-image: url(./assets/ellpise.png);
-  padding: 1rem;
+  padding: 1rem 0 1rem 0;
+}
+
+li::marker {
+  font-size: 1.8rem;
+  color: #61dafb;
 }
