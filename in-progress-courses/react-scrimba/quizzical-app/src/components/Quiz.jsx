@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 
 function Quiz() {
   const [data, setData] = useState();
-  const [selectedAnswers, setSelectedAnswers] = useState([]);
+  const [selectedAnswers, setSelectedAnswers] = useState({});
+  const [endGame, setEndGame] = useState(false);
 
   useEffect(() => {
     const getQuizesData = async () => {
@@ -23,7 +24,6 @@ function Quiz() {
             answers: answers,
           };
         });
-        console.log(newResults);
         return newResults;
       });
     };
@@ -32,31 +32,49 @@ function Quiz() {
 
   let page;
   if (data) {
-    page = data.map((el, index) => (
-      <div key={index} className="question__container">
+    page = data.map((el, elIndex) => (
+      <div key={elIndex} className="question__container">
         <h2 className="question__title">{decode(el.question)}</h2>
         <div className="question__answers">
-          {el.answers.map((el, i) => (
-            <button
-              key={i}
-              className="answer"
-              onClick={() => selectAnswer(el, index)}
-            >
-              {decode(el)}
-            </button>
-          ))}
+          {el.answers.map((answer, btnIndex) => {
+            if (!endGame)
+              return (
+                <button
+                  key={btnIndex}
+                  onClick={() => selectAnswer(answer, elIndex, btnIndex)}
+                >
+                  {decode(answer)}
+                </button>
+              );
+            else {
+              return (
+                <button
+                  key={btnIndex}
+                  className={`answer answer-${btnIndex}`}
+                  style={
+                    el.correct_answer === selectedAnswers[elIndex].answer
+                      ? { color: "red" }
+                      : {}
+                  }
+                >
+                  {decode(answer)}
+                </button>
+              );
+            }
+          })}
         </div>
       </div>
     ));
   }
 
-  const selectAnswer = (answer, index) => {
-    const newAnswer = [answer, index];
-    setSelectedAnswers([...selectedAnswers, newAnswer]);
+  const selectAnswer = (answer, elIndex, btnIndex) => {
+    const newAnswer = { [elIndex]: { answer: answer, btnIndex: btnIndex } };
+    const newAnswerObject = Object.assign(selectedAnswers, newAnswer);
+    setSelectedAnswers(newAnswerObject);
   };
 
   const handleCheck = () => {
-    console.log(selectedAnswers);
+    setEndGame(true);
   };
 
   return (
