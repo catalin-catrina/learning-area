@@ -1,0 +1,44 @@
+.container {
+  width: 50%;
+  display: flex;
+}
+
+img {
+  max-width: 100%;
+}
+
+.hide {
+  display: none;
+}
+
+.icon {
+  min-width: 50px;
+}
+
+.arrow-left {
+  position: relative;
+  top: 20rem;
+  left: 4rem;
+  color: #fff;
+}
+
+.arrow-right {
+  position: relative;
+  top: 20rem;
+  right: 4rem;
+  color: #fff;
+}
+
+.circle {
+  min-width: 20px;
+  color: #fff;
+  position: relative;
+  top: 37rem;
+  right: 47rem;
+  padding: 20px;
+}
+
+.circle-active {
+  color: greenyellow;
+  min-width: 30px;
+}

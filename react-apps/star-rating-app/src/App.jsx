@@ -1,7 +1,7 @@
 import StarRating from './components/StarRating';
 
 function App() {
-  return <StarRating />;
+  return <StarRating nrOfStars="10" />;
 }
 
 export default App;
