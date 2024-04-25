@@ -1,3 +1,3 @@
 # My Learning Area
 
-This is where part of my daily study sessions go.
+This is where daily study sessions go.
