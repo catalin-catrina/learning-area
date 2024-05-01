@@ -39,7 +39,6 @@ export class LoginComponent implements OnInit {
     const payload = this.decodeToken(response.credential);
     // 2. store in session
     sessionStorage.setItem('user', JSON.stringify(payload));
-    console.log(payload);
     // 3. navigate to homepage
     this.ngZone.run(() => {
       this.router.navigate(['home']);

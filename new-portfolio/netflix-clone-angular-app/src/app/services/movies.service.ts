@@ -1,11 +1,11 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { environment } from '../../environment';
 
 const options = {
   headers: {
     accept: 'application/json',
-    Authorization:
-      'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI1ZjRhZmY3OGJmZjgyNWVmZTVkYTFmYjJmMDRhNDljZSIsInN1YiI6IjYyZDNlZTdiOTE3NDViMDA0Y2JhZmZjNyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.bnR9vO07CHhsl_bjw1ph_3bWOeS6azDPLPpa0Xbu1FA',
+    Authorization: environment.accessToken,
   },
   parameters: {
     include_adult: false,
@@ -28,7 +28,10 @@ export class MoviesService {
   }
 
   getDiscoverTV() {
-    return this.httpClient.get<any>('https://api.themoviedb.org/3/discover/tv');
+    return this.httpClient.get<any>(
+      'https://api.themoviedb.org/3/discover/tv',
+      options
+    );
   }
 
   getNowPlayingMovies() {
@@ -68,13 +71,15 @@ export class MoviesService {
 
   getHeroImage(id: number) {
     return this.httpClient.get(
-      `https://api.themoviedb.org/3/movie/${id}/images`
+      `https://api.themoviedb.org/3/movie/${id}/images`,
+      options
     );
   }
 
   getHeroVideo(id: number) {
     return this.httpClient.get(
-      `https://api.themoviedb.org/3/movie/${id}/videos`
+      `https://api.themoviedb.org/3/movie/${id}/videos`,
+      options
     );
   }
 

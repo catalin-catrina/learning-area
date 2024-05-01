@@ -1,20 +1,12 @@
 <div class="w-full h-[calc(100vh-70px)] overflow-y-hidden relative">
-  <iframe
-    src="https://www.youtube.com/embed/Dydmpfo68DA?autoplay=1&mute=1&loop=1&controls=0"
-    frameborder="0"
-    class="w-full h-full"
-  ></iframe>
+  <iframe [src]="videoUrl" frameborder="0" class="w-full h-full"></iframe>
 
   <div
     class="absolute top-0 py-[20%] px-8 w-full text-white bg-gradient-to-r from-black flex flex-col gap-5"
   >
     <div class="w-2/5 flex flex-col gap-5">
-      <h1 class="text-6xl font-bold">Lorem.</h1>
-      <p>
-        Lorem ipsum, dolor sit amet consectetur adipisicing elit. Minima quis
-        ratione dolorem quod temporibus nulla, perspiciatis repellendus animi
-        nisi! Saepe!
-      </p>
+      <h1 class="text-6xl font-bold">{{ heroDetails.original_title }}</h1>
+      <p>{{ heroDetails.overview }}</p>
     </div>
     <div class="flex">
       <button
@@ -30,4 +22,8 @@
       </button>
     </div>
   </div>
+</div>
+
+<div>
+  {{ videoUrl }}
 </div>

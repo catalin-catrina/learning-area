@@ -10,6 +10,8 @@ import Swiper from 'swiper';
 import { IMovie } from '../interfaces/movie.interface';
 import { LimitTextPipe } from '../pipes/limit-text.pipe';
 import { ImageLinkPipe } from '../pipes/image-link.pipe';
+import { ITvSeries } from '../interfaces/tvseries.interface';
+import { animate, style, transition, trigger } from '@angular/animations';
 
 @Component({
   selector: 'app-swiper',
@@ -17,11 +19,22 @@ import { ImageLinkPipe } from '../pipes/image-link.pipe';
   imports: [CommonModule, LimitTextPipe, ImageLinkPipe],
   templateUrl: './swiper.component.html',
   styleUrl: './swiper.component.css',
+  animations: [
+    trigger('customAnim', [
+      transition('void => *', [
+        style({ opacity: 0 }),
+        animate(300, style({ opacity: 1 })),
+      ]),
+    ]),
+  ],
 })
 export class SwiperComponent implements AfterViewInit {
   @ViewChild('swiperContainer') swiper: ElementRef | undefined;
   @Input() movies: IMovie[] = [];
+  @Input() tvshows: ITvSeries[] = [];
   @Input() title = '';
+  @Input() type = '';
+  toggleDetails: number = -1;
 
   ngAfterViewInit(): void {
     this.initSwiper();
@@ -54,5 +67,13 @@ export class SwiperComponent implements AfterViewInit {
         },
       },
     });
+  }
+
+  onMouseEnter(id: number) {
+    this.toggleDetails = id;
+  }
+
+  onMouseLeave() {
+    this.toggleDetails = -1;
   }
 }

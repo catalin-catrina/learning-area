@@ -2,31 +2,67 @@
   <p class="font-semibold text-2xl my-3 ml-3">{{ title }}</p>
   <div #swiperContainer class="swiper-container">
     <div class="swiper-wrapper">
-      <ng-container *ngFor="let movie of movies">
-        <div class="swiper-slide relative">
-          <img
-            [src]="movie.poster_path | imageLink : 'w500'"
-            alt="movie poster"
-          />
-          <div class="desc p-2">
-            <span class="text-base flex flex-wrap font-bold">
-              {{ movie.title }}
-            </span>
-            <p class="text-xs my-3">{{ movie.overview | limitText : 200 }}</p>
-            <div class="py-3 absolute w-[90%] bottom-1">
-              <p class="text-xs flex justify-between items-center">
-                <span class="text-green-500">{{
-                  movie.vote_average | number : "1.2-2"
-                }}</span>
-                <i
-                  class="fa fa-2x fa-chevron-circle-down"
-                  aria-hidden="true"
-                ></i>
-              </p>
+      <ng-container *ngIf="movies && movies.length">
+        <ng-container *ngFor="let item of movies">
+          <div
+            class="swiper-slide relative"
+            (mouseenter)="onMouseEnter(item.id)"
+            (mouseleave)="onMouseLeave()"
+          >
+            <img
+              [src]="item.poster_path | imageLink : 'w500'"
+              alt="item poster"
+            />
+            <div class="desc p-2" *ngIf="toggleDetails === item.id" @customAnim>
+              <span class="text-base flex flex-wrap font-bold">
+                {{ item.title }}
+              </span>
+              <p class="text-xs my-3">{{ item.overview | limitText : 200 }}</p>
+              <div class="py-3 absolute w-[90%] bottom-1">
+                <p class="text-xs flex justify-between items-center">
+                  <span class="text-green-500">{{
+                    item.vote_average | number : "1.2-2"
+                  }}</span>
+                  <i
+                    class="fa fa-2x fa-chevron-circle-down"
+                    aria-hidden="true"
+                  ></i>
+                </p>
+              </div>
             </div>
-          </div>
-        </div>
-      </ng-container>
+          </div> </ng-container
+      ></ng-container>
+
+      <ng-container *ngIf="tvshows && tvshows.length">
+        <ng-container *ngFor="let item of tvshows">
+          <div
+            class="swiper-slide relative"
+            (mouseenter)="onMouseEnter(item.id)"
+            (mouseleave)="onMouseLeave()"
+          >
+            <img
+              [src]="item.poster_path | imageLink : 'w500'"
+              alt="item poster"
+            />
+            <div class="desc p-2" *ngIf="toggleDetails === item.id">
+              <span class="text-base flex flex-wrap font-bold">
+                {{ item.name }}
+              </span>
+              <p class="text-xs my-3">{{ item.overview | limitText : 200 }}</p>
+              <div class="py-3 absolute w-[90%] bottom-1">
+                <p class="text-xs flex justify-between items-center">
+                  <span class="text-green-500">{{
+                    item.vote_average | number : "1.2-2"
+                  }}</span>
+                  <i
+                    class="fa fa-2x fa-chevron-circle-down"
+                    aria-hidden="true"
+                  ></i>
+                </p>
+              </div>
+            </div>
+          </div> </ng-container
+      ></ng-container>
     </div>
   </div>
 </div>

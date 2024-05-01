@@ -1,3 +1,17 @@
 <app-header [userImg]="user.picture" />
-<app-hero />
-<app-swiper [movies]="popularMovies" title="Popular Movies" />
+<app-hero [heroDetails]="heroDetails" [heroVideo]="hero[0]?.key" />
+<app-swiper [movies]="movies" title="Discover Movies" type="movies" />
+<app-swiper [tvshows]="tvshows" title="Discover TV Shows" type="tvseries" />
+<app-swiper [movies]="upcomingMovies" title="Upcoming Movies" type="movies" />
+<app-swiper
+  [tvshows]="upcomingTvShows"
+  title="Upcoming TV Shows"
+  type="tvseries"
+/>
+<app-swiper
+  [movies]="nowPlayingMovies"
+  title="Now Playing Movies"
+  type="movies"
+/>
+<app-swiper [movies]="popularMovies" title="Popular Movies" type="movies" />
+<app-swiper [movies]="topRatedMovies" title="Top Rated Movies" type="movies" />
