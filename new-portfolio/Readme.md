@@ -1,4 +1,4 @@
-# My new portfolio will be commited here
+# Here's where I'm working on my new portfolio
 
 # Timeline
 
