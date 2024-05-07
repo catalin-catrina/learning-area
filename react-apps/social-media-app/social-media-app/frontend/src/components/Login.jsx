@@ -1,20 +1,20 @@
-import React from 'react';
-import { GoogleLogin, googleLogout } from '@react-oauth/google';
-import { jwtDecode } from 'jwt-decode';
-import { useNavigate } from 'react-router-dom';
-import shareVideo from '../assets/share.mp4';
-import logo from '../assets/logowhite.png';
-import { client } from '../client';
+import React from "react";
+import { GoogleLogin, googleLogout } from "@react-oauth/google";
+import { jwtDecode } from "jwt-decode";
+import { useNavigate } from "react-router-dom";
+import shareVideo from "../assets/share.mp4";
+import logo from "../assets/logowhite.png";
+import { client } from "../client";
 
 function Login() {
   const navigate = useNavigate();
 
-  const responseGoogle = response => {
+  const responseGoogle = (response) => {
     // object containing <clientId> and <credential> which is a jwt token
     // console.log(response);
 
     const decoded = jwtDecode(response.credential);
-    localStorage.setItem('user', JSON.stringify(decoded));
+    localStorage.setItem("user", JSON.stringify(decoded));
 
     const { name, picture, sub } = decoded;
 
@@ -22,13 +22,13 @@ function Login() {
     // also added _type to tell sanity what type of document we're creating
     const doc = {
       _id: sub,
-      _type: 'user',
+      _type: "user",
       userName: name,
       image: picture,
     };
 
     client.createIfNotExists(doc).then(() => {
-      navigate('/', { replace: true });
+      navigate("/", { replace: true });
     });
   };
 
@@ -52,9 +52,8 @@ function Login() {
             <GoogleLogin
               onSuccess={responseGoogle}
               onError={() => {
-                console.log('Login Failed');
+                console.log("Login Failed");
               }}
-              cook
             ></GoogleLogin>
           </div>
         </div>
