@@ -13,8 +13,9 @@ function Pin({ pin: { postedBy, image, _id, destination, save } }) {
   const navigate = useNavigate();
   const user = fetchUser();
   //   filter will return the id of current logged in user if he saved the post, but we only care if he saved or not so we check for length and store true/false in the alreadySaved variable
-  const alreadySaved = !!save?.filter((post) => post.postedBy?._id === user.aud)
-    ?.length;
+  const alreadySaved = !!save?.filter(
+    (post) => post.postedBy?._id === user?.aud
+  )?.length;
   //   same as
   //   const alreadySaved = (save?.filter(
   //     (post) => post.postedBy._id === user.googleId
@@ -30,10 +31,10 @@ function Pin({ pin: { postedBy, image, _id, destination, save } }) {
         .insert("after", "save[-1]", [
           {
             _key: uuidv4(),
-            userId: user.aud,
+            userId: user?.aud,
             postedBy: {
               _type: "postedBy",
-              _ref: user.aud,
+              _ref: user?.aud,
             },
           },
         ])
@@ -68,7 +69,7 @@ function Pin({ pin: { postedBy, image, _id, destination, save } }) {
             className="absolute top-0 w-full h-full flex flex-col justify-between p-1 pr-2 pt-2 pb-2 z-50"
             style={{ height: "100%" }}
           >
-            <div className="flex items center justify-between">
+            <div className="flex items-center justify-between">
               <div className="flex gap-2">
                 <a
                   href={`${image?.asset?.url}?dl=`}
@@ -111,7 +112,7 @@ function Pin({ pin: { postedBy, image, _id, destination, save } }) {
                   {destination}
                 </a>
               )}
-              {postedBy._id === user.aud && (
+              {postedBy._id === user?.aud && (
                 <button
                   type="button"
                   onClick={(e) => {
