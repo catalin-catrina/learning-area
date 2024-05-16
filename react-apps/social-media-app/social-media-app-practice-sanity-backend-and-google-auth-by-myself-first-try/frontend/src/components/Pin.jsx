@@ -8,14 +8,17 @@ import { client, urlFor } from "../sanityClient";
 
 function Pin({ pin: { postedBy, image, _id, destination, save } }) {
   const [categoryFilter, setCategoryFilter] = useState(null);
+  const [user, setUser] = useState(null);
   const [postHovered, setPostHovered] = useState(false);
-  const user = JSON.parse(localStorage.getItem("user"));
-  const alreadySaved = !!save?.filter((save) => save.userId === user.aud)
+  const alreadySaved = !!save?.filter((save) => save.userId === user?.aud)
     ?.length;
 
   //   console.log(postedBy, image, _id, destination, save);
 
-  useEffect(() => {}, []);
+  useEffect(() => {
+    const getUser = JSON.parse(localStorage.getItem("user"));
+    setUser(getUser);
+  }, []);
 
   const savePin = (id) => {
     if (!alreadySaved) {
@@ -37,6 +40,21 @@ function Pin({ pin: { postedBy, image, _id, destination, save } }) {
           window.location.reload();
         });
     }
+  };
+
+  //   console.log(save.userId, user.name);
+  const unsavePin = (id) => {
+    if (alreadySaved) {
+      client
+        .patch(id)
+        .unset([`save[userId=="${user.aud}"]`])
+        .commit()
+        .then(() => window.location.reload());
+    }
+  };
+
+  const deletePin = (id) => {
+    client.delete(id).then(() => window.location.reload());
   };
 
   return (
@@ -74,7 +92,10 @@ function Pin({ pin: { postedBy, image, _id, destination, save } }) {
                   </button>
                 )}
                 {alreadySaved && (
-                  <button className="bg-red-700 rounded-xl text-white px-5 py-2 text-center">
+                  <button
+                    className="bg-red-700 rounded-xl text-white px-5 py-2 text-center"
+                    onClick={() => unsavePin(_id)}
+                  >
                     Saved
                   </button>
                 )}
@@ -85,7 +106,7 @@ function Pin({ pin: { postedBy, image, _id, destination, save } }) {
               <div className="text-white text-xl">
                 <a href={destination}>{destination}</a>
               </div>
-              <div>
+              <div onClick={() => deletePin(_id)} className="cursor-pointer">
                 <IoTrashOutline size={30} color="white" />
               </div>
             </div>

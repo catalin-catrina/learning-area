@@ -3,12 +3,12 @@ import { Routes, Route, Link } from "react-router-dom";
 
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
+import UserProfile from "../components/UserProfile";
 import { client } from "../sanityClient";
 import { getUserQuery } from "../queries";
-import logo from "../assets/logo.png";
 import { GiHamburgerMenu } from "react-icons/gi";
-import { FaRegCircleUser } from "react-icons/fa6";
 import Feed from "./Feed";
+import logo from "../assets/logo.png";
 
 const Home = () => {
   const [user, setUser] = useState(null);
@@ -29,11 +29,11 @@ const Home = () => {
   return (
     <div>
       <div className="hidden md:flex">
-        <Navbar />
+        <Navbar user={user && user} />
       </div>
       <div className="md:hidden">
         <div className="p-5">
-          <div className="flex gap-10">
+          <div className="flex justify-between items-center">
             <div>
               <GiHamburgerMenu
                 fontSize={35}
@@ -41,11 +41,13 @@ const Home = () => {
                 style={!toggle ? {} : { visibility: "hidden" }}
               />
             </div>
-            <div>
+            <div className="">
               <img src={logo} className="w-40" alt="logo" />
             </div>
             <div>
-              <FaRegCircleUser fontSize={35} />
+              <Link to={`user-profile/${user?._id}`}>
+                <img src={user?.picture} className="w-max" alt="user" />
+              </Link>
             </div>
           </div>
           <Sidebar toggle={toggle} setToggle={setToggle} />
@@ -54,6 +56,7 @@ const Home = () => {
 
       <Routes>
         <Route path="/" element={<Feed />}></Route>
+        <Route path="/user-profile/:userId" element={<UserProfile />}></Route>
       </Routes>
     </div>
   );
