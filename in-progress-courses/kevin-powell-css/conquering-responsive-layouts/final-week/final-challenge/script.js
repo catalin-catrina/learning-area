@@ -1,4 +1,3 @@
 document.querySelector(".nav-icon-container").addEventListener("click", () => {
-  console.log("mere");
-  document.querySelector(".mobile-nav").classList.toggle("toggle");
+  document.querySelector(".mobile-nav-container").classList.toggle("toggle");
 });

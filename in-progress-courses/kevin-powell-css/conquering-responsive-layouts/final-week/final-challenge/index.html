@@ -14,6 +14,10 @@
       href="https://fonts.googleapis.com/css2?family=Oswald:wght@200..700&display=swap"
       rel="stylesheet"
     />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
+      rel="stylesheet"
+    />
 
     <!-- font awesome -->
     <script
@@ -33,45 +37,195 @@
   <body>
     <!-- header -->
     <header>
-      <nav>
-        <div class="nav">
-          <div class="nav-icon-container">
-            <span style="font-size: 5rem; color: #fff">
-              <i class="fa-solid fa-bars"></i
-            ></span>
+      <div class="nav__container">
+        <div class="container nav-background">
+          <nav>
+            <div class="mobile-nav">
+              <div class="nav-logo">
+                <div class="nav-icon-container">
+                  <span> <i class="fa-solid fa-bars"></i></span>
+                </div>
+                <div class="logo"><h2>CRL</h2></div>
+              </div>
+
+              <div class="mobile-nav-container">
+                <ul class="nav-list">
+                  <li class="nav-item">
+                    <a href="#" class="nav-link">Home</a>
+                  </li>
+                  <li class="nav-item">
+                    <a href="#" class="nav-link">About</a>
+                  </li>
+                  <li class="nav-item">
+                    <a href="#" class="nav-link">Contact</a>
+                  </li>
+                  <li class="nav-item">
+                    <a href="#" class="nav-link">Sign in</a>
+                  </li>
+                  <li class="nav-item">
+                    <a href="#" class="nav-link">Sign up</a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="big-screens-nav">
+              <div class="logo"><h2>CRL</h2></div>
+              <ul class="nav-list">
+                <li class="nav-item">
+                  <a href="#" class="nav-link">Home</a>
+                </li>
+                <li class="nav-item">
+                  <a href="#" class="nav-link">About</a>
+                </li>
+                <li class="nav-item">
+                  <a href="#" class="nav-link">Contact</a>
+                </li>
+                <li class="nav-item margin-left">
+                  <a href="#" class="nav-link">Sign in</a>
+                </li>
+                <li class="nav-item">
+                  <a href="#" class="nav-link">Sign up</a>
+                </li>
+              </ul>
+            </div>
+          </nav>
+        </div>
+      </div>
+
+      <div class="header">
+        <div class="container">
+          <div class="header__container">
+            <div class="header__left">
+              <h1 class="header__title">
+                Responsive layouts <span>don't have to be a struggle</span>
+              </h1>
+            </div>
+            <div class="header__right">
+              <p class="header__text">
+                Lorem ipsum dolor, sit amet consectetur adipisicing elit. Magni
+                delectus, tenetur accusamus culpa quo sit quidem adipisci illum
+                nostrum dicta!
+              </p>
+              <button class="header__button">I want to learn</button>
+            </div>
           </div>
-          <div class="logo"><h2>CRL</h2></div>
         </div>
-
-        <div class="mobile-nav">
-          <ul class="nav-list">
-            <li class="nav-item">
-              <a href="#" class="nav-link">Home</a>
-            </li>
-            <li class="nav-item">
-              <a href="#" class="nav-link">About</a>
-            </li>
-            <li class="nav-item">
-              <a href="#" class="nav-link">Contact</a>
-            </li>
-            <li class="nav-item">
-              <a href="#" class="nav-link">Sign in</a>
-            </li>
-            <li class="nav-item">
-              <a href="#" class="nav-link">Sign up</a>
-            </li>
-          </ul>
-        </div>
-      </nav>
-
-      <div></div>
+      </div>
     </header>
 
     <!-- main -->
-    <main></main>
+    <main class="container">
+      <div class="horizontal-section">
+        <div class="col">
+          <h3>Mobile-first</h3>
+          <p>
+            Lorem ipsum dolor sit amet consectetur adipisicing elit. Repellat
+            maxime, et blanditiis autem iusto commodi architecto voluptatem aut
+            amet esse.
+          </p>
+        </div>
+        <div class="col">
+          <h3>Efficient</h3>
+          <p>
+            Lorem ipsum dolor sit amet consectetur adipisicing elit. Repellat
+            maxime, et blanditiis autem iusto commodi architecto voluptatem aut
+            amet esse.
+          </p>
+        </div>
+        <div class="col">
+          <h3>Done right</h3>
+          <p>
+            Lorem ipsum dolor sit amet consectetur adipisicing elit. Repellat
+            maxime, et blanditiis autem iusto commodi architecto voluptatem aut
+            amet esse.
+          </p>
+        </div>
+      </div>
+
+      <div class="two-col-section">
+        <div class="two-col-section__left">
+          <h2>It doesn’t have to be so hard</h2>
+          <p>
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+            eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim
+            ad minim veniam. Lorem ipsum dolor sit amet, consectetur adipiscing
+            elit, sed do eiusmod tempor incididunt ut labore et dolore magna
+            aliqua. Ut enim ad minim veniam.
+          </p>
+          <div><img src="images/the-image.jpg" /></div>
+          <p>
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+            eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim
+            ad minim veniam. Lorem ipsum dolor sit amet, consectetur adipiscing
+            elit, sed do eiusmod tempor incididunt ut labore et dolore magna
+            aliqua. Ut enim ad minim veniam
+          </p>
+        </div>
+        <div class="two-col-section__right">
+          <div class="two-col-section__right__element__block">
+            <h3>Break it down</h3>
+            <p>
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+              eiusmod tempor incididunt ut labore et dolore magna aliqua
+            </p>
+          </div>
+          <div class="two-col-section__right__element__block">
+            <h3>Work your way up</h3>
+            <p>
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+              eiusmod tempor incididunt ut labore et dolore magna aliqua
+            </p>
+          </div>
+          <div class="two-col-section__right__element__block">
+            <h3>Break it down</h3>
+            <p>
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+              eiusmod tempor incididunt ut labore et dolore magna aliqua
+            </p>
+          </div>
+        </div>
+      </div>
+    </main>
 
     <!-- footer -->
-    <footer></footer>
+    <footer>
+      <div class="container">
+        <div class="footer">
+          <h2 class="footer-header">Just scratching the surface</h2>
+          <div class="footer__bottom__container">
+            <div class="footer-column">
+              <h4>About our company</h4>
+              <p>
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+                eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
+                enim ad minim veniam.
+              </p>
+            </div>
+            <div class="footer-column">
+              <h4>Getting around</h4>
+              <p>Home</p>
+              <p>About</p>
+              <p>Contact</p>
+            </div>
+            <div class="footer-column">
+              <h4>Other things</h4>
+              <p>lorem ipsum</p>
+              <p>dolor</p>
+              <p>sit amet</p>
+              <p>consectotur</p>
+            </div>
+            <div class="footer-column">
+              <h4>And more</h4>
+              <p>lorem ipsum</p>
+              <p>dolor</p>
+              <p>sit amet</p>
+              <p>consectotur</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
 
     <!-- js -->
     <script src="script.js"></script>

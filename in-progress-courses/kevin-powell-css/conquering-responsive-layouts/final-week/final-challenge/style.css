@@ -29,8 +29,22 @@ a {
   color: inherit;
 }
 
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.big-screens-nav {
+  display: none;
+}
+
 .nav-icon-container {
   width: 40px;
+}
+
+.nav-icon-container > span {
+  font-size: 3rem;
+  color: #fff;
 }
 
 .logo h2 {
@@ -39,11 +53,14 @@ a {
 }
 
 nav {
-  background-color: #2e323f;
-  padding: 5%;
+  padding: 2rem 5% 2rem 5%;
 }
 
-.nav {
+.nav__container {
+  background-color: #2e323f;
+}
+
+.nav-logo {
   display: flex;
   align-items: center;
 }
@@ -64,7 +81,7 @@ nav {
   text-transform: uppercase;
 }
 
-.mobile-nav {
+.mobile-nav-container {
   text-align: center;
   visibility: hidden;
   opacity: 0;
@@ -78,4 +95,250 @@ nav {
   opacity: 1;
   transform: translateX(0);
   max-height: 1000px;
+}
+
+.header {
+  background-color: #3b4050;
+}
+
+.header__container {
+  background-color: #3b4050;
+  margin: 0 auto;
+  padding: 5%;
+  color: #fff;
+  text-align: center;
+
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.header__left {
+  font-size: 2.5rem;
+  font-weight: 700;
+}
+
+.header__title > span {
+  color: #a59678;
+}
+
+.header__right {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+}
+
+.header__text {
+  font-family: "Montserrat", sans-serif;
+  font-size: 1.5rem;
+  line-height: 3rem;
+}
+
+.header__button {
+  width: 50%;
+  background-color: #a59678;
+  color: #fff;
+  font-size: 1.7rem;
+  padding: 1rem 2rem 1rem 2rem;
+  border-radius: 40px;
+  border: none;
+}
+
+.horizontal-section {
+  background-color: #ddd;
+  padding: 5%;
+
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.horizontal-section > .col > h3 {
+  color: #a59678;
+  font-size: 2rem;
+  padding-bottom: 1rem;
+}
+
+.col > p {
+  font-size: 1.3rem;
+  font-family: "Montserrat", sans-serif;
+  line-height: 2rem;
+}
+
+.two-col-section {
+  padding: 5%;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.two-col-section__left {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.two-col-section__left > h2 {
+  color: #a59678;
+  font-size: 3rem;
+}
+
+.two-col-section__left > p {
+  font-family: "Montserrat", sans-serif;
+  font-size: 1.3rem;
+}
+
+.two-col-section__right {
+  color: #fff;
+  text-align: center;
+
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.two-col-section__right__element__block {
+  background-color: #3b4050;
+  padding: 1rem 2rem 1rem 2rem;
+
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.two-col-section__right__element__block > h3 {
+  font-size: 2rem;
+}
+
+.two-col-section__right__element__block > p {
+  font-family: "Montserrat", sans-serif;
+  font-size: 1.5rem;
+}
+
+footer {
+  background-color: #3b4050;
+}
+
+.footer {
+  color: #fff;
+  text-align: center;
+  line-height: 2.5rem;
+  padding: 5%;
+  margin: 0 auto;
+
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+}
+
+.footer-header {
+  font-size: 3rem;
+}
+
+.footer__bottom__container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.footer-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.footer-column > h4 {
+  color: #a59678;
+  font-size: 2rem;
+}
+
+.footer-column > p {
+  font-family: "Montserrat", sans-serif;
+  font-size: 1.3rem;
+}
+
+@media only screen and (min-width: 600px) {
+  .mobile-nav {
+    display: none;
+  }
+
+  .big-screens-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .logo {
+    padding: 0;
+    margin: 0;
+  }
+
+  .nav-list {
+    font-size: 1.7rem;
+    margin: 0;
+
+    display: flex;
+    flex-direction: row;
+  }
+
+  .nav-item:last-of-type {
+    background-color: #a59678;
+    padding-left: 1.5em;
+    padding-right: 1.5em;
+    border-radius: 40px;
+  }
+
+  .margin-left {
+    margin-left: 2rem;
+  }
+}
+
+@media only screen and (min-width: 700px) {
+  .header__container {
+    flex-direction: row;
+    align-items: flex-end;
+    text-align: left;
+  }
+
+  .header__right {
+    align-items: flex-start;
+  }
+
+  .horizontal-section {
+    flex-direction: row;
+    text-align: center;
+    gap: 10%;
+  }
+
+  .two-col-section {
+    flex-direction: row;
+    gap: 10%;
+  }
+
+  .two-col-section__left {
+    width: 50%;
+  }
+
+  .two-col-section__right {
+    width: 40%;
+  }
+
+  .footer {
+    gap: 5rem;
+  }
+
+  .footer__bottom__container {
+    flex-direction: row;
+    flex: 1 1 0;
+  }
+
+  .footer-column:first-of-type {
+    padding-right: 4rem;
+  }
+
+  .footer-column {
+    flex: 1 1 0;
+    text-align: left;
+  }
 }
