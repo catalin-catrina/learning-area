@@ -1,0 +1,1 @@
+const GCD = (a, b) => {};

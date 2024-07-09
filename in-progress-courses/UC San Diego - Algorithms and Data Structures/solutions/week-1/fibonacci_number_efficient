@@ -1,0 +1,11 @@
+const fibonacci = function (nr) {
+  const fiboSequence = [0, 1];
+  for (let i = 2; i < nr; i++) {
+    fiboSequence[i] = fiboSequence[i - 1] + fiboSequence[i - 2];
+  }
+  return fiboSequence[fiboSequence.length - 1];
+};
+
+console.log(fibonacci(7));
+
+// 0 1 1 2 3 5 8
