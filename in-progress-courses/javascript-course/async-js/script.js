@@ -17,14 +17,14 @@
 //       // ressponse type has a "body" property which is what the json() method returns
 //       // for whatever reaons though the json data is also an async operation so it returns a promise that we need to handle with .then() as well
 //       console.log(res);
-
+//
 //       return res.json();
 //     })
 //     .then(data => {
 //       console.log(data);
 //     });
 // };
-
+//
 // getCountryData('romania');
 
 // const getCountryDataNoLogs = function (country) {
@@ -113,33 +113,37 @@
 // TEST COORDINATES: 52.508, 13.381
 // TEST2: 19.037, 72.873
 // TEST3: -33.933, 18.474
-const whereAmI = (lat, lng) => {
-  fetch(
-    `https://geocode.xyz/${lat},${lng}?geoit=json&auth=162228325041081368636x67248`
-  )
-    .then(res => {
-      if (!res.ok) throw new Error('gg, dis done', res.status);
-      return res.json();
-    })
-    .then(data => {
-      document.querySelector(
-        '.message'
-      ).textContent = `You are in ${data.state}, ${data.country}`;
+// const whereAmI = (lat, lng) => {
+//   fetch(
+//     `https://geocode.xyz/${lat},${lng}?geoit=json&auth=162228325041081368636x67248`
+//   )
+//     .then(res => {
+//       if (!res.ok) throw new Error('gg, dis done', res.status);
+//       return res.json();
+//     })
+//     .then(data => {
+//       document.querySelector(
+//         '.message'
+//       ).textContent = `You are in ${data.state}, ${data.country}`;
+//
+//       return fetch(
+//         `https://restcountries.com/v3.1/name/${data.country.toLowerCase()}`
+//       );
+//     })
+//     .then(res => res.json())
+//     .then(data => {
+//       console.log(data);
+//
+//       document.querySelector(
+//         '.subMessage'
+//       ).textContent = `Region is ${data[0].region}`;
+//     })
+//     .catch(err => console.log('Oupsie,', err));
+// };
+//
+// // whereAmI(52.508, 13.381);
+// whereAmI(19.037, 72.873);
 
-      return fetch(
-        `https://restcountries.com/v3.1/name/${data.country.toLowerCase()}`
-      );
-    })
-    .then(res => res.json())
-    .then(data => {
-      console.log(data);
-
-      document.querySelector(
-        '.subMessage'
-      ).textContent = `Region is ${data[0].region}`;
-    })
-    .catch(err => console.log('Oupsie,', err));
-};
-
-// whereAmI(52.508, 13.381);
-whereAmI(19.037, 72.873);
+const countryData = fetch('https://restcountries.com/v3.1/name/romania')
+  .then(res => res.json())
+  .then(data => console.log(data, typeof data));
