@@ -1,6 +1,17 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { catchError, map, Observable, of, tap, throwError } from 'rxjs';
+import {
+  BehaviorSubject,
+  catchError,
+  filter,
+  map,
+  Observable,
+  of,
+  shareReplay,
+  switchMap,
+  tap,
+  throwError,
+} from 'rxjs';
 import { Product } from './product';
 import { ProductData } from './product-data';
 import { HttpErrorService } from '../utilities/http-error.service';
@@ -17,20 +28,27 @@ export class ProductService {
   private errorService = inject(HttpErrorService);
   private reviewService = inject(ReviewService);
 
-  getProducts(): Observable<Product[]> {
-    return this.http.get<Product[]>(this.productsUrl).pipe(
-      tap(() => console.log('In http pipeline')),
-      catchError((err) => this.handleError(err))
-    );
-  }
+  private productSelectedSubject = new BehaviorSubject<number | undefined>(
+    undefined
+  );
+  readonly productSelected$ = this.productSelectedSubject.asObservable();
 
-  getProduct(id: number): Observable<Product> {
-    const productUrl = this.productsUrl + '/' + id;
-    return this.http.get<Product>(productUrl).pipe(
-      map((product) => this.getProductWithReviews(product)),
-      catchError((err) => this.handleError(err))
-    );
-  }
+  readonly products$ = this.http.get<Product[]>(this.productsUrl).pipe(
+    tap((products) => console.log('In http pipeline', products)),
+    shareReplay(1),
+    catchError((err) => this.handleError(err))
+  );
+
+  readonly product$ = this.productSelected$.pipe(
+    filter(Boolean),
+    switchMap((id) => {
+      const productUrl = this.productsUrl + '/' + id;
+      return this.http.get<Product>(productUrl).pipe(
+        switchMap((product) => this.getProductWithReviews(product)),
+        catchError((err) => this.handleError(err))
+      );
+    })
+  );
 
   private getProductWithReviews(product: Product): Observable<Product> {
     if (product.hasReviews) {
@@ -40,6 +58,10 @@ export class ProductService {
     } else {
       return of(product);
     }
+  }
+
+  productSelected(selectedProductId: number): void {
+    this.productSelectedSubject.next(selectedProductId);
   }
 
   private handleError(err: HttpErrorResponse): Observable<never> {
