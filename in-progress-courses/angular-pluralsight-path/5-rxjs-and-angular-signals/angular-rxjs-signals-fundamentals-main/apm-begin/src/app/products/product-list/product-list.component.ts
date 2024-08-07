@@ -14,20 +14,19 @@ import { ProductService } from '../product.service';
 export class ProductListComponent {
   // Just enough here for the template to compile
   pageTitle = 'Products';
-  errorMessage = '';
 
   private productService = inject(ProductService);
 
   // Products
-  readonly products$ = this.productService.products$.pipe(
-    catchError((err) => {
-      this.errorMessage = err;
-      return EMPTY;
-    })
-  );
+  products = this.productService.products;
+  errorMessage = this.productService.productsError;
 
   // Selected product id to highlight the entry
-  readonly selectedProductId$ = this.productService.productSelected$;
+  // calling/subscribing to the observable exposed from the behaviorsubject in the product service
+  // readonly selectedProductId$ = this.productService.productSelected$;
+
+  // doing the same using signals
+  selectedProductId = this.productService.selectedProductIdSignal;
 
   onSelected(productId: number): void {
     this.productService.productSelected(productId);
