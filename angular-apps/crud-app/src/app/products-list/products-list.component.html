@@ -1,0 +1,33 @@
+<button [routerLink]="['add']" routerLinkActive="router-link-active">
+  Add new product
+</button>
+<div [ngStyle]="{ display: 'flex', gap: '2rem' }">
+  <div class="products" *ngIf="products$ | async as products">
+    <div
+      class="product"
+      *ngFor="let product of products"
+      (click)="selectId(product.id, $event)"
+      [routerLink]="[product.id]"
+      routerLinkActive="router-link-active"
+    >
+      <div [ngClass]="{ highlight: product.id === (selectedId$ | async) }">
+        <div>{{ product.name }}</div>
+        <div>{{ product.price }}</div>
+      </div>
+
+      <div *ngIf="toggleId">{{ product.id }}</div>
+      <div>
+        <button
+          (click)="selectId(product.id, $event)"
+          [routerLink]="[product.id, 'edit']"
+          routerLinkActive="router-link-active"
+        >
+          Edit
+        </button>
+        <button (click)="deleteProduct(product.id)">Delete</button>
+      </div>
+    </div>
+  </div>
+  <router-outlet></router-outlet>
+</div>
+<button (click)="handleToggle()">Toggle IDs</button>

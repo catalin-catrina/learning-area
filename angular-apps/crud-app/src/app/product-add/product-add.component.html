@@ -1,0 +1,10 @@
+<form>
+  <div>
+    Name:
+    <input type="text" name="name" [(ngModel)]="product.name" />
+  </div>
+  <div>
+    Price: <input type="text" name="price" [(ngModel)]="product.price" />
+  </div>
+  <button type="button" (click)="addProduct(product)">Submit</button>
+</form>
