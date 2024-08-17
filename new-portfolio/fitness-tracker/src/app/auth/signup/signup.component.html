@@ -1,10 +1,32 @@
-<section>
-  <form fxLayout="column">
+<section class="signup-container">
+  <form
+    class="signup-form"
+    #formReference="ngForm"
+    (ngSubmit)="onSubmit(formReference)"
+  >
     <mat-form-field>
-      <input type="email" matInput placeholder="Email" />
+      <input
+        type="email"
+        name="email"
+        email
+        required
+        placeholder="Email"
+        matInput
+        ngModel
+      />
     </mat-form-field>
     <mat-form-field>
-      <input type="password" matInput placeholder="Password" />
+      <input
+        type="password"
+        name="password"
+        required
+        minlength="6"
+        placeholder="Password"
+        matInput
+        matHint
+        ngModel
+      />
     </mat-form-field>
+    <button type="submit" mat-raised-button color="primary">Sign up</button>
   </form>
 </section>
