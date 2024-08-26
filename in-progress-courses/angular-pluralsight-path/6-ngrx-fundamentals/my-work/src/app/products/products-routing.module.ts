@@ -1,21 +1,11 @@
 import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
-import { ProductPageComponent } from './product-page/product-page.component';
-import { ProductsPageComponent } from './products-page/products-page.component';
-
-const routes: Routes = [
-  {
-    path: '',
-    component: ProductsPageComponent
-  },
-  {
-    path: ':id',
-    component: ProductPageComponent
-  }
-];
+import { RouterModule } from '@angular/router';
+import { routes } from './products.routes';
+import { provideState } from '@ngrx/store';
+import { productsReducer } from './state/products.reducer';
 
 @NgModule({
   imports: [RouterModule.forChild(routes)],
-  exports: [RouterModule]
+  providers: [provideState('products', productsReducer)],
 })
-export class ProductsRoutingModule { }
+export class ProductsRoutingModule {}

@@ -1,14 +1,23 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import {
+  FormControl,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { Product } from '../product.model';
+import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-product-edit',
+  standalone: true,
+  imports: [CommonModule, ReactiveFormsModule, RouterModule],
   templateUrl: './product-edit.component.html',
   styleUrls: ['./product-edit.component.css'],
 })
 export class ProductEditComponent {
-  oldProduct: Product  | null | undefined = null;
+  oldProduct: Product | null | undefined = null;
   @Output() add = new EventEmitter<Product>();
   @Output() update = new EventEmitter<Product>();
   @Output() delete = new EventEmitter<number>();

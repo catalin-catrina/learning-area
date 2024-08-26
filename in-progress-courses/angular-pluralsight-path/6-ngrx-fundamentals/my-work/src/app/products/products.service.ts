@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Product } from './product.model';
-import { catchError, Observable, throwError } from 'rxjs';
+import { catchError, Observable, tap, throwError } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -12,15 +12,17 @@ export class ProductsService {
   constructor(private http: HttpClient) {}
 
   getAll() {
-    return this.http
-      .get<Product[]>(this.productsAPIUrl)
-      .pipe(catchError(this.handleError));
+    return this.http.get<Product[]>(this.productsAPIUrl).pipe(
+      tap((x) => console.log(x)),
+      catchError(this.handleError)
+    );
   }
 
   getById(id: number) {
-    return this.http
-      .get<Product>(`${this.productsAPIUrl}/${id}`)
-      .pipe(catchError(this.handleError));
+    return this.http.get<Product>(`${this.productsAPIUrl}/${id}`).pipe(
+      tap((x) => console.log(x)),
+      catchError(this.handleError)
+    );
   }
 
   add({ name, price }: Product): Observable<Product> {
@@ -30,19 +32,22 @@ export class ProductsService {
   }
 
   update(product: Product): Observable<Product> {
-    return this.http
-      .put<Product>(this.productsAPIUrl, product)
-      .pipe(catchError(this.handleError));
+    return this.http.put<Product>(this.productsAPIUrl, product).pipe(
+      tap((x) => console.log(x)),
+      catchError(this.handleError)
+    );
   }
 
   delete(id: number): Observable<unknown> {
     const url = `${this.productsAPIUrl}/${id}`;
-    return this.http.delete(url).pipe(catchError(this.handleError));
+    return this.http.delete(url).pipe(
+      tap((x) => console.log(x)),
+      catchError(this.handleError)
+    );
   }
 
-  private handleError({ status }: HttpErrorResponse) {
-    return throwError(
-      () => `${status}: Something bad happened.`
-    );
+  private handleError(error: HttpErrorResponse) {
+    console.error('An error occurred:', error); // Log the complete error
+    return throwError(() => `${error.status}: Something bad happened.`);
   }
 }

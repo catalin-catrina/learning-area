@@ -3,9 +3,13 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { Product } from '../product.model';
 import { ProductsService } from '../products.service';
+import { CommonModule } from '@angular/common';
+import { ProductEditComponent } from '../product-edit/product-edit.component';
 
 @Component({
   selector: 'app-product-page',
+  standalone: true,
+  imports: [CommonModule, ProductEditComponent],
   templateUrl: './product-page.component.html',
   styleUrls: ['./product-page.component.css'],
 })
