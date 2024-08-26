@@ -1,0 +1,49 @@
+a:hover,
+a:active {
+  color: lightgray;
+}
+
+button {
+  background-color: #3f51b5;
+  border: none;
+  color: #fff;
+
+  position: relative;
+  top: 2px;
+}
+
+a {
+  text-decoration: none;
+  color: #fff;
+}
+
+.left-nav {
+  display: flex;
+  align-items: center;
+}
+
+.right-nav {
+  margin-left: auto;
+}
+
+.right-nav > *:not(:last-child) {
+  padding-right: 15px;
+}
+
+.button-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media only screen and (max-width: 599px) {
+  .right-nav {
+    display: none;
+  }
+}
+
+@media only screen and (min-width: 600px) {
+  .left-nav {
+    display: none;
+  }
+}

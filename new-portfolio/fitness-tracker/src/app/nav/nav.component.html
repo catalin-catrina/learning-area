@@ -1,0 +1,16 @@
+<mat-toolbar color="primary">
+  <div class="left-nav">
+    <div class="button-container">
+      <button mat-icon-button (click)="emitMenuClicked()">
+        <mat-icon>menu</mat-icon>
+      </button>
+    </div>
+    <div><a routerLink="/" routerLinkActive="active">Logo</a></div>
+  </div>
+  <div class="right-nav">
+    <a routerLink="/training" routerLinkActive="active">Training</a>
+    <a routerLink="/login" routerLinkActive="active">Login</a>
+    <a routerLink="/signup" routerLinkActive="active">Signup</a>
+    <a>Logout</a>
+  </div>
+</mat-toolbar>

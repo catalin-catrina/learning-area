@@ -1,0 +1,15 @@
+.welcome {
+  text-align: center;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+@media only screen and (min-width: 800px) {
+  .welcome {
+    flex-direction: row;
+    gap: 20px;
+  }
+}

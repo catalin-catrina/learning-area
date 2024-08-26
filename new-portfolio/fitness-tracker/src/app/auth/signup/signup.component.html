@@ -13,7 +13,14 @@
         placeholder="Email"
         matInput
         ngModel
+        #emailInput="ngModel"
       />
+      <mat-error *ngIf="emailInput.hasError('required')"
+        >Field must be completed</mat-error
+      >
+      <mat-error *ngIf="!emailInput.hasError('required')"
+        >Email is invalid</mat-error
+      >
     </mat-form-field>
     <mat-form-field>
       <input
@@ -25,8 +32,46 @@
         matInput
         matHint
         ngModel
+        #passwordInput
       />
+      <mat-hint align="start" *ngIf="passwordInput.value.length < 6"
+        >Password must be at least 6 characters long</mat-hint
+      >
+      <mat-hint align="end" *ngIf="passwordInput.value.length < 6"
+        >{{ passwordInput.value.length }} / 6</mat-hint
+      >
     </mat-form-field>
-    <button type="submit" mat-raised-button color="primary">Sign up</button>
+    <mat-form-field>
+      <mat-label>Date of birth:</mat-label>
+      <input
+        name="birthDate"
+        required
+        ngModel
+        #birthDate="ngModel"
+        matInput
+        [matDatepicker]="picker"
+        [max]="maxDate"
+      />
+      <mat-hint>MM/DD/YYYY</mat-hint>
+      <mat-datepicker-toggle
+        matIconSuffix
+        [for]="picker"
+      ></mat-datepicker-toggle>
+      <mat-datepicker #picker></mat-datepicker>
+      <mat-error *ngIf="birthDate.hasError('required')"
+        >Must select a day of birth</mat-error
+      >
+    </mat-form-field>
+    <mat-checkbox name="terms" required
+      >Agree to Terms and Conditions</mat-checkbox
+    >
+    <button
+      type="submit"
+      [disabled]="formReference.invalid"
+      mat-raised-button
+      color="primary"
+    >
+      Sign up
+    </button>
   </form>
 </section>
