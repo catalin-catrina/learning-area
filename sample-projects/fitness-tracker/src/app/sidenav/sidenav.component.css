@@ -2,10 +2,6 @@ mat-sidenav {
   height: 100%;
 }
 
-mat-sidenav {
-  width: 360px;
-}
-
 a:hover,
 a:active {
   color: lightgray;
