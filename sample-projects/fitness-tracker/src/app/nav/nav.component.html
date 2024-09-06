@@ -1,16 +1,22 @@
 <mat-toolbar color="primary">
   <div class="left-nav">
     <div class="button-container">
-      <button mat-icon-button (click)="emitMenuClicked()">
+      <button mat-icon-button (click)="emitBtnClicked()">
         <mat-icon>menu</mat-icon>
       </button>
     </div>
     <div><a routerLink="/" routerLinkActive="active">Logo</a></div>
   </div>
   <div class="right-nav">
-    <a routerLink="/training" routerLinkActive="active">Training</a>
-    <a routerLink="/login" routerLinkActive="active">Login</a>
-    <a routerLink="/signup" routerLinkActive="active">Signup</a>
-    <a>Logout</a>
+    <a *ngIf="isLoggedIn" routerLink="/training" routerLinkActive="active"
+      >Training</a
+    >
+    <a *ngIf="!isLoggedIn" routerLink="/login" routerLinkActive="active"
+      >Login</a
+    >
+    <a *ngIf="!isLoggedIn" routerLink="/signup" routerLinkActive="active"
+      >Signup</a
+    >
+    <a *ngIf="isLoggedIn" (click)="onLogout()">Logout</a>
   </div>
 </mat-toolbar>

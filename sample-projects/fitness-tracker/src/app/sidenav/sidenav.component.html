@@ -1,26 +1,29 @@
 <mat-nav-list>
   <a
+    *ngIf="!isLoggedIn"
     mat-list-item
     routerLink="/signup"
     routerLinkActive="active"
-    (click)="emitMenuClicked()"
+    (click)="emitBtnClicked()"
   >
     <mat-icon>face</mat-icon>
     <span class="caption">Register</span>
   </a>
   <a
+    *ngIf="!isLoggedIn"
     mat-list-item
     routerLink="/login"
     routerLinkActive="active"
-    (click)="emitMenuClicked()"
+    (click)="emitBtnClicked()"
   >
     <mat-icon>eject</mat-icon> <span class="caption">Login</span></a
   >
   <a
+    *ngIf="isLoggedIn"
     mat-list-item
     routerLink="/training"
     routerLinkActive="active"
-    (click)="emitMenuClicked()"
+    (click)="emitBtnClicked()"
   >
     <mat-icon>fitness_center</mat-icon>
     <span class="caption">Training</span></a
@@ -28,8 +31,8 @@
   <mat-list-item>
     <hr />
   </mat-list-item>
-  <mat-list-item>
-    <button mat-button class="btn btn-logout" (click)="emitMenuClicked()">
+  <mat-list-item *ngIf="isLoggedIn">
+    <button mat-button class="btn btn-logout" (click)="onLogout()">
       <mat-icon class="logout-icon">input</mat-icon>
       <span class="caption">Logout</span>
     </button>

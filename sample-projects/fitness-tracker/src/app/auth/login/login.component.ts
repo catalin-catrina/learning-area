@@ -1,9 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
+
+import { AuthService } from '../../services/auth.service';
+import User from '../../models/user.model';
 
 @Component({
   selector: 'app-login',
@@ -19,7 +22,14 @@ import { MatButtonModule } from '@angular/material/button';
   styleUrl: './login.component.css',
 })
 export class LoginComponent {
+  authService = inject(AuthService);
+
   onSubmit(form: NgForm) {
-    console.log(form);
+    const user = {
+      email: form.value.email,
+      password: form.value.password,
+    };
+
+    this.authService.login(user);
   }
 }

@@ -1,9 +1,9 @@
 <mat-sidenav-container>
   <mat-sidenav #sidenav>
-    <app-sidenav (onMenuClicked)="sidenav.close()"></app-sidenav>
+    <app-sidenav (onBtnClicked)="sidenav.close()"></app-sidenav>
   </mat-sidenav>
   <mat-sidenav-content>
-    <app-nav (onMenuClicked)="sidenav.toggle()"></app-nav>
+    <app-nav (onBtnClicked)="sidenav.toggle()"></app-nav>
     <div class="main">
       <router-outlet></router-outlet>
     </div>

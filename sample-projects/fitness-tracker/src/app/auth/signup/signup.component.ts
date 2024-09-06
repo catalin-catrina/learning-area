@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -6,6 +6,8 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-signup',
@@ -26,11 +28,18 @@ export class SignupComponent implements OnInit {
   currentYear = new Date().getFullYear();
   maxDate = new Date(this.currentYear - 18, 0, 1);
 
+  authService = inject(AuthService);
+
   ngOnInit(): void {
     console.log(this.currentYear);
     console.log(this.maxDate);
   }
   onSubmit(form: NgForm) {
-    console.log(form);
+    const user = {
+      email: form.value.email,
+      password: form.value.password,
+    };
+
+    this.authService.register(user);
   }
 }

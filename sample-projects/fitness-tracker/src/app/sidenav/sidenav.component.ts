@@ -1,8 +1,19 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  inject,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output,
+} from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
 import { MatButtonModule } from '@angular/material/button';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { AuthService } from '../services/auth.service';
+import { Subscription } from 'rxjs';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-sidenav',
@@ -13,15 +24,35 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
     MatButtonModule,
     RouterLink,
     RouterLinkActive,
+    CommonModule,
   ],
   templateUrl: './sidenav.component.html',
   styleUrl: './sidenav.component.css',
 })
-export class SidenavComponent {
+export class SidenavComponent implements OnInit, OnDestroy {
   @Input() sidenav: any;
-  @Output() onMenuClicked = new EventEmitter();
+  @Output() onBtnClicked = new EventEmitter();
+  loginSub!: Subscription;
+  isLoggedIn = false;
 
-  emitMenuClicked() {
-    this.onMenuClicked.emit();
+  authService = inject(AuthService);
+
+  ngOnInit(): void {
+    this.loginSub = this.authService.auth$.subscribe(
+      (isLoggedIn) => (this.isLoggedIn = isLoggedIn)
+    );
+  }
+
+  emitBtnClicked() {
+    this.onBtnClicked.emit();
+  }
+
+  onLogout() {
+    this.emitBtnClicked();
+    this.authService.logout();
+  }
+
+  ngOnDestroy(): void {
+    this.loginSub.unsubscribe();
   }
 }
