@@ -1,41 +1,48 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import Exercise from '../models/exercise.model';
-import { Subject } from 'rxjs';
+import { combineLatest, map, Observable, Subject } from 'rxjs';
+import { collection, collectionData, Firestore } from '@angular/fire/firestore';
 
 @Injectable({
   providedIn: 'root',
 })
 export class TrainingService {
-  private availableExercises: Exercise[] = [
-    { id: 'crunches', name: 'Crunches', duration: 30, calories: 8 },
-    { id: 'pushups', name: 'Pushups', duration: 40, calories: 14 },
-    { id: 'lunges', name: 'Lunges', duration: 35, calories: 11 },
-  ];
-  private activeExercise: Exercise | undefined;
   private exercises: Exercise[] = [];
+  availableExercises$: Observable<Exercise[]>;
 
-  private activeExerciseSubject = new Subject<Exercise | undefined>();
-  activeExercise$ = this.activeExerciseSubject.asObservable();
+  private activeExerciseIdSubject = new Subject<any>();
+  activeExerciseId$ = this.activeExerciseIdSubject.asObservable();
 
-  getAvailableExercises() {
-    return this.availableExercises.slice();
-  }
+  activeExercise$: Observable<any | undefined>;
 
-  getActiveExercise() {
-    return { ...this.activeExercise };
+  private firestore = inject(Firestore);
+
+  constructor() {
+    const exercisesCollection = collection(
+      this.firestore,
+      'availableExercises'
+    );
+
+    this.availableExercises$ = collectionData(exercisesCollection, {
+      idField: 'id',
+    }) as Observable<Exercise[]>;
+
+    this.activeExercise$ = combineLatest([
+      this.availableExercises$,
+      this.activeExerciseId$,
+    ]).pipe(
+      map(([exercises, selectedId]: [Exercise[], string]) =>
+        exercises.find((exercise: Exercise) => exercise.id === selectedId)
+      )
+    );
   }
 
   getExercises() {
     return this.exercises.slice();
   }
 
-  startExerciseById(selectedId: string) {
-    this.activeExercise = this.availableExercises.find(
-      (x) => x.id === selectedId
-    );
-    if (this.activeExercise) {
-      this.activeExerciseSubject.next({ ...this.activeExercise });
-    }
+  selectExerciseById(selectedId: string) {
+    this.activeExerciseIdSubject.next(selectedId);
   }
 
   completeExercise() {
@@ -47,7 +54,7 @@ export class TrainingService {
       });
     }
     this.activeExercise = undefined;
-    this.activeExerciseSubject.next(undefined);
+    this.activeExerciseIdSubject.next(undefined);
   }
 
   cancelExercise(progress: number) {
@@ -61,6 +68,6 @@ export class TrainingService {
       });
     }
     this.activeExercise = undefined;
-    this.activeExerciseSubject.next(undefined);
+    this.activeExerciseIdSubject.next(undefined);
   }
 }
