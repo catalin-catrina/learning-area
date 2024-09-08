@@ -1,19 +1,28 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, OnInit } from '@angular/core';
 import Exercise from '../models/exercise.model';
-import { combineLatest, map, Observable, Subject } from 'rxjs';
+import { BehaviorSubject, combineLatest, map, Observable, Subject } from 'rxjs';
 import { collection, collectionData, Firestore } from '@angular/fire/firestore';
 
 @Injectable({
   providedIn: 'root',
 })
-export class TrainingService {
+export class TrainingService implements OnInit {
   private exercises: Exercise[] = [];
   availableExercises$: Observable<Exercise[]>;
 
-  private activeExerciseIdSubject = new Subject<any>();
-  activeExerciseId$ = this.activeExerciseIdSubject.asObservable();
+  private activeExerciseSubject = new BehaviorSubject<Exercise | undefined>(
+    undefined
+  );
+  private activeExerciseIdSubject = new BehaviorSubject<string | undefined>(
+    undefined
+  );
+  private completedExercisesSubject = new BehaviorSubject<Exercise[]>([]);
+  private cancelledExercisesSubject = new BehaviorSubject<Exercise[]>([]);
 
-  activeExercise$: Observable<any | undefined>;
+  readonly activeExerciseId$ = this.activeExerciseIdSubject.asObservable();
+  readonly activeExercise$ = this.activeExerciseSubject.asObservable();
+  readonly completedExercises$ = this.completedExercisesSubject.asObservable();
+  readonly cancelledExercises$ = this.cancelledExercisesSubject.asObservable();
 
   private firestore = inject(Firestore);
 
@@ -26,15 +35,10 @@ export class TrainingService {
     this.availableExercises$ = collectionData(exercisesCollection, {
       idField: 'id',
     }) as Observable<Exercise[]>;
+  }
 
-    this.activeExercise$ = combineLatest([
-      this.availableExercises$,
-      this.activeExerciseId$,
-    ]).pipe(
-      map(([exercises, selectedId]: [Exercise[], string]) =>
-        exercises.find((exercise: Exercise) => exercise.id === selectedId)
-      )
-    );
+  ngOnInit(): void {
+    this.syncActiveExercise();
   }
 
   getExercises() {
@@ -45,29 +49,51 @@ export class TrainingService {
     this.activeExerciseIdSubject.next(selectedId);
   }
 
-  completeExercise() {
-    if (this.activeExercise) {
-      this.exercises.push({
-        ...this.activeExercise,
-        date: new Date(),
-        state: 'completed',
+  syncActiveExercise() {
+    combineLatest([this.availableExercises$, this.activeExerciseId$])
+      .pipe(
+        map(([exercises, selectedId]: [Exercise[], string | undefined]) =>
+          exercises.find((exercise: Exercise) => exercise.id === selectedId)
+        )
+      )
+      .subscribe((exercise) => {
+        this.activeExerciseSubject.next(exercise);
       });
-    }
-    this.activeExercise = undefined;
-    this.activeExerciseIdSubject.next(undefined);
   }
 
-  cancelExercise(progress: number) {
-    if (this.activeExercise) {
-      this.exercises.push({
-        ...this.activeExercise,
-        duration: this.activeExercise.duration * (progress / 100),
-        calories: this.activeExercise.calories * (progress / 100),
-        date: new Date(),
-        state: 'cancelled',
-      });
+  addCompletedExercise() {
+    const activeExercise = this.activeExerciseSubject.value;
+    if (activeExercise) {
+      const updatedCompletedExercises: Exercise[] = [
+        ...this.completedExercisesSubject.value,
+        {
+          ...activeExercise,
+          date: new Date(),
+          state: 'completed',
+        },
+      ];
+      this.completedExercisesSubject.next(updatedCompletedExercises);
+      this.activeExerciseIdSubject.next(undefined);
+      this.activeExerciseSubject.next(undefined);
     }
-    this.activeExercise = undefined;
-    this.activeExerciseIdSubject.next(undefined);
+  }
+
+  addCancelledExercise(progress: number) {
+    const activeExercise = this.activeExerciseSubject.value;
+    if (activeExercise) {
+      const updatedCancelledExercises: Exercise[] = [
+        ...this.cancelledExercisesSubject.value,
+        {
+          ...activeExercise,
+          duration: activeExercise.duration * (progress / 100),
+          calories: activeExercise.calories * (progress / 100),
+          date: new Date(),
+          state: 'cancelled',
+        },
+      ];
+      this.cancelledExercisesSubject.next(updatedCancelledExercises);
+      this.activeExerciseIdSubject.next(undefined);
+      this.activeExerciseSubject.next(undefined);
+    }
   }
 }
