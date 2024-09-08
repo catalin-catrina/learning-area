@@ -6,8 +6,8 @@ import { collection, collectionData, Firestore } from '@angular/fire/firestore';
 @Injectable({
   providedIn: 'root',
 })
-export class TrainingService implements OnInit {
-  private exercises: Exercise[] = [];
+export class TrainingService {
+  allExercises$!: Observable<Exercise[]>;
   availableExercises$: Observable<Exercise[]>;
 
   private activeExerciseSubject = new BehaviorSubject<Exercise | undefined>(
@@ -35,14 +35,25 @@ export class TrainingService implements OnInit {
     this.availableExercises$ = collectionData(exercisesCollection, {
       idField: 'id',
     }) as Observable<Exercise[]>;
-  }
 
-  ngOnInit(): void {
     this.syncActiveExercise();
+    this.allExercises$ = this.getAllExercises();
   }
 
-  getExercises() {
-    return this.exercises.slice();
+  getAllExercises() {
+    return combineLatest([
+      this.completedExercises$,
+      this.cancelledExercises$,
+    ]).pipe(
+      map(
+        ([completedExercises, cancelledExercises]: [
+          Exercise[],
+          Exercise[]
+        ]) => {
+          return [...completedExercises, ...cancelledExercises];
+        }
+      )
+    );
   }
 
   selectExerciseById(selectedId: string) {

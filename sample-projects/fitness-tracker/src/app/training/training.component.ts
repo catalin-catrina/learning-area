@@ -31,8 +31,10 @@ export class TrainingComponent implements OnInit, OnDestroy {
     this.newExerciseSub = this.trainingService.activeExerciseId$.subscribe(
       (id) => {
         if (id) {
+          console.log('if id: ', id);
           this.ongoingTraining = true;
         } else {
+          console.log('if not id: ', id);
           this.ongoingTraining = false;
         }
       }

@@ -1,0 +1,4 @@
+/training
+se afiseaza tab group cu new training si past trainings atunci cand ongoingtraining = false
+se afizeaza current training daca ongoingtraining = true;
+

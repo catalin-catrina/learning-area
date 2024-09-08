@@ -1,4 +1,4 @@
-import { Component, EventEmitter, inject, OnInit, Output } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
@@ -8,7 +8,6 @@ import { AsyncPipe, CommonModule } from '@angular/common';
 import Exercise from '../../models/exercise.model';
 import { TrainingService } from '../../services/training.service';
 import { FormsModule, NgForm } from '@angular/forms';
-import { collection, collectionData, Firestore } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
 
 @Component({
@@ -30,7 +29,6 @@ export class NewTrainingComponent implements OnInit {
   exercises$!: Observable<Exercise[]>;
 
   trainingService = inject(TrainingService);
-  firestore: Firestore = inject(Firestore);
 
   ngOnInit(): void {
     this.exercises$ = this.trainingService.availableExercises$;
