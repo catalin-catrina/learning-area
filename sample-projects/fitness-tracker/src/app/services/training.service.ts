@@ -1,6 +1,6 @@
-import { inject, Injectable, OnInit } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import Exercise from '../models/exercise.model';
-import { BehaviorSubject, combineLatest, map, Observable, Subject } from 'rxjs';
+import { BehaviorSubject, combineLatest, map, Observable } from 'rxjs';
 import { collection, collectionData, Firestore } from '@angular/fire/firestore';
 
 @Injectable({
