@@ -2,17 +2,17 @@ import { DatePipe, DecimalPipe } from '@angular/common';
 import {
   AfterViewInit,
   Component,
+  computed,
   inject,
   OnInit,
   ViewChild,
 } from '@angular/core';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import { TrainingService } from '../../services/training.service';
-import { MatSort, MatSortModule, Sort } from '@angular/material/sort';
+import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatInputModule } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
-import Exercise from '../../models/exercise.model';
+import { TrainingService } from '../../services/training.service';
 
 @Component({
   selector: 'app-past-training',
@@ -37,17 +37,17 @@ export class PastTrainingComponent implements OnInit, AfterViewInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   trainingService = inject(TrainingService);
-  data!: Exercise[];
+  completedExercises = this.trainingService.completedExercisesSignal;
+  cancelledExercises = this.trainingService.cancelledExercisesSignal;
+  allExercises = computed(() => [
+    ...this.completedExercises(),
+    ...this.cancelledExercises(),
+  ]);
 
   dataSource: any;
 
   ngOnInit(): void {
-    this.trainingService.allExercises$.subscribe((exercises: Exercise[]) => {
-      console.log('exercises are', exercises);
-      this.data = exercises;
-    });
-
-    this.dataSource = new MatTableDataSource(this.data);
+    this.dataSource = new MatTableDataSource(this.allExercises());
   }
 
   ngAfterViewInit(): void {

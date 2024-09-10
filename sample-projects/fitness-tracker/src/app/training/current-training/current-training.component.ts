@@ -1,10 +1,9 @@
-import { Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, effect, inject, OnDestroy, OnInit } from '@angular/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { StopTrainingComponent } from '../stop-training/stop-training.component';
 import { TrainingService } from '../../services/training.service';
-import Exercise from '../../models/exercise.model';
 
 @Component({
   selector: 'app-current-training',
@@ -13,29 +12,28 @@ import Exercise from '../../models/exercise.model';
   templateUrl: './current-training.component.html',
   styleUrl: './current-training.component.css',
 })
-export class CurrentTrainingComponent implements OnInit, OnDestroy {
+export class CurrentTrainingComponent implements OnDestroy {
   progress = 0;
   timer: any;
 
   dialog = inject(MatDialog);
   trainingService = inject(TrainingService);
 
-  activeExercise: Exercise | undefined;
+  activeExercise = this.trainingService.activeExerciseSignal;
 
-  ngOnInit(): void {
-    this.trainingService.activeExercise$.subscribe((exercise) => {
-      console.log('in current trainign on init, activeExercise is: ', exercise);
-      this.activeExercise = exercise;
+  constructor() {
+    effect(() => {
+      if (this.activeExercise()) {
+        this.startTimer();
+      }
     });
-
-    this.startTimer();
   }
 
   startTimer() {
     let step;
-    if (this.activeExercise && this.activeExercise.duration) {
-      step = (this.activeExercise.duration / 100) * 1000;
-      console.log('step is:', step);
+    const exercise = this.activeExercise();
+    if (exercise) {
+      step = (exercise.duration / 100) * 1000;
     }
 
     this.timer = setInterval(() => {

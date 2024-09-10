@@ -1,110 +1,73 @@
-import { inject, Injectable } from '@angular/core';
-import Exercise from '../models/exercise.model';
-import { BehaviorSubject, combineLatest, map, Observable } from 'rxjs';
 import { collection, collectionData, Firestore } from '@angular/fire/firestore';
+import { computed, inject, Injectable, signal } from '@angular/core';
+import { Observable } from 'rxjs';
+import { toSignal } from '@angular/core/rxjs-interop';
+
+import Exercise from '../models/exercise.model';
 
 @Injectable({
   providedIn: 'root',
 })
 export class TrainingService {
-  allExercises$!: Observable<Exercise[]>;
-  availableExercises$: Observable<Exercise[]>;
-
-  private activeExerciseSubject = new BehaviorSubject<Exercise | undefined>(
-    undefined
-  );
-  private activeExerciseIdSubject = new BehaviorSubject<string | undefined>(
-    undefined
-  );
-  private completedExercisesSubject = new BehaviorSubject<Exercise[]>([]);
-  private cancelledExercisesSubject = new BehaviorSubject<Exercise[]>([]);
-
-  readonly activeExerciseId$ = this.activeExerciseIdSubject.asObservable();
-  readonly activeExercise$ = this.activeExerciseSubject.asObservable();
-  readonly completedExercises$ = this.completedExercisesSubject.asObservable();
-  readonly cancelledExercises$ = this.cancelledExercisesSubject.asObservable();
-
   private firestore = inject(Firestore);
 
-  constructor() {
-    const exercisesCollection = collection(
-      this.firestore,
-      'availableExercises'
-    );
+  activeExerciseIdSignal = signal<string | undefined>(undefined);
+  completedExercisesSignal = signal<Exercise[]>([]);
+  cancelledExercisesSignal = signal<Exercise[]>([]);
+  allExercisesSignal = signal<Exercise[]>([]);
 
-    this.availableExercises$ = collectionData(exercisesCollection, {
+  private availableExercises$ = collectionData(
+    collection(this.firestore, 'availableExercises'),
+    {
       idField: 'id',
-    }) as Observable<Exercise[]>;
+    }
+  ) as Observable<Exercise[]>;
 
-    this.syncActiveExercise();
-    this.allExercises$ = this.getAllExercises();
-  }
+  availableExercisesSignal = toSignal(this.availableExercises$);
 
-  getAllExercises() {
-    return combineLatest([
-      this.completedExercises$,
-      this.cancelledExercises$,
-    ]).pipe(
-      map(
-        ([completedExercises, cancelledExercises]: [
-          Exercise[],
-          Exercise[]
-        ]) => {
-          return [...completedExercises, ...cancelledExercises];
-        }
-      )
-    );
-  }
+  activeExerciseSignal = computed(() =>
+    this.availableExercisesSignal()?.find(
+      (exercise) => exercise.id === this.activeExerciseIdSignal()
+    )
+  );
 
-  selectExerciseById(selectedId: string) {
-    this.activeExerciseIdSubject.next(selectedId);
-  }
-
-  syncActiveExercise() {
-    combineLatest([this.availableExercises$, this.activeExerciseId$])
-      .pipe(
-        map(([exercises, selectedId]: [Exercise[], string | undefined]) =>
-          exercises.find((exercise: Exercise) => exercise.id === selectedId)
-        )
-      )
-      .subscribe((exercise) => {
-        this.activeExerciseSubject.next(exercise);
-      });
+  setActiveExerciseId(selectedId: string) {
+    this.activeExerciseIdSignal.set(selectedId);
   }
 
   addCompletedExercise() {
-    const activeExercise = this.activeExerciseSubject.value;
+    const activeExercise = this.activeExerciseSignal();
+
     if (activeExercise) {
-      const updatedCompletedExercises: Exercise[] = [
-        ...this.completedExercisesSubject.value,
+      this.completedExercisesSignal.set([
+        ...this.completedExercisesSignal(),
         {
           ...activeExercise,
           date: new Date(),
           state: 'completed',
         },
-      ];
-      this.completedExercisesSubject.next(updatedCompletedExercises);
-      this.activeExerciseIdSubject.next(undefined);
-      this.activeExerciseSubject.next(undefined);
+      ]);
     }
+
+    this.activeExerciseIdSignal.set(undefined);
   }
 
   addCancelledExercise(progress: number) {
-    const activeExercise = this.activeExerciseSubject.value;
+    const activeExercise = this.activeExerciseSignal();
+
     if (activeExercise) {
-      const updatedCancelledExercises: Exercise[] = [
-        ...this.cancelledExercisesSubject.value,
+      this.completedExercisesSignal.set([
+        ...this.completedExercisesSignal(),
         {
           ...activeExercise,
-          duration: activeExercise.duration * (progress / 100),
-          calories: activeExercise.calories * (progress / 100),
+          duration: (activeExercise.duration * progress) / 100,
+          calories: (activeExercise.calories * progress) / 100,
           date: new Date(),
           state: 'cancelled',
         },
-      ];
-      this.cancelledExercisesSubject.next(updatedCancelledExercises);
-      this.activeExerciseIdSubject.next(undefined);
-      this.activeExerciseSubject.next(undefined);
+      ]);
     }
+
+    this.activeExerciseIdSignal.set(undefined);
   }
 }
