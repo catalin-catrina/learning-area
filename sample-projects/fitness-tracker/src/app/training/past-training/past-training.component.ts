@@ -1,8 +1,10 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
 import {
+  AfterContentChecked,
   AfterViewInit,
   Component,
   computed,
+  effect,
   inject,
   OnInit,
   ViewChild,
@@ -29,7 +31,12 @@ import { TrainingService } from '../../services/training.service';
   templateUrl: './past-training.component.html',
   styleUrl: './past-training.component.css',
 })
-export class PastTrainingComponent implements OnInit, AfterViewInit {
+export class PastTrainingComponent
+  implements OnInit, AfterViewInit, AfterContentChecked
+{
+  ngAfterContentChecked(): void {
+    console.log(this.completedExercises());
+  }
   filter: string = '';
   displayedColumns = ['date', 'name', 'duration', 'calories', 'state'];
 
@@ -38,16 +45,15 @@ export class PastTrainingComponent implements OnInit, AfterViewInit {
 
   trainingService = inject(TrainingService);
   completedExercises = this.trainingService.completedExercisesSignal;
-  cancelledExercises = this.trainingService.cancelledExercisesSignal;
-  allExercises = computed(() => [
-    ...this.completedExercises(),
-    ...this.cancelledExercises(),
-  ]);
-
   dataSource: any;
 
-  ngOnInit(): void {
-    this.dataSource = new MatTableDataSource(this.allExercises());
+  ngOnInit(): void {}
+
+  constructor() {
+    effect(
+      () =>
+        (this.dataSource = new MatTableDataSource(this.completedExercises()))
+    );
   }
 
   ngAfterViewInit(): void {

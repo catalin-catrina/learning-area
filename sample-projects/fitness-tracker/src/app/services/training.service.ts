@@ -1,4 +1,10 @@
-import { collection, collectionData, Firestore } from '@angular/fire/firestore';
+import {
+  addDoc,
+  collection,
+  collectionData,
+  CollectionReference,
+  Firestore,
+} from '@angular/fire/firestore';
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { Observable } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -10,20 +16,29 @@ import Exercise from '../models/exercise.model';
 })
 export class TrainingService {
   private firestore = inject(Firestore);
-
-  activeExerciseIdSignal = signal<string | undefined>(undefined);
-  completedExercisesSignal = signal<Exercise[]>([]);
-  cancelledExercisesSignal = signal<Exercise[]>([]);
-  allExercisesSignal = signal<Exercise[]>([]);
+  availableExercisesReference: CollectionReference = collection(
+    this.firestore,
+    'availableExercises'
+  );
+  completedExercisesReference: CollectionReference = collection(
+    this.firestore,
+    'completedExercises'
+  );
 
   private availableExercises$ = collectionData(
-    collection(this.firestore, 'availableExercises'),
+    this.availableExercisesReference,
     {
       idField: 'id',
     }
   ) as Observable<Exercise[]>;
+  completedExercises$ = collectionData(
+    this.completedExercisesReference
+  ) as Observable<Exercise[]>;
 
   availableExercisesSignal = toSignal(this.availableExercises$);
+  completedExercisesSignal = toSignal(this.completedExercises$);
+
+  activeExerciseIdSignal = signal<string | undefined>(undefined);
 
   activeExerciseSignal = computed(() =>
     this.availableExercisesSignal()?.find(
@@ -39,14 +54,11 @@ export class TrainingService {
     const activeExercise = this.activeExerciseSignal();
 
     if (activeExercise) {
-      this.completedExercisesSignal.set([
-        ...this.completedExercisesSignal(),
-        {
-          ...activeExercise,
-          date: new Date(),
-          state: 'completed',
-        },
-      ]);
+      this.writeToFirebase({
+        ...activeExercise,
+        date: new Date().toISOString(),
+        state: 'completed',
+      });
     }
 
     this.activeExerciseIdSignal.set(undefined);
@@ -56,18 +68,19 @@ export class TrainingService {
     const activeExercise = this.activeExerciseSignal();
 
     if (activeExercise) {
-      this.completedExercisesSignal.set([
-        ...this.completedExercisesSignal(),
-        {
-          ...activeExercise,
-          duration: (activeExercise.duration * progress) / 100,
-          calories: (activeExercise.calories * progress) / 100,
-          date: new Date(),
-          state: 'cancelled',
-        },
-      ]);
+      this.writeToFirebase({
+        ...activeExercise,
+        duration: (activeExercise.duration * progress) / 100,
+        calories: (activeExercise.calories * progress) / 100,
+        date: new Date().toISOString(),
+        state: 'cancelled',
+      });
     }
 
     this.activeExerciseIdSignal.set(undefined);
+  }
+
+  writeToFirebase(exercise: Exercise) {
+    addDoc(this.completedExercisesReference, { ...exercise }).then(() => {});
   }
 }

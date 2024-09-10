@@ -1,11 +1,4 @@
-import {
-  AfterContentChecked,
-  Component,
-  computed,
-  inject,
-  OnDestroy,
-  OnInit,
-} from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { MatTabsModule } from '@angular/material/tabs';
 import { PastTrainingComponent } from './past-training/past-training.component';
 import { NewTrainingComponent } from './new-training/new-training.component';
