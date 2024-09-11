@@ -3,7 +3,6 @@ import {
   EventEmitter,
   inject,
   Input,
-  OnDestroy,
   OnInit,
   Output,
 } from '@angular/core';
@@ -12,7 +11,6 @@ import { MatListModule } from '@angular/material/list';
 import { MatButtonModule } from '@angular/material/button';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../services/auth.service';
-import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -29,18 +27,15 @@ import { CommonModule } from '@angular/common';
   templateUrl: './sidenav.component.html',
   styleUrl: './sidenav.component.css',
 })
-export class SidenavComponent implements OnInit, OnDestroy {
+export class SidenavComponent implements OnInit {
   @Input() sidenav: any;
   @Output() onBtnClicked = new EventEmitter();
-  loginSub!: Subscription;
-  isLoggedIn = false;
 
   authService = inject(AuthService);
+  isLoggedIn!: boolean;
 
   ngOnInit(): void {
-    this.loginSub = this.authService.auth$.subscribe(
-      (isLoggedIn) => (this.isLoggedIn = isLoggedIn)
-    );
+    this.authService.isAuth.subscribe((isAuth) => (this.isLoggedIn = isAuth));
   }
 
   emitBtnClicked() {
@@ -50,9 +45,5 @@ export class SidenavComponent implements OnInit, OnDestroy {
   onLogout() {
     this.emitBtnClicked();
     this.authService.logout();
-  }
-
-  ngOnDestroy(): void {
-    this.loginSub.unsubscribe();
   }
 }

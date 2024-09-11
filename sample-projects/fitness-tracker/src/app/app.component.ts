@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { MatSidenavModule } from '@angular/material/sidenav';
@@ -9,6 +9,7 @@ import { MatButtonModule } from '@angular/material/button';
 
 import { SidenavComponent } from './sidenav/sidenav.component';
 import { NavComponent } from './nav/nav.component';
+import { AuthService } from './services/auth.service';
 
 @Component({
   selector: 'app-root',
@@ -30,5 +31,12 @@ import { NavComponent } from './nav/nav.component';
   styleUrl: './app.component.css',
 })
 export class AppComponent {
+  ngAfterContentChecked(): void {
+    console.log('user', this.userSignal());
+  }
   title = 'fitness-tracker';
+
+  private authService = inject(AuthService);
+
+  userSignal = this.authService.userSignal;
 }

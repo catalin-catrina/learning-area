@@ -1,17 +1,9 @@
-import {
-  Component,
-  EventEmitter,
-  inject,
-  OnDestroy,
-  OnInit,
-  Output,
-} from '@angular/core';
+import { Component, EventEmitter, inject, Output } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { CommonModule } from '@angular/common';
-import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-nav',
@@ -26,17 +18,15 @@ import { Subscription } from 'rxjs';
   templateUrl: './nav.component.html',
   styleUrl: './nav.component.css',
 })
-export class NavComponent implements OnInit, OnDestroy {
+export class NavComponent {
   @Output() onBtnClicked = new EventEmitter();
-  loginSub!: Subscription;
-  isLoggedIn = false;
 
   authService = inject(AuthService);
 
+  isLoggedIn!: boolean;
+
   ngOnInit(): void {
-    this.loginSub = this.authService.auth$.subscribe(
-      (isLoggedIn) => (this.isLoggedIn = isLoggedIn)
-    );
+    this.authService.isAuth.subscribe((isAuth) => (this.isLoggedIn = isAuth));
   }
 
   emitBtnClicked() {
@@ -45,9 +35,5 @@ export class NavComponent implements OnInit, OnDestroy {
 
   onLogout() {
     this.authService.logout();
-  }
-
-  ngOnDestroy(): void {
-    this.loginSub.unsubscribe();
   }
 }

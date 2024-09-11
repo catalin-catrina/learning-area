@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -24,16 +24,12 @@ import { AuthService } from '../../services/auth.service';
   templateUrl: './signup.component.html',
   styleUrl: './signup.component.css',
 })
-export class SignupComponent implements OnInit {
+export class SignupComponent {
   currentYear = new Date().getFullYear();
   maxDate = new Date(this.currentYear - 18, 0, 1);
 
   authService = inject(AuthService);
 
-  ngOnInit(): void {
-    console.log(this.currentYear);
-    console.log(this.maxDate);
-  }
   onSubmit(form: NgForm) {
     const user = {
       email: form.value.email,

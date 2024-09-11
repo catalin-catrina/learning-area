@@ -1,51 +1,54 @@
-import { inject, Injectable } from '@angular/core';
-import Auth from '../models/auth.model';
-import User from '../models/user.model';
+import { effect, inject, Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { Router } from '@angular/router';
+import {
+  Auth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  user,
+} from '@angular/fire/auth';
+
+import Login from '../models/login.model';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  private user: User | undefined;
+  private auth = inject(Auth);
+  private router = inject(Router);
 
-  private authSubject = new BehaviorSubject<boolean>(false);
-  readonly auth$ = this.authSubject.asObservable();
+  private user$ = user(this.auth);
+  userSignal = toSignal(this.user$);
 
-  router = inject(Router);
+  isAuth = new BehaviorSubject<boolean>(false);
 
-  getUser() {
-    return { ...this.user };
+  constructor() {
+    effect(() => {
+      if (this.userSignal()) {
+        this.router.navigate(['/training']);
+        this.isAuth.next(true);
+      } else {
+        this.router.navigate(['/login']);
+        this.isAuth.next(false);
+      }
+    });
   }
 
-  isAuth() {
-    return this.user != undefined;
+  register(user: Login) {
+    createUserWithEmailAndPassword(this.auth, user.email, user.password).then(
+      (userDetails) => {}
+    );
   }
 
-  register(auth: Auth) {
-    this.user = {
-      userId: Math.round(Math.random() * 10000).toString(),
-      email: auth.email,
-    };
-
-    this.authSubject.next(true);
-    this.router.navigate(['/training']);
-  }
-
-  login(auth: Auth) {
-    this.user = {
-      userId: Math.round(Math.random() * 10000).toString(),
-      email: auth.email,
-    };
-
-    this.authSubject.next(true);
-    this.router.navigate(['training']);
+  login(user: Login) {
+    signInWithEmailAndPassword(this.auth, user.email, user.password).then(
+      (userDetails) => {}
+    );
   }
 
   logout() {
-    this.user = undefined;
-    this.authSubject.next(false);
-    this.router.navigate(['/login']);
+    signOut(this.auth);
   }
 }
