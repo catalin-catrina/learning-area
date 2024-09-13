@@ -7,6 +7,8 @@ import { MatButtonModule } from '@angular/material/button';
 
 import { AuthService } from '../../services/auth.service';
 import User from '../../models/user.model';
+import { SpinnerComponent } from '../../shared/spinner/spinner.component';
+import { StateService } from '../../services/state.service';
 
 @Component({
   selector: 'app-login',
@@ -17,12 +19,16 @@ import User from '../../models/user.model';
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
+    SpinnerComponent,
   ],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css',
 })
 export class LoginComponent {
   authService = inject(AuthService);
+  stateService = inject(StateService);
+
+  isLoading = this.stateService.loginLoadingSignal;
 
   onSubmit(form: NgForm) {
     const user = {

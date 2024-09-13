@@ -9,8 +9,11 @@ import {
   user,
 } from '@angular/fire/auth';
 
-import Login from '../models/login.model';
 import { toSignal } from '@angular/core/rxjs-interop';
+
+import Login from '../models/login.model';
+import { StateService } from './state.service';
+import { SnackbarService } from './snackbar.service';
 
 @Injectable({
   providedIn: 'root',
@@ -18,6 +21,8 @@ import { toSignal } from '@angular/core/rxjs-interop';
 export class AuthService {
   private auth = inject(Auth);
   private router = inject(Router);
+  private snackBar = inject(SnackbarService);
+  private state = inject(StateService);
 
   private user$ = user(this.auth);
   userSignal = toSignal(this.user$);
@@ -37,15 +42,29 @@ export class AuthService {
   }
 
   register(user: Login) {
-    createUserWithEmailAndPassword(this.auth, user.email, user.password).then(
-      (userDetails) => {}
-    );
+    this.state.loginLoadingSubject.next(true);
+
+    createUserWithEmailAndPassword(this.auth, user.email, user.password)
+      .then((userDetails) => {
+        this.state.loginLoadingSubject.next(false);
+      })
+      .catch((error) => {
+        this.state.loginLoadingSubject.next(false);
+        this.snackBar.displaySnackBar(error.message, undefined, 2000);
+      });
   }
 
   login(user: Login) {
-    signInWithEmailAndPassword(this.auth, user.email, user.password).then(
-      (userDetails) => {}
-    );
+    this.state.loginLoadingSubject.next(true);
+
+    signInWithEmailAndPassword(this.auth, user.email, user.password)
+      .then((userDetails) => {
+        this.state.loginLoadingSubject.next(false);
+      })
+      .catch((error) => {
+        this.state.loginLoadingSubject.next(false);
+        this.snackBar.displaySnackBar(error.message, undefined, 2000);
+      });
   }
 
   logout() {

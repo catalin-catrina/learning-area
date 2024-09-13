@@ -31,12 +31,5 @@ import { AuthService } from './services/auth.service';
   styleUrl: './app.component.css',
 })
 export class AppComponent {
-  ngAfterContentChecked(): void {
-    console.log('user', this.userSignal());
-  }
   title = 'fitness-tracker';
-
-  private authService = inject(AuthService);
-
-  userSignal = this.authService.userSignal;
 }

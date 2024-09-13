@@ -66,6 +66,7 @@
       >Agree to Terms and Conditions</mat-checkbox
     >
     <button
+      *ngIf="!isLoading; else loadingSpinner"
       type="submit"
       [disabled]="formReference.invalid"
       mat-raised-button
@@ -73,5 +74,8 @@
     >
       Sign up
     </button>
+    <ng-template #loadingSpinner
+      ><app-spinner [mode]="'indeterminate'" [value]="0"></app-spinner
+    ></ng-template>
   </form>
 </section>

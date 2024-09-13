@@ -8,6 +8,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 
 import { AuthService } from '../../services/auth.service';
+import { SpinnerComponent } from '../../shared/spinner/spinner.component';
+import { StateService } from '../../services/state.service';
 
 @Component({
   selector: 'app-signup',
@@ -20,6 +22,7 @@ import { AuthService } from '../../services/auth.service';
     MatButtonModule,
     MatDatepickerModule,
     MatCheckboxModule,
+    SpinnerComponent,
   ],
   templateUrl: './signup.component.html',
   styleUrl: './signup.component.css',
@@ -29,6 +32,9 @@ export class SignupComponent {
   maxDate = new Date(this.currentYear - 18, 0, 1);
 
   authService = inject(AuthService);
+  stateService = inject(StateService);
+
+  isLoading = this.stateService.loginLoadingSignal;
 
   onSubmit(form: NgForm) {
     const user = {

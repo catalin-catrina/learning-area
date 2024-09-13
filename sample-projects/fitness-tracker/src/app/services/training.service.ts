@@ -6,16 +6,21 @@ import {
   Firestore,
 } from '@angular/fire/firestore';
 import { computed, inject, Injectable, signal } from '@angular/core';
-import { Observable } from 'rxjs';
+import { catchError, Observable, of, tap } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
 
 import Exercise from '../models/exercise.model';
+import { StateService } from './state.service';
+import { SnackbarService } from './snackbar.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class TrainingService {
   private firestore = inject(Firestore);
+  private stateService = inject(StateService);
+  private snackbarService = inject(SnackbarService);
+
   availableExercisesReference: CollectionReference = collection(
     this.firestore,
     'availableExercises'
@@ -35,7 +40,15 @@ export class TrainingService {
     this.completedExercisesReference
   ) as Observable<Exercise[]>;
 
-  availableExercisesSignal = toSignal(this.availableExercises$);
+  availableExercisesSignal = toSignal(
+    this.availableExercises$.pipe(
+      tap(() => this.stateService.exercisesLoadingSubject.next(false)),
+      catchError((error) => {
+        this.snackbarService.displaySnackBar(error.message, undefined, 2000);
+        return of([]);
+      })
+    )
+  );
   completedExercisesSignal = toSignal(this.completedExercises$);
 
   activeExerciseIdSignal = signal<string | undefined>(undefined);
@@ -45,6 +58,10 @@ export class TrainingService {
       (exercise) => exercise.id === this.activeExerciseIdSignal()
     )
   );
+
+  constructor() {
+    this.stateService.exercisesLoadingSubject.next(true);
+  }
 
   setActiveExerciseId(selectedId: string) {
     this.activeExerciseIdSignal.set(selectedId);

@@ -4,11 +4,17 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { StopTrainingComponent } from '../stop-training/stop-training.component';
 import { TrainingService } from '../../services/training.service';
+import { SpinnerComponent } from '../../shared/spinner/spinner.component';
 
 @Component({
   selector: 'app-current-training',
   standalone: true,
-  imports: [MatProgressSpinnerModule, MatButtonModule, MatDialogModule],
+  imports: [
+    MatProgressSpinnerModule,
+    MatButtonModule,
+    MatDialogModule,
+    SpinnerComponent,
+  ],
   templateUrl: './current-training.component.html',
   styleUrl: './current-training.component.css',
 })
