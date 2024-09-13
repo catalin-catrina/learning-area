@@ -37,3 +37,31 @@ console.log(promise);
 const promise2 = new Promise((resolve, reject) => {
   setTimeout(() => resolve("Done"), 2000);
 }).then((result) => console.log(result));
+
+// promise that reverts 2 numbers
+let x = 5;
+let y = 8;
+
+const reverseNumbers = (a, b) => {
+  return new Promise((resolve, reject) => {
+    let c = a;
+    a = b;
+    b = c;
+    resolve([a, b]);
+  });
+};
+
+reverseNumbers(x, y).then((result) => {
+  [x, y] = result;
+  console.log(x, y);
+});
+
+// fetching data using fetch
+fetch("https://jsonplaceholder.typicode.com/users")
+  .then((res) => res.json())
+  .then((data) => console.log("Fetched data using fetch", data));
+
+// fetching data using axios
+axios
+  .get("https://jsonplaceholder.typicode.com/posts")
+  .then((result) => console.log("Fetched data using axios", result.data));
