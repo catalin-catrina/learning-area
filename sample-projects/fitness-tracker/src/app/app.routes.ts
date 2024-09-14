@@ -8,7 +8,12 @@ import { authGuard } from './guards/auth.guard';
 export const routes: Routes = [
   { path: 'signup', component: SignupComponent },
   { path: 'login', component: LoginComponent },
-  { path: 'training', component: TrainingComponent, canActivate: [authGuard] },
+  {
+    path: 'training',
+    loadComponent: () =>
+      import('./training/training.component').then((m) => m.TrainingComponent),
+    canMatch: [authGuard],
+  },
   { path: '', component: HomeComponent },
   { path: '**', redirectTo: '' },
 ];
