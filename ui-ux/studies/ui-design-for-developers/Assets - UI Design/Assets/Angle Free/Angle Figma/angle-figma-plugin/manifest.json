@@ -1,0 +1,8 @@
+{
+  "name": "Angle Mockups",
+  "id": "778645840235495725",
+  "api": "1.0.0",
+  "main": "code.js",
+  "ui": "ui.html",
+  "menu": [{ "name": "Apply Mockup", "command": "applyMockup" }]
+}
