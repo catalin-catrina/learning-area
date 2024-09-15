@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 // a promise is created using the Promise constructor, which receives an executor function that takes 2 parameters (resolve and reject)
 // in that promise constructor while you can perform synchronous operations, you generally want to perform some sort of async task
@@ -15,7 +15,7 @@
 // whenever we resolve a promise, resolve() is added to the callstack, [[PromiseState]] is set to 'fulfilled', [[PromiseResult]] is set to the value passed to resolve() and the Promise Reaction Record in this case [[PromiseFulfillReactions]]'s handler receives that result, then the handler's method (passed into then) is added to the microtask queue (which is where the event loop checks first whenever the call stack is empty, before looking at the Task queue, also called Callback Queue or Macrotask queue).
 
 const promise = new Promise((resolve, reject) => {
-  resolve("Done!"); // [[PromiseState]] is set to 'fulfilled' and [[PromiseResult]] is set to 'Done!'
+  resolve('Done!'); // [[PromiseState]] is set to 'fulfilled' and [[PromiseResult]] is set to 'Done!'
   // reject("Fail!"); // [[PromiseState]] is set to 'rejected' and [[PromiseResult]] is set to 'Fail!'
 });
 
@@ -35,8 +35,8 @@ console.log(promise);
   stack, which calls console.logs the result (also added onto the stack), then everything is popped off the stack and script finishes executing
 */
 const promise2 = new Promise((resolve, reject) => {
-  setTimeout(() => resolve("Done"), 2000);
-}).then((result) => console.log(result));
+  setTimeout(() => resolve('Done'), 2000);
+}).then(result => console.log(result));
 
 // promise that reverts 2 numbers
 let x = 5;
@@ -44,24 +44,40 @@ let y = 8;
 
 const reverseNumbers = (a, b) => {
   return new Promise((resolve, reject) => {
-    let c = a;
-    a = b;
-    b = c;
-    resolve([a, b]);
+    resolve([b, a]);
   });
 };
 
-reverseNumbers(x, y).then((result) => {
+reverseNumbers(x, y).then(result => {
   [x, y] = result;
-  console.log(x, y);
 });
 
 // fetching data using fetch
-fetch("https://jsonplaceholder.typicode.com/users")
-  .then((res) => res.json())
-  .then((data) => console.log("Fetched data using fetch", data));
+fetch('https://jsonplaceholder.typicode.com/userss')
+  .then(res => {
+    if (!res.ok) {
+      throw new Error();
+    }
+    return res.json();
+  })
+  .then(data => console.log('Fetched data using fetch', data))
+  .catch(err => console.log('Failed to fetch data1.', err));
 
 // fetching data using axios
 axios
-  .get("https://jsonplaceholder.typicode.com/posts")
-  .then((result) => console.log("Fetched data using axios", result.data));
+  .get('https://jsonplaceholder.typicode.com/postss')
+  .then(result => console.log('Fetched data using axios', result.data))
+  .catch(err => console.log('Failed to fetch data2.', err));
+
+// some tests
+let myInterval;
+const myPromise = new Promise(resolve => {
+  myInterval = setInterval(() => {
+    console.log('interval');
+    resolve('resolved');
+  }, 2000);
+}).then(data => console.log(data));
+
+setTimeout(() => {
+  clearInterval(myInterval);
+}, 6000);
