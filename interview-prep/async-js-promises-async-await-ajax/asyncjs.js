@@ -53,7 +53,7 @@ reverseNumbers(x, y).then(result => {
 });
 
 // fetching data using fetch
-fetch('https://jsonplaceholder.typicode.com/userss')
+fetch('https://jsonplaceholder.typicode.com/users')
   .then(res => {
     if (!res.ok) {
       throw new Error();
@@ -65,19 +65,87 @@ fetch('https://jsonplaceholder.typicode.com/userss')
 
 // fetching data using axios
 axios
-  .get('https://jsonplaceholder.typicode.com/postss')
+  .get('https://jsonplaceholder.typicode.com/posts')
   .then(result => console.log('Fetched data using axios', result.data))
   .catch(err => console.log('Failed to fetch data2.', err));
 
 // some tests
-let myInterval;
-const myPromise = new Promise(resolve => {
-  myInterval = setInterval(() => {
-    console.log('interval');
-    resolve('resolved');
-  }, 2000);
-}).then(data => console.log(data));
+// let myInterval;
+// const myPromise = new Promise(resolve => {
+//   myInterval = setInterval(() => {
+//     console.log('interval');
+//     resolve('resolved');
+//   }, 2000);
+// }).then(data => console.log(data));
+//
+// setTimeout(() => {
+//   clearInterval(myInterval);
+// }, 6000);
 
-setTimeout(() => {
-  clearInterval(myInterval);
-}, 6000);
+// async await
+// async is a keyword we use for functions to indicate they're async -> they automatically wrap the returned value as a promise
+// function declaration
+async function getNames1() {
+  return [];
+}
+
+// function expression
+const getNames2 = async function () {
+  return [];
+};
+
+// arow function
+const getNames3 = async () => {
+  return [];
+};
+
+// await pauses function execution while it waits for the promise to be fulfilled
+// must be inside async function
+async function get() {
+  try {
+    const { data: users } = await axios.get(
+      'https://jsonplaceholder.typicode.com/users'
+    );
+
+    const { data: posts } = await axios.get(
+      'https://jsonplaceholder.typicode.com/posts'
+    );
+  } catch (error) {
+    console.log('nope', error);
+  }
+}
+get();
+
+// technique to optimize requests
+async function get2() {
+  try {
+    const usersReq = axios.get('https://jsonplaceholder.typicode.com/users');
+    const postsReq = axios.get('https://jsonplaceholder.typicode.com/posts');
+
+    const { data: users } = await usersReq;
+    const { data: posts } = await postsReq;
+
+    console.log('in get 2', users, posts);
+  } catch (error) {
+    console.log('nope', error);
+  }
+}
+get2();
+
+// same in terms of performance but better looking
+async function get3() {
+  try {
+    const usersReq = axios.get('https://jsonplaceholder.typicode.com/users');
+    const postsReq = axios.get('https://jsonplaceholder.typicode.com/posts');
+
+    const [{ data: users }, { data: posts }] = await Promise.all([
+      usersReq,
+      postsReq,
+    ]);
+
+    console.log('in get 3', users, posts);
+  } catch (error) {
+    console.log('nope', error);
+  }
+}
+get3();

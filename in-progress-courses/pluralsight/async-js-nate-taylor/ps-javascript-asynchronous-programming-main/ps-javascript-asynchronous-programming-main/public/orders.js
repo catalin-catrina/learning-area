@@ -21,13 +21,13 @@
 //   .catch(error => showError('#order-list', error))
 //   .finally(() => hideWaiting());
 
-let statusReq = axios.get('http://localhost:3000/api/orderStatuses');
-let addressReq = axios.get('http://localhost:3000/api/addresses');
-let addressTypeReq = axios.get('http://localhost:3000/api/addressTypes');
-
-let statuses = [];
-let addresses = [];
-let addressTypes = [];
+// let statusReq = axios.get('http://localhost:3000/api/orderStatuses');
+// let addressReq = axios.get('http://localhost:3000/api/addresses');
+// let addressTypeReq = axios.get('http://localhost:3000/api/addressTypes');
+//
+// let statuses = [];
+// let addresses = [];
+// let addressTypes = [];
 
 // Promise.all([]) takes an array of promises and resolves when all promises resolve or when one of them fails. Catches first rejection
 // Promise.allSettled([]) takes an array of promises and is resolved with an array of all the provided promises whether they were resolved or rejected - catch not needed but recommended
@@ -62,45 +62,98 @@ let addressTypes = [];
 //   })
 //   .catch(error => showError('#order-list', error));
 
-Promise.allSettled([statusReq, addressReq, addressTypeReq])
-  .then(([statusResult, addressResult, addressTypeResult]) => {
-    if (statusResult.status === 'fulfilled') {
-      statuses = statusResult.data;
-    } else {
-      window.alert('Order status error', statusResult.reason.message);
-    }
+// Promise.allSettled([statusReq, addressReq, addressTypeReq])
+//   .then(([statusResult, addressResult, addressTypeResult]) => {
+//     if (statusResult.status === 'fulfilled') {
+//       statuses = statusResult.value.data;
+//     } else {
+//       window.alert('Order status error', statusResult.reason.message);
+//     }
+//
+//     if (addressResult.status === 'fulfilled') {
+//       addresses = addressResult.value.data;
+//     } else {
+//       window.alert('Address error', addressResult.reason.message);
+//     }
+//
+//     if (addressTypeResult.status === 'fulfilled') {
+//       addressTypeReq = addressTypeResult.value.data;
+//     } else {
+//       window.alert('Address type  error', addressTypeResult.reason.message);
+//     }
+//
+//     return axios.get('http://localhost:3000/api/orders');
+//   })
+//   .then(({ data }) => {
+//     let orders = data.map(order => {
+//       const status = statuses.find(status => status.id === order.orderStatusId);
+//       const orderAddress = addresses.find(
+//         address => address.id === order.shippingAddress
+//       );
+//       return {
+//         ...order,
+//         orderStatus: status.description,
+//         shippingAddressText: `${orderAddress.street} ${orderAddress.city}`,
+//       };
+//     });
+//
+//     showOrderList('#order-list', orders);
+//   })
+//   .catch(error => showError('#order-list', error));
 
-    if (addressResult.status === 'fulfilled') {
-      addresses = addressResult.data;
-    } else {
-      window.alert('Address error', addressResult.reason.message);
-    }
+// here orders request will start only after orderStatuses request ends
+// async function get() {
+// const { data: statuses } = await axios.get(
+//   'http://localhost:3000/api/orderStatuses'
+// );
+//   const { data } = await axios.get('http://localhost:3000/api/orders');
+//
+//   const orders = data.map(order => {
+//     return {
+//       ...order,
+//       orderStatus: statuses.find(status => status.id === order.id).description,
+//     };
+//   });
+//
+//   showOrderList('#order-list', orders);
+// }
+//
+// get();
 
-    if (addressTypeResult.status === 'fulfilled') {
-      addressTypeReq = addressTypeResult.data;
-    } else {
-      window.alert('Address type  error', addressTypeResult.reason.message);
-    }
+// with this technique both requests are made at the same time
+// const get = async () => {
+//   const statusesReq = axios.get('http://localhost:3000/api/orderStatuses');
+//   const ordersReq = axios.get('http://localhost:3000/api/orders');
+//
+//   const { data: statuses } = await statusesReq;
+//   const { data: orders } = await ordersReq;
+//
+//   const newOrders = orders.map(order => {
+//     return {
+//       ...order,
+//       orderStatus: statuses.find(status => status.id === order.id).description,
+//     };
+//   });
+//
+//   showOrderList('#order-list', newOrders);
+// };
+//
+// get();
 
-    console.log('addresses', addresses);
-
-    return axios.get('http://localhost:3000/api/orders');
-  })
-  .then(({ data }) => {
-    console.log('orders', data);
-    let orders = data.map(order => {
-      const status = statuses.find(status => status.id === order.orderStatusId);
-      const orderAddress = addresses.find(
-        address => address.id === order.shippingAddress
+// same thing as above but this allows us to make changes to the UI while we wait for stuff to happen
+async function get() {
+  await Promise.all([
+    (async () => {
+      const { data } = await axios.get(
+        'http://localhost:3000/api/orderStatuses'
       );
-      console.log(orderAddress);
-      return {
-        ...order,
-        orderStatus: status.description,
-        shippingAddressText: `${orderAddress.street} ${orderAddress.city}`,
-      };
-    });
+      showMessage('Statuses fetched');
+    })(),
+    (async () => {
+      const { data } = await axios.get('http://localhost:3000/api/orders');
+      showOrderList('#order-list', data);
+    })(),
+  ]);
+}
 
-    showOrderList('#order-list', orders);
-  })
-  .catch(error => showError('#order-list', error));
+get();
