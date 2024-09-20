@@ -1,5 +1,6 @@
 # My Learning Area
 
-This is where daily study sessions go.
+This is where my (almost) daily study sessions go.
 
-Portfolio repo is currently hidden and under complete revamp.
+Notes: 
+- Commit messages don't follow any naming convention or best practice
