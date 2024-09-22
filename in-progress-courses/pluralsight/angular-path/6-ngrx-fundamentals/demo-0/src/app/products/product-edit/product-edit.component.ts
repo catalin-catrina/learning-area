@@ -8,7 +8,7 @@ import { Product } from '../product.model';
   styleUrls: ['./product-edit.component.css'],
 })
 export class ProductEditComponent {
-  oldProduct: Product  | null | undefined = null;
+  oldProduct: Product | null | undefined = null;
   @Output() add = new EventEmitter<Product>();
   @Output() update = new EventEmitter<Product>();
   @Output() delete = new EventEmitter<number>();

@@ -1,5 +1,7 @@
 import { Routes } from '@angular/router';
 import { HomeComponent } from './home/home.component';
+import { ProductsPageComponent } from './products/products-page/products-page.component';
+import { ProductPageComponent } from './products/product-page/product-page.component';
 
 export const routes: Routes = [
   {
@@ -7,10 +9,11 @@ export const routes: Routes = [
     component: HomeComponent,
   },
   {
+    path: 'product:id',
+    component: ProductPageComponent,
+  },
+  {
     path: 'products',
-    loadChildren: () =>
-      import('./products/products-routing.module').then(
-        (m) => m.ProductsRoutingModule
-      ),
+    component: ProductsPageComponent,
   },
 ];

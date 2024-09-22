@@ -5,7 +5,7 @@ import { ProductsService } from '../products.service';
 import { CommonModule, CurrencyPipe } from '@angular/common';
 import { ProductsListComponent } from '../products-list/products-list.component';
 import { Store } from '@ngrx/store';
-import { toggleShowProductCode } from '../state/products.reducer';
+import { ProductsPageActions } from '../state/products.actions';
 
 @Component({
   selector: 'app-products-page',
@@ -18,14 +18,17 @@ export class ProductsPageComponent {
   products: Product[] = [];
   total = 0;
   loading = true;
-  showProductCode = false;
   errorMessage = '';
 
   productsService = inject(ProductsService);
   store = inject(Store);
 
+  showProductCode$ = this.store.select(
+    (state: any) => state.products.showProductCode
+  );
+
   constructor() {
-    this.store.subscribe((store) => console.log(store));
+    this.store.subscribe((store) => console.log('store: ', store));
   }
 
   ngOnInit() {
@@ -44,6 +47,6 @@ export class ProductsPageComponent {
   }
 
   toggleShowProductCode() {
-    this.store.dispatch({ type: '[Products Page] Toggle Show Product Code' });
+    this.store.dispatch(ProductsPageActions.toggleShowProductCode());
   }
 }

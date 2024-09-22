@@ -6,6 +6,6 @@ import { productsReducer } from './state/products.reducer';
 
 @NgModule({
   imports: [RouterModule.forChild(routes)],
-  providers: [provideState('products', productsReducer)],
+  providers: [],
 })
 export class ProductsRoutingModule {}
