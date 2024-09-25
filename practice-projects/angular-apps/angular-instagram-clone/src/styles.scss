@@ -10,9 +10,11 @@ body {
   font-family: Roboto, "Helvetica Neue", sans-serif;
 }
 
-a {
+a,
+a:visited,
+a:active {
   text-decoration: none;
-  //   color: var(--mat-primary-500);
+  color: inherit;
 }
 
 img {

@@ -1,0 +1,9 @@
+<div class="container flex">
+  <div class="nav">
+    <a [routerLink]="['/home']" routerLinkActive="router-link-active">Home</a>
+    <a [routerLink]="['/profile']" routerLinkActive="router-link-active"
+      >Profile</a
+    >
+  </div>
+  <button mat-raised-button class="btn" (click)="logout()">Log out</button>
+</div>

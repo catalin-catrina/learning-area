@@ -1,0 +1,19 @@
+.flex {
+  display: flex;
+
+  app-sidebar {
+    width: 30%;
+  }
+
+  app-feed {
+    width: 70%;
+  }
+}
+
+.vertical-line {
+  border-left: 1px solid #ccc;
+  position: fixed;
+  top: 0;
+  left: 300px;
+  height: 100vh;
+}

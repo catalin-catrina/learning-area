@@ -1,1 +1,11 @@
-<router-outlet />
+<div *ngIf="showSideBar; else fullScreen">
+  <div class="container flex">
+    <app-sidebar></app-sidebar>
+    <div class="vertical-line"></div>
+    <router-outlet />
+  </div>
+</div>
+
+<ng-template #fullScreen>
+  <router-outlet />
+</ng-template>

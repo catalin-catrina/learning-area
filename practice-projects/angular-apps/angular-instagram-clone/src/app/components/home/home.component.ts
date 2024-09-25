@@ -1,18 +1,14 @@
 import { Component, inject } from '@angular/core';
 import { AuthenticationService } from '../../services/authentication';
 import { MatButtonModule } from '@angular/material/button';
+import { FeedComponent } from '../feed/feed.component';
+import { SidebarComponent } from '../sidebar/sidebar.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [MatButtonModule],
+  imports: [MatButtonModule, FeedComponent, SidebarComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })
-export class HomeComponent {
-  private auth = inject(AuthenticationService);
-
-  logout() {
-    this.auth.logout();
-  }
-}
+export class HomeComponent {}
