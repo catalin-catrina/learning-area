@@ -1,8 +1,10 @@
-<div *ngIf="showSideBar; else fullScreen">
+<div *ngIf="showSidebar; else fullScreen">
   <div class="container flex">
     <app-sidebar></app-sidebar>
     <div class="vertical-line"></div>
-    <router-outlet />
+    <div class="content">
+      <router-outlet />
+    </div>
   </div>
 </div>
 
