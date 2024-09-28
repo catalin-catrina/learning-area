@@ -1,13 +1,13 @@
 .container {
   position: fixed;
   overflow: hidden;
-  width: 30%;
+  width: 300px;
   min-width: 200px;
   height: 100vh;
-  padding-left: 30px;
 
   .nav {
     margin-top: 30px;
+    padding-left: 30px;
     display: flex;
     flex-direction: column;
     gap: 20px;

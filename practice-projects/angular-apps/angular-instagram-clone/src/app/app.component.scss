@@ -2,12 +2,13 @@
   display: flex;
 
   app-sidebar {
-    width: 30%;
+    width: 300px;
   }
 }
 
 .content {
   width: 70%;
+  margin: 0 auto;
 }
 
 .vertical-line {

@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { AuthenticationService } from '../../services/authentication';
+import { AuthenticationService } from '../../services/authentication.service';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 
 @Component({

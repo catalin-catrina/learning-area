@@ -6,8 +6,10 @@
     (change)="onFileSelected($event)"
   />
   <mat-form-field>
-    <input type="text" name="description" matInput [(ngModel)]="description" />
+    <input type="text" name="description" matInput ngModel />
   </mat-form-field>
-  <img *ngIf="picture" [src]="picture.name" alt="" />
+  <div *ngIf="imageUrl">
+    <img [src]="imageUrl" alt="" />
+  </div>
   <button class="btn" type="submit">Upload</button>
 </form>

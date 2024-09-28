@@ -1,46 +1,46 @@
-import { effect, inject, Injectable, Signal, signal } from '@angular/core';
+import { inject, Injectable, Signal, signal } from '@angular/core';
 import {
   Auth,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  UserProfile,
+  User,
+  user,
 } from '@angular/fire/auth';
 import { doc, Firestore, getDoc, setDoc } from '@angular/fire/firestore';
 import { Router } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthenticationService {
-  private _user = signal<UserProfile | null>(null);
+  private _user = signal<User | null>(null);
 
   private auth = inject(Auth);
   private firestore = inject(Firestore);
   private router = inject(Router);
 
+  private user$ = user(this.auth);
+
   constructor() {
-    effect(() => {
-      const user = this.getUser();
-      if (user()) {
-        this.router.navigate(['/home']);
-      }
-    });
+    this.trackUser();
   }
 
-  getUser(): Signal<UserProfile | null> {
-    return this._user;
-  }
-
-  initUserFromLocalStorage() {
-    const savedUser = localStorage.getItem('user');
-    if (savedUser) {
-      this._user.set(JSON.parse(savedUser));
+  async trackUser() {
+    try {
+      const currentUser = (await firstValueFrom(this.user$)) as User;
+      this.setUser(currentUser);
+    } catch (error) {
+      console.log('Error fetching user:', error);
     }
   }
 
-  setUser(userData: UserProfile): void {
+  getUser(): Signal<User | null> {
+    return this._user;
+  }
+
+  setUser(userData: User): void {
     this._user.set(userData);
-    localStorage.setItem('user', JSON.stringify(userData));
   }
 
   signupUser(
@@ -61,7 +61,7 @@ export class AuthenticationService {
 
         // write into that document
         setDoc(userDocRef, {
-          uuid: user.uid,
+          uid: user.uid,
           email: user.email,
           fullname: additionalData.fullname,
           displayName: additionalData.username,
@@ -82,17 +82,21 @@ export class AuthenticationService {
     signInWithEmailAndPassword(this.auth, email, password)
       .then((userCredential) => {
         const user = userCredential.user;
+        this.setUser(user);
 
+        // get current logged in user by looking for his uid in firestore, and save it in a signal
+        // stopped needing this functionality since I just save the current logged in user in the signal now, instead of getting his data from firestore and saving that instead
         // get doc reference
-        const userDocRef = doc(this.firestore, 'users', user.uid);
+        // const userDocRef = doc(this.firestore, 'users', user.uid);
 
         // get data from that doc reference
-        getDoc(userDocRef).then((docSnapshot) => {
-          if (docSnapshot.exists()) {
-            const userData = docSnapshot.data();
-            this.setUser(userData);
-          }
-        });
+        // getDoc(userDocRef).then((docSnapshot) => {
+        //   if (docSnapshot.exists()) {
+        //     const userData = docSnapshot.data();
+        //   }
+        // });
+
+        this.router.navigate(['/home']);
       })
       .catch((error) => {
         console.log('Error loggin in: ', error.message);
@@ -103,7 +107,6 @@ export class AuthenticationService {
     this.auth
       .signOut()
       .then(() => {
-        localStorage.removeItem('user');
         this._user.set(null);
         this.router.navigate(['/login']);
       })
