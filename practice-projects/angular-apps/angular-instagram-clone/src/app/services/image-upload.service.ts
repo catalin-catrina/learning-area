@@ -12,9 +12,10 @@ export class ImageUploadService {
   private storage: Storage = inject(Storage);
 
   uploadFile(file: File) {
+    const userSignal = this.auth.getUser();
     const storageRef = ref(
       this.storage,
-      `users/${this.auth.getUser()()?.['uid']}/${file.name}`
+      `users/${userSignal()?.['uid']}/${file.name}`
     );
     uploadBytesResumable(storageRef, file);
   }
