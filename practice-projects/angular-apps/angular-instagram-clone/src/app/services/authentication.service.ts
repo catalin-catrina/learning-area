@@ -1,4 +1,5 @@
-import { inject, Injectable, Signal, signal } from '@angular/core';
+import { inject, Injectable, Signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import {
   Auth,
   createUserWithEmailAndPassword,
@@ -6,41 +7,25 @@ import {
   User,
   user,
 } from '@angular/fire/auth';
-import { doc, Firestore, getDoc, setDoc } from '@angular/fire/firestore';
+import { doc, Firestore, setDoc } from '@angular/fire/firestore';
 import { Router } from '@angular/router';
-import { firstValueFrom } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthenticationService {
-  private _user = signal<User | null>(null);
-
   private auth = inject(Auth);
   private firestore = inject(Firestore);
   private router = inject(Router);
 
-  private user$ = user(this.auth);
-
-  constructor() {
-    this.trackUser();
-  }
-
-  async trackUser() {
-    try {
-      const currentUser = (await firstValueFrom(this.user$)) as User;
-      this.setUser(currentUser);
-    } catch (error) {
-      console.log('Error fetching user:', error);
-    }
-  }
+  // how to get current user
+  private _user$ = user(this.auth);
+  private _userSignal: Signal<User | null> = toSignal(this._user$, {
+    initialValue: null,
+  });
 
   getUser(): Signal<User | null> {
-    return this._user;
-  }
-
-  setUser(userData: User): void {
-    this._user.set(userData);
+    return this._userSignal;
   }
 
   signupUser(
@@ -81,25 +66,10 @@ export class AuthenticationService {
   login(email: string, password: string) {
     signInWithEmailAndPassword(this.auth, email, password)
       .then((userCredential) => {
-        const user = userCredential.user;
-        this.setUser(user);
-
-        // get current logged in user by looking for his uid in firestore, and save it in a signal
-        // stopped needing this functionality since I just save the current logged in user in the signal now, instead of getting his data from firestore and saving that instead
-        // get doc reference
-        // const userDocRef = doc(this.firestore, 'users', user.uid);
-
-        // get data from that doc reference
-        // getDoc(userDocRef).then((docSnapshot) => {
-        //   if (docSnapshot.exists()) {
-        //     const userData = docSnapshot.data();
-        //   }
-        // });
-
         this.router.navigate(['/home']);
       })
       .catch((error) => {
-        console.log('Error loggin in: ', error.message);
+        console.log('Error logging in: ', error.message);
       });
   }
 
@@ -107,7 +77,6 @@ export class AuthenticationService {
     this.auth
       .signOut()
       .then(() => {
-        this._user.set(null);
         this.router.navigate(['/login']);
       })
       .catch((error) => {

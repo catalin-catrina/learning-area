@@ -1,0 +1,7 @@
+<div class="grid-container">
+  <ng-container *ngIf="postsUrls | async as posts">
+    <div class="post-container" *ngFor="let postUrl of posts">
+      <img [src]="postUrl" alt="user-post" />
+    </div>
+  </ng-container>
+</div>
