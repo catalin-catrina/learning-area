@@ -1,4 +1,4 @@
-# My Learning Area
+# My Studies Area
 
 This is where my (almost) daily study sessions go.
 
