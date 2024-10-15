@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { PostsService } from '../../services/posts.service';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { month } from '../../constants/constants';
 
 @Component({
   selector: 'app-posts',
@@ -11,20 +12,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
   styleUrl: './posts.component.scss',
 })
 export class PostsComponent {
-  month = [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December',
-  ];
+  month = month;
 
   private postsService = inject(PostsService);
 

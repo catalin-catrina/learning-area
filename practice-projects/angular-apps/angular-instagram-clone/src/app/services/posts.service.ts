@@ -1,15 +1,14 @@
-import { computed, effect, inject, Injectable, signal } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import {
   getDownloadURL,
-  listAll,
   ref,
   Storage,
   uploadBytesResumable,
 } from '@angular/fire/storage';
 import { AuthenticationService } from './authentication.service';
-import { from, map, Observable, of, switchMap } from 'rxjs';
+import { map, Observable, of, switchMap } from 'rxjs';
 import { toObservable } from '@angular/core/rxjs-interop';
-import { User } from '@angular/fire/auth';
+import {} from '@angular/fire/auth';
 import {
   addDoc,
   collection,
@@ -43,7 +42,11 @@ export class PostsService {
       getDoc(docRef)
         .then((docSnap) => {
           if (docSnap.exists()) {
-            resolve(docSnap.data() as Post);
+            const postData = {
+              ...docSnap.data(),
+              createdAt: new Date(docSnap.data()['createdAt']),
+            };
+            resolve(postData as Post);
           } else {
             reject(new Error('Document does not exist'));
           }
@@ -99,54 +102,4 @@ export class PostsService {
       );
     });
   }
-
-  // Getting posts images - Function Based
-  // getUserPostsImages() {
-  //   return this.user$.pipe(
-  //     switchMap((user: User | null) => {
-  //       if (user) {
-  //         const filesRef = ref(this.storage, `users/${this.userSignal()?.uid}`);
-  //         return from(listAll(filesRef)).pipe(
-  //           switchMap((posts) => {
-  //             const postsURLs = posts.items.map((post) => getDownloadURL(post));
-  //             return Promise.all(postsURLs);
-  //           })
-  //         );
-  //       } else {
-  //         return of([]);
-  //       }
-  //     })
-  //   );
-  // }
-
-  // Getting posts images - DECLARATIVE
-  //   userPostsSignal = signal<string[] | []>([]);
-  //
-  //   constructor() {
-  //     effect(() => {
-  //       const user = this.userSignal();
-  //
-  //       if (user) {
-  //         this.updateUserPostsSignal();
-  //       }
-  //     });
-  //   }
-  //
-  //   updateUserPostsSignal() {
-  //     const user = this.userSignal();
-  //
-  //     const filesRef = ref(this.storage, `users/${user?.uid}`);
-  //     listAll(filesRef)
-  //       .then((files) => {
-  //         const filesUrls = files.items.map((file) => getDownloadURL(file));
-  //         return Promise.all(filesUrls);
-  //       })
-  //       .then((urls) => {
-  //         console.log('aici', urls);
-  //         this.userPostsSignal.set(urls);
-  //       })
-  //       .catch((error) => {
-  //         console.error(`Error getting files ${error}`);
-  //       });
-  //   }
 }
