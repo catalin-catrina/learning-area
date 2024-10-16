@@ -6,6 +6,7 @@ import { CommonModule } from '@angular/common';
 import { month } from '../../constants/constants';
 import { CreateCommentComponent } from '../create-comment/create-comment.component';
 import { CommentsComponent } from '../comments/comments.component';
+import Post from '../../models/post.interface';
 
 @Component({
   selector: 'app-post',
@@ -17,7 +18,7 @@ import { CommentsComponent } from '../comments/comments.component';
 export class PostComponent implements OnInit {
   month = month;
   postId!: string;
-  post!: any;
+  post!: Post;
 
   route = inject(ActivatedRoute);
   postsService = inject(PostsService);

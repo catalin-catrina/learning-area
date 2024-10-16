@@ -1,10 +1,16 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
+import { addDoc, collection, Firestore } from '@angular/fire/firestore';
 
 @Injectable({
   providedIn: 'root',
 })
 export class CommentsService {
-  writeCommentToFirestore(comment: string) {}
+  firestore = inject(Firestore);
 
-  getCommentsBy(postId: string) {}
+  writeCommentToFirestore(comment: string, postId: string, userId: string) {
+    const commentsCollection = collection(this.firestore, 'comments');
+    addDoc(commentsCollection, { comment });
+  }
+
+  getCommentsByPostId(postId: string | undefined) {}
 }
