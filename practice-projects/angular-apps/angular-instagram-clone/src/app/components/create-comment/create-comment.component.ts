@@ -30,6 +30,8 @@ export class CreateCommentComponent {
     const postId = this.post?.id;
     const userId = this.currentUserSignal()?.uid;
 
+    console.log(this.post);
+    console.log(comment, postId, userId);
     if (comment && postId && userId) {
       this.commentsService.writeCommentToFirestore(comment, postId, userId);
     }

@@ -31,7 +31,10 @@ export class PostComponent implements OnInit {
     this.postsService
       .getUserPostById(this.postId)
       .then((post) => {
-        this.post = post;
+        this.post = {
+          ...post,
+          id: this.postId,
+        };
       })
       .catch((error) => console.error(error.message));
   }
