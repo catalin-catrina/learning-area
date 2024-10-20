@@ -2,11 +2,12 @@ import { Component, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { AuthenticationService } from '../../services/authentication.service';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { UserSearchComponent } from '../user-search/user-search.component';
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [MatButtonModule, RouterLink, RouterLinkActive],
+  imports: [MatButtonModule, RouterLink, RouterLinkActive, UserSearchComponent],
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.scss',
 })

@@ -2,7 +2,7 @@ import { Component, inject } from '@angular/core';
 import { PostsService } from '../../services/posts.service';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import { month } from '../../constants/constants';
+import { months } from '../../constants/constants';
 
 @Component({
   selector: 'app-posts',
@@ -12,9 +12,9 @@ import { month } from '../../constants/constants';
   styleUrl: './posts.component.scss',
 })
 export class PostsComponent {
-  month = month;
+  months = months;
 
   private postsService = inject(PostsService);
 
-  posts$ = this.postsService.posts$;
+  posts$ = this.postsService.getUserPosts();
 }

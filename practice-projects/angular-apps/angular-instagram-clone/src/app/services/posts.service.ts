@@ -6,8 +6,8 @@ import {
   uploadBytesResumable,
 } from '@angular/fire/storage';
 import { AuthenticationService } from './authentication.service';
-import { map, Observable, of, switchMap } from 'rxjs';
-import { toObservable } from '@angular/core/rxjs-interop';
+import { filter, from, map, Observable, of, switchMap } from 'rxjs';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import {} from '@angular/fire/auth';
 import {
   addDoc,
@@ -16,8 +16,11 @@ import {
   doc,
   Firestore,
   getDoc,
+  getDocs,
+  query,
+  where,
 } from '@angular/fire/firestore';
-import Post from '../models/post.interface';
+import { Post } from '../models/post.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -30,11 +33,7 @@ export class PostsService {
   userSignal = this.auth.getUser();
   user$ = toObservable(this.auth.getUser());
 
-  posts$!: Observable<Post[]>;
-
-  constructor() {
-    this.getUserPosts();
-  }
+  postsSignal = toSignal(from(this.getUserPosts()));
 
   getUserPostById(id: string): Promise<Post> {
     const docRef = doc(this.firestore, 'posts', id);
@@ -57,17 +56,24 @@ export class PostsService {
     });
   }
 
-  getUserPosts() {
-    const postsCollection = collection(this.firestore, 'posts');
-    this.posts$ = collectionData(postsCollection, { idField: 'id' }).pipe(
-      map((posts: Post[]) =>
-        posts.map((post) => {
-          return {
-            ...post,
-            createdAt: new Date(post.createdAt),
-          };
-        })
-      )
+  getUserPosts(): Observable<Post[]> {
+    return this.user$.pipe(
+      filter(Boolean),
+      switchMap((user) => {
+        const postsCollection = collection(this.firestore, 'posts');
+        const q = query(postsCollection, where('userId', '==', user?.uid));
+
+        return getDocs(q).then((querySnapshot) =>
+          querySnapshot.docs.map(
+            (doc) =>
+              ({
+                ...doc.data(),
+                id: doc.id,
+                createdAt: new Date(doc.data()['createdAt']),
+              } as Post)
+          )
+        );
+      })
     );
   }
 

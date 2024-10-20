@@ -8,7 +8,7 @@ import {
 import { FormsModule, NgForm } from '@angular/forms';
 import { CommentsService } from '../../services/comments.service';
 import { AuthenticationService } from '../../services/authentication.service';
-import Post from '../../models/post.interface';
+import { Post } from '../../models/post.interface';
 
 @Component({
   selector: 'app-create-comment',

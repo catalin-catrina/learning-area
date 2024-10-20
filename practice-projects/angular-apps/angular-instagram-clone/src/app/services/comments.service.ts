@@ -9,6 +9,7 @@ import {
   query,
   where,
 } from '@angular/fire/firestore';
+import { Comment } from '../models/comment.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -22,27 +23,34 @@ export class CommentsService {
       comment: comment,
       postId: postId,
       userId: userId,
+      createdAt: new Date().toISOString(),
     });
   }
 
-  getCommentsByPostId(postId: string) {
+  getCommentsAndUserByPostId(postId: string): Promise<Comment[]> {
     const commentsCollection = collection(this.firestore, 'comments');
     const q = query(commentsCollection, where('postId', '==', postId));
 
-    return new Promise<Comment[]>((resolve, reject) => {
-      try {
-        getDocs(q)
-          .then((querySnap) => {
-            let data: Comment[] = [];
-            querySnap.forEach((doc) => {
-              data.push(doc.data() as Comment);
-            });
-            resolve(data);
-          })
-          .catch((error) => reject(error));
-      } catch (error) {
-        reject(error);
-      }
+    return getDocs(q).then((querySnap) => {
+      const commentPromises = querySnap.docs.map((document) => {
+        let commentData = document.data() as Comment;
+        const userDocRef = doc(this.firestore, 'users', commentData.userId);
+        return getDoc(userDocRef).then((userDocSnap) => {
+          if (userDocSnap.exists()) {
+            const userData = userDocSnap.data();
+            const userName = userData['fullname'];
+            const commentAndUserData = {
+              ...commentData,
+              createdAt: new Date(commentData.createdAt),
+              userName: userName,
+            };
+            return commentAndUserData;
+          } else {
+            return { ...commentData, userName: 'Unknown User' };
+          }
+        });
+      });
+      return Promise.all(commentPromises);
     });
   }
 }
