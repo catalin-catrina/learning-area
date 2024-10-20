@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
+import { UserSearchService } from '../../services/user-search.service';
 
 @Component({
   selector: 'app-user-search',
@@ -11,6 +12,8 @@ import { debounceTime, distinctUntilChanged } from 'rxjs';
 })
 export class UserSearchComponent implements OnInit {
   searchForm: FormGroup;
+
+  private userSearchService = inject(UserSearchService);
 
   constructor(private fb: FormBuilder) {
     this.searchForm = this.fb.group({
@@ -23,7 +26,9 @@ export class UserSearchComponent implements OnInit {
       .get('query')
       ?.valueChanges.pipe(debounceTime(300), distinctUntilChanged())
       .subscribe((value) => {
-        console.log(value);
+        this.userSearchService
+          .searchUsers(value)
+          .then((user) => console.log(user));
       });
   }
 
