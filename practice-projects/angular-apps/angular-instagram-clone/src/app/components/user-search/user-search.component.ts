@@ -2,16 +2,19 @@ import { Component, inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { UserSearchService } from '../../services/user-search.service';
+import { CommonModule } from '@angular/common';
+import { User } from '../../models/user.interface';
 
 @Component({
   selector: 'app-user-search',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, CommonModule],
   templateUrl: './user-search.component.html',
   styleUrl: './user-search.component.scss',
 })
 export class UserSearchComponent implements OnInit {
   searchForm: FormGroup;
+  searchResults: User[] = [];
 
   private userSearchService = inject(UserSearchService);
 
@@ -24,15 +27,15 @@ export class UserSearchComponent implements OnInit {
   ngOnInit() {
     this.searchForm
       .get('query')
-      ?.valueChanges.pipe(debounceTime(300), distinctUntilChanged())
-      .subscribe((value) => {
-        this.userSearchService
-          .searchUsers(value)
-          .then((user) => console.log(user));
-      });
-  }
+      ?.valueChanges.pipe(debounceTime(500), distinctUntilChanged())
+      .subscribe(async (value) => {
+        if (value.length <= 3) return;
 
-  onSearch() {
-    // const searchQuery = this.searchForm.get('query')?.value;
+        const users = await this.userSearchService.searchUsers(value);
+        const result = await this.userSearchService.getUsersFromFirestore(
+          users
+        );
+        this.searchResults = result;
+      });
   }
 }
