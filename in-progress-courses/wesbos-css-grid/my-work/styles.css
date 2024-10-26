@@ -1,0 +1,80 @@
+html {
+  box-sizing: border-box;
+}
+
+* {
+  box-sizing: inherit;
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  width: 80%;
+  margin: 0 auto;
+  margin-top: 50px;
+}
+
+.grid-container {
+  display: grid;
+  justify-content: space-between;
+  gap: 20px;
+
+  /* grid-template-columns: repeat(12, 1fr); */
+  /* grid-template-rows: 150px 150px; */
+
+  /* specify size of implicit colums and or rows - more than 1 value means alternating sizes for each new row or col*/
+  /* grid-auto-columns: 100px 50px; */
+  /* grid-auto-rows: 50px; */
+
+  /* place implicit items in new rows or new colums */
+  /* row is default value */
+  /* grid-auto-flow: row; */
+
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+
+  border: 10px solid blueviolet;
+}
+
+.item {
+  background-color: yellowgreen;
+  text-align: center;
+  /* border-bottom: 10px solid orangered; */
+  font-size: 2rem;
+  color: #fff;
+}
+
+.item7 {
+  /* makes the item occupy 6 colums in the grid (we defined 12) */
+  /* it starts from where the item is initially positioned, if there is not available space it goes on next row */
+  /* same as defining 
+  grid-column-start: span 6;
+  grid-column-end: auto; */
+  /* grid-column: span 6; */
+}
+
+.item13 {
+  /* positions element on column 3 and spans it to column 8 */
+  /* order of elements is kept the same so if the element is moved */
+  /* all the element that initially came after it will still come after it, and the space before remains empty */
+  /* grid-column-start: 3; */
+  /* grid-column-end: 8; */
+  /* same as */
+  /* grid-column: 3 / 7; */
+}
+
+.item20 {
+  /* span 3 columns and end at 7, so starts at col 4 and ends 7 */
+  /* grid-column: span 3 / 6; */
+}
+
+.item23 {
+  /* start at 8 and span 4 columns from there */
+  /* grid-column: 8 / span 4; */
+}
+
+.item30 {
+  /* start at 1 and end at the end of the grid */
+  /* often used as width 100% for a column */
+  /* values lower than -1 like -2 means span until second to last element, third to last, and so on */
+  /* grid-column: 1 / -1; */
+}

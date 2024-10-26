@@ -1,0 +1,10 @@
+game
+    game-board
+        board
+    game-info
+        ol
+
+board
+    status
+    board-row*3
+        Square*9
