@@ -8,7 +8,7 @@ import { PostComponent } from './components/post/post.component';
 
 export const routes: Routes = [
   { path: 'home', component: HomeComponent },
-  { path: 'profile', component: ProfileComponent },
+  { path: 'profile/:id', component: ProfileComponent },
   { path: 'create', component: CreatePostComponent },
   { path: 'post/:id', component: PostComponent },
   { path: 'signup', component: SignupComponent },

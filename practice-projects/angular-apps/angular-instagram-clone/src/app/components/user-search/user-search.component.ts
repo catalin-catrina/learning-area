@@ -4,11 +4,12 @@ import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { UserSearchService } from '../../services/user-search.service';
 import { CommonModule } from '@angular/common';
 import { User } from '../../models/user.interface';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 
 @Component({
   selector: 'app-user-search',
   standalone: true,
-  imports: [ReactiveFormsModule, CommonModule],
+  imports: [ReactiveFormsModule, CommonModule, RouterLink, RouterLinkActive],
   templateUrl: './user-search.component.html',
   styleUrl: './user-search.component.scss',
 })

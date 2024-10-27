@@ -7,7 +7,9 @@
   <h3>Search Results:</h3>
   <ul>
     <li *ngFor="let user of searchResults">
-      {{ user.displayName }}
+      <a [routerLink]="['/profile', user.uid]" routerLinkActive>{{
+        user.displayName
+      }}</a>
     </li>
   </ul>
 </div>

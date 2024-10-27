@@ -77,6 +77,21 @@ export class PostsService {
     );
   }
 
+  async getProfileUserPosts(id: string): Promise<Post[]> {
+    const postsCollection = collection(this.firestore, 'posts');
+    const q = query(postsCollection, where('userId', '==', id));
+    const querySnapshot = await getDocs(q);
+    const posts = querySnapshot.docs.map(
+      (doc) =>
+        ({
+          ...doc.data(),
+          id: doc.id,
+          createdAt: new Date(doc.data()['createdAt']),
+        } as Post)
+    );
+    return posts;
+  }
+
   writePostToFirestore(post: string, imageUrl: any) {
     const postsCollection = collection(this.firestore, 'posts');
     addDoc(postsCollection, {

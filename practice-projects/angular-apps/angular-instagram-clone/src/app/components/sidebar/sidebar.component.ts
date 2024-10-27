@@ -13,6 +13,7 @@ import { UserSearchComponent } from '../user-search/user-search.component';
 })
 export class SidebarComponent {
   private auth = inject(AuthenticationService);
+  user = this.auth.getUser();
 
   logout() {
     this.auth.logout();
