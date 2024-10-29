@@ -8,11 +8,9 @@ import {
 import { AuthenticationService } from './authentication.service';
 import { filter, from, map, Observable, of, switchMap } from 'rxjs';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
-import {} from '@angular/fire/auth';
 import {
   addDoc,
   collection,
-  collectionData,
   doc,
   Firestore,
   getDoc,

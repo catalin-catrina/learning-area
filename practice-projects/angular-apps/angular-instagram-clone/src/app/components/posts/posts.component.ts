@@ -3,14 +3,16 @@ import {
   inject,
   Input,
   OnChanges,
+  OnInit,
   SimpleChanges,
 } from '@angular/core';
-import { PostsService } from '../../services/posts.service';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import { months } from '../../constants/constants';
 import { Observable } from 'rxjs';
 import { Post } from '../../models/post.interface';
+
+import { PostsService } from '../../services/posts.service';
+import { months } from '../../constants/constants';
 
 @Component({
   selector: 'app-posts',
@@ -19,27 +21,26 @@ import { Post } from '../../models/post.interface';
   templateUrl: './posts.component.html',
   styleUrl: './posts.component.scss',
 })
-export class PostsComponent implements OnChanges {
+export class PostsComponent implements OnInit, OnChanges {
   @Input() userId!: string;
 
   months = months;
 
   private postsService = inject(PostsService);
 
-  // currentUserPosts$!: Observable<Post[]>;
-  // profileUserPosts$!: Observable<Post[]>;
-
   posts$!: Observable<Post[]> | Promise<Post[]>;
+
+  ngOnInit() {
+    if (this.userId) {
+      this.posts$ = this.postsService.getProfileUserPosts(this.userId);
+    } else {
+      this.posts$ = this.postsService.getUserPosts();
+    }
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['userId']) {
-      if (this.userId) {
-        console.log('1', this.userId);
-        this.posts$ = this.postsService.getProfileUserPosts(this.userId);
-      } else {
-        console.log('2', this.userId);
-        this.posts$ = this.postsService.getUserPosts();
-      }
+      this.posts$ = this.postsService.getProfileUserPosts(this.userId);
     }
   }
 }
