@@ -1,2 +1,8 @@
-<app-profile-header></app-profile-header>
-<app-profile-tabs></app-profile-tabs>
+<app-profile-header
+  [profileUserId]="profileUserId"
+  [isCurrentUser]="isCurrentUser"
+></app-profile-header>
+<app-profile-tabs
+  [profileUserId]="profileUserId"
+  [isCurrentUser]="isCurrentUser"
+></app-profile-tabs>
