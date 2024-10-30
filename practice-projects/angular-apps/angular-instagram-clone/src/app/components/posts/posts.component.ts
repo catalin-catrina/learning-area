@@ -22,7 +22,7 @@ import { months } from '../../constants/constants';
   styleUrl: './posts.component.scss',
 })
 export class PostsComponent implements OnInit, OnChanges {
-  @Input() userId!: string;
+  @Input() userId!: string | null;
 
   months = months;
 

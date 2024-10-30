@@ -75,7 +75,7 @@ export class PostsService {
     );
   }
 
-  async getProfileUserPosts(id: string): Promise<Post[]> {
+  async getProfileUserPosts(id: string | null): Promise<Post[]> {
     const postsCollection = collection(this.firestore, 'posts');
     const q = query(postsCollection, where('userId', '==', id));
     const querySnapshot = await getDocs(q);

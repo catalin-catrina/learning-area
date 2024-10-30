@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, Signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTabsModule } from '@angular/material/tabs';
 import { PostsComponent } from '../posts/posts.component';
@@ -11,6 +11,6 @@ import { PostsComponent } from '../posts/posts.component';
   styleUrl: './profile-tabs.component.scss',
 })
 export class ProfileTabsComponent {
-  @Input() profileUserId!: string;
+  @Input() profileUserId!: string | null;
   @Input() isCurrentUser!: boolean;
 }

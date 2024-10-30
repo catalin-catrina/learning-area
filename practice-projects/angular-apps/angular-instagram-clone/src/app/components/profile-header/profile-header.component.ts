@@ -8,6 +8,6 @@ import { Component, Input } from '@angular/core';
   styleUrl: './profile-header.component.scss',
 })
 export class ProfileHeaderComponent {
-  @Input() profileUserId!: string;
+  @Input() profileUserId!: string | null;
   @Input() isCurrentUser!: boolean;
 }
