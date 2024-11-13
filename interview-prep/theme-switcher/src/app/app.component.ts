@@ -10,7 +10,8 @@ import { RouterOutlet } from '@angular/router';
 })
 export class AppComponent {
   switchTheme() {
-    const currentTheme = document.documentElement.getAttribute('data-theme');
+    // const currentTheme = document.documentElement.getAttribute('data-theme');
+    const currentTheme = document.documentElement.dataset['theme'];
     const newTheme = currentTheme === 'light' ? 'dark' : 'light';
     document.documentElement.setAttribute('data-theme', newTheme);
   }
