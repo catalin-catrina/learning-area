@@ -23,18 +23,18 @@ export class ProfileComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private auth = inject(AuthenticationService);
 
-  currentUserIdSignal = computed(() => this.auth.getUser()()?.uid);
+  currentUserSignal = this.auth.getUser();
   profileUserId = signal<string | null>(null);
   isLoading = signal(true);
 
   isCurrentUser = computed(() => {
-    return this.currentUserIdSignal() === this.profileUserId();
+    return this.currentUserSignal()?.uid === this.profileUserId();
   });
 
   constructor() {
     effect(
       () => {
-        if (this.currentUserIdSignal() && this.profileUserId()) {
+        if (this.currentUserSignal()?.uid && this.profileUserId()) {
           this.isLoading.set(false);
         }
       },
