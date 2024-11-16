@@ -20,7 +20,7 @@ export class FollowService {
   private firestore = inject(Firestore);
 
   async followUser(followerId: string, followedId: string) {
-    const followCollection = collection(this.firestore, 'follower');
+    const followCollection = collection(this.firestore, 'follow');
     const followId = `${followerId}_${followedId}`;
     const followDocRef = doc(followCollection, followId);
     const data: Follow = {
@@ -38,7 +38,7 @@ export class FollowService {
     await deleteDoc(followDocRef);
   }
 
-  async isFollowing(followerId: string, followedId: string) {
+  async isFollowing(followerId: string, followedId: string): Promise<Boolean> {
     const followCollection = collection(this.firestore, 'follow');
     const q = query(
       followCollection,
