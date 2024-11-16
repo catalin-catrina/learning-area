@@ -6,7 +6,7 @@ import {
   uploadBytesResumable,
 } from '@angular/fire/storage';
 import { AuthenticationService } from './authentication.service';
-import { filter, from, map, Observable, of, switchMap } from 'rxjs';
+import { catchError, filter, from, map, Observable, of, switchMap } from 'rxjs';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import {
   addDoc,
@@ -31,27 +31,25 @@ export class PostsService {
   userSignal = this.auth.getUser();
   user$ = toObservable(this.auth.getUser());
 
-  postsSignal = toSignal(from(this.getUserPosts()));
+  postsSignal = toSignal(this.getUserPosts());
 
-  getUserPostById(id: string): Promise<Post> {
-    const docRef = doc(this.firestore, 'posts', id);
-    return new Promise((resolve, reject) => {
-      getDoc(docRef)
-        .then((docSnap) => {
-          if (docSnap.exists()) {
-            const postData = {
-              ...docSnap.data(),
-              createdAt: new Date(docSnap.data()['createdAt']),
-            };
-            resolve(postData as Post);
-          } else {
-            reject(new Error('Document does not exist'));
-          }
-        })
-        .catch(
-          (error) => new Error('Failed to retrieve document', error.message)
-        );
-    });
+  async getUserPostById(id: string): Promise<Post | null> {
+    try {
+      const docRef = doc(this.firestore, 'posts', id);
+      const docSnapshot = await getDoc(docRef);
+      if (docSnapshot.exists()) {
+        const postData = {
+          ...docSnapshot.data(),
+          createdAt: new Date(docSnapshot.data()['createdAt']),
+        };
+        return postData as Post;
+      } else {
+        return null;
+      }
+    } catch (error) {
+      console.error('Error fetching post by ID:', error);
+      throw new Error('An unexpected error occurred while fetching the post');
+    }
   }
 
   getUserPosts(): Observable<Post[]> {
@@ -61,15 +59,22 @@ export class PostsService {
         const postsCollection = collection(this.firestore, 'posts');
         const q = query(postsCollection, where('userId', '==', user?.uid));
 
-        return getDocs(q).then((querySnapshot) =>
-          querySnapshot.docs.map(
-            (doc) =>
-              ({
-                ...doc.data(),
-                id: doc.id,
-                createdAt: new Date(doc.data()['createdAt']),
-              } as Post)
+        return from(
+          getDocs(q).then((querySnapshot) =>
+            querySnapshot.docs.map(
+              (doc) =>
+                ({
+                  ...doc.data(),
+                  id: doc.id,
+                  createdAt: new Date(doc.data()['createdAt']),
+                } as Post)
+            )
           )
+        ).pipe(
+          catchError((error) => {
+            console.error('Error fetching posts: ', error);
+            return of([]);
+          })
         );
       })
     );

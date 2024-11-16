@@ -18,7 +18,7 @@ import { Post } from '../../models/post.interface';
 export class PostComponent implements OnInit {
   months = months;
   postId!: string;
-  post!: Post;
+  post!: Post | null;
 
   private route = inject(ActivatedRoute);
   private postsService = inject(PostsService);
@@ -31,11 +31,17 @@ export class PostComponent implements OnInit {
     this.postsService
       .getUserPostById(this.postId)
       .then((post) => {
-        this.post = {
-          ...post,
-          id: this.postId,
-        };
+        if (post) {
+          this.post = {
+            ...post,
+            id: this.postId,
+          };
+        } else {
+          console.warn('Post not found');
+        }
       })
-      .catch((error) => console.error(error.message));
+      .catch((error) => {
+        console.error('Failed to load post:', error.message);
+      });
   }
 }
