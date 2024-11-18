@@ -38,15 +38,28 @@ export class FollowService {
     await deleteDoc(followDocRef);
   }
 
-  async isFollowing(followerId: string, followedId: string): Promise<Boolean> {
-    const followCollection = collection(this.firestore, 'follow');
-    const q = query(
-      followCollection,
-      where('followerId', '==', followerId),
-      where('followedId', '==', followedId)
-    );
-    const isFollowing = (await getDocs(q)).empty === false;
-    return isFollowing;
+  async isFollowing(
+    followerId: string | undefined,
+    followedId: string | null
+  ): Promise<Boolean> {
+    try {
+      if (followedId && followerId && followedId !== followerId) {
+        const followCollection = collection(this.firestore, 'follow');
+        const q = query(
+          followCollection,
+          where('followerId', '==', followerId),
+          where('followedId', '==', followedId)
+        );
+        const isFollowing = (await getDocs(q)).empty === false;
+        console.log('aici', isFollowing);
+        return isFollowing;
+      } else {
+        return false;
+      }
+    } catch (error) {
+      console.error('Error fetching following data', error);
+      throw new Error('Error fetching following data');
+    }
   }
 
   async getFollowers(userId: string): Promise<Follow[]> {
