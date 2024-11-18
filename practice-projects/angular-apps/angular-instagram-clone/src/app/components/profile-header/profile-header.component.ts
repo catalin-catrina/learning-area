@@ -39,22 +39,29 @@ export class ProfileHeaderComponent implements OnChanges {
       this.user = user;
     });
 
-    this.followService
-      .isFollowing(this.loggedInUserIdSignal(), this.profileUserId)
-      .then((isFollowing) => {
-        this.isFollowing = isFollowing;
-      });
+    this.getIsFollowing();
+  }
+
+  getIsFollowing() {
+    if (this.loggedInUserIdSignal() && this.profileUserId)
+      this.followService
+        .isFollowing(this.loggedInUserIdSignal() as string, this.profileUserId)
+        .then((isFollowing) => {
+          this.isFollowing = isFollowing;
+        });
   }
 
   followUser(followerId: string | undefined, followedId: string | null) {
     if (followerId && followedId) {
       this.followService.followUser(followerId, followedId);
+      this.getIsFollowing();
     }
   }
 
   unfollowUser(followerId: string | undefined, followedId: string | null) {
     if (followerId && followedId) {
       this.followService.unfollowUser(followerId, followedId);
+      this.getIsFollowing();
     }
   }
 }

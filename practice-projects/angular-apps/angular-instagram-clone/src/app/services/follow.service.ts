@@ -8,7 +8,6 @@ import {
   query,
   serverTimestamp,
   setDoc,
-  Timestamp,
   where,
 } from '@angular/fire/firestore';
 import { Follow } from '../models/follow.interface';
@@ -20,30 +19,51 @@ export class FollowService {
   private firestore = inject(Firestore);
 
   async followUser(followerId: string, followedId: string) {
-    const followCollection = collection(this.firestore, 'follow');
-    const followId = `${followerId}_${followedId}`;
-    const followDocRef = doc(followCollection, followId);
-    const data: Follow = {
-      followerId,
-      followedId,
-      followedAt: serverTimestamp(),
-    };
-    await setDoc(followDocRef, data);
+    try {
+      if (followedId !== followerId) {
+        const followCollection = collection(this.firestore, 'follow');
+        const followId = `${followerId}_${followedId}`;
+        const followDocRef = doc(followCollection, followId);
+        const data: Follow = {
+          followerId,
+          followedId,
+          followedAt: serverTimestamp(),
+        };
+        await setDoc(followDocRef, data);
+      }
+    } catch (error) {
+      console.error(
+        'There has been an error in following the user, please try again later',
+        error
+      );
+      throw new Error(
+        'There has been an error in following the user, please try again later'
+      );
+    }
   }
 
   async unfollowUser(followerId: string, followedId: string) {
-    const followCollection = collection(this.firestore, 'follow');
-    const followId = `${followerId}_${followedId}`;
-    const followDocRef = doc(followCollection, followId);
-    await deleteDoc(followDocRef);
+    try {
+      if (followedId !== followerId) {
+        const followCollection = collection(this.firestore, 'follow');
+        const followId = `${followerId}_${followedId}`;
+        const followDocRef = doc(followCollection, followId);
+        await deleteDoc(followDocRef);
+      }
+    } catch (error) {
+      console.error(
+        'There has been an error in unfollowing the user, please try again later',
+        error
+      );
+      throw new Error(
+        'There has been an error in unfollowing the user, please try again later'
+      );
+    }
   }
 
-  async isFollowing(
-    followerId: string | undefined,
-    followedId: string | null
-  ): Promise<Boolean> {
+  async isFollowing(followerId: string, followedId: string): Promise<Boolean> {
     try {
-      if (followedId && followerId && followedId !== followerId) {
+      if (followedId !== followerId) {
         const followCollection = collection(this.firestore, 'follow');
         const q = query(
           followCollection,
@@ -51,7 +71,6 @@ export class FollowService {
           where('followedId', '==', followedId)
         );
         const isFollowing = (await getDocs(q)).empty === false;
-        console.log('aici', isFollowing);
         return isFollowing;
       } else {
         return false;
