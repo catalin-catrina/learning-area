@@ -1,5 +1,5 @@
-import { Component } from '@angular/core';
-import { CreatePostComponent } from '../create-post/create-post.component';
+import { Component, inject } from '@angular/core';
+import { FeedService } from '../../services/feed.service';
 
 @Component({
   selector: 'app-feed',
@@ -8,4 +8,6 @@ import { CreatePostComponent } from '../create-post/create-post.component';
   templateUrl: './feed.component.html',
   styleUrl: './feed.component.scss',
 })
-export class FeedComponent {}
+export class FeedComponent {
+  private feedService = inject(FeedService);
+}
