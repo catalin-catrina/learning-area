@@ -1,8 +1,6 @@
-<p>
-  feed works! Lorem ipsum dolor sit, amet consectetur adipisicing elit. Amet
-  dasdasdsasasaassasaass sadsdadsadasdasdasdsadasdsaectetur adipisicing elit.
-  Amet dasdasdsasasaassasaassfeed works! Lorem ipsum dolor sit, amet consectetur
-  adipisicing elit. Amet dasdasdsasasaassasaass
-  sadsdadsadasdasdasdsadasdsaectetur adipisicing elit. Amet
-  dasdasdsasasaassasaass
-</p>
+<div class="feed-container">
+  <div *ngFor="let post of posts">
+    {{ post.post }}
+    {{ post.imageUrl }}
+  </div>
+</div>

@@ -16,6 +16,7 @@ import {
   getDoc,
   getDocs,
   query,
+  serverTimestamp,
   where,
 } from '@angular/fire/firestore';
 import { Post } from '../models/post.interface';
@@ -101,7 +102,7 @@ export class PostsService {
       userId: this.userSignal()?.uid,
       post: post,
       imageUrl: imageUrl,
-      createdAt: new Date().toISOString(),
+      createdAt: serverTimestamp(),
     });
   }
 
