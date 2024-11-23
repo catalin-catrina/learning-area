@@ -14,12 +14,18 @@ import {
   where,
 } from '@angular/fire/firestore';
 import { Post } from '../models/post.interface';
+import { BehaviorSubject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
 })
 export class FeedService {
+  cachedPosts: Post[] = [];
   followedUsers!: string[];
+
+  followedUsersSubject = new BehaviorSubject<string[] | null>(null);
+  followedUsers$ = this.followedUsersSubject.asObservable();
+
   lastVisible: QueryDocumentSnapshot<DocumentData> | null = null;
 
   private authService = inject(AuthenticationService);
@@ -43,6 +49,8 @@ export class FeedService {
         this.followedUsers = querySnapshot.docs.map((doc) => {
           return doc.data()['followedId'];
         });
+
+        this.followedUsersSubject.next(this.followedUsers);
       }
     } catch (error) {
       console.error('Could not fetch followers', error);
@@ -50,20 +58,21 @@ export class FeedService {
   }
 
   async fetchPosts(): Promise<Post[]> {
-    console.log(this.followedUsers);
     if (!this.followedUsers || this.followedUsers.length === 0) return [];
     const postsCollection = collection(this.firestore, 'posts');
     let queryRef;
 
     if (this.lastVisible) {
+      // console.log('1', this.lastVisible);
       queryRef = query(
         postsCollection,
-        where('userid', 'in', this.followedUsers),
+        where('userId', 'in', this.followedUsers),
         orderBy('createdAt', 'desc'),
         startAfter(this.lastVisible),
         limit(10)
       );
     } else {
+      // console.log('2', this.lastVisible);
       queryRef = query(
         postsCollection,
         where('userId', 'in', this.followedUsers),
@@ -74,11 +83,17 @@ export class FeedService {
 
     const querySnapshot = await getDocs(queryRef);
 
-    this.lastVisible =
-      querySnapshot.docs[querySnapshot.docs.length - 1] || null;
+    if (querySnapshot.empty) {
+      console.log('aici');
+      return this.cachedPosts;
+    } else {
+      this.lastVisible =
+        querySnapshot.docs[querySnapshot.docs.length - 1] || null;
 
-    const posts = querySnapshot.docs.map((doc) => doc.data() as Post);
-    console.log(posts);
-    return posts;
+      const posts = querySnapshot.docs.map((doc) => doc.data() as Post);
+      this.cachedPosts.push(...posts);
+
+      return posts;
+    }
   }
 }
