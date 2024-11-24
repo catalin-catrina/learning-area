@@ -1,10 +1,17 @@
-import { Component, HostListener, inject, OnInit } from '@angular/core';
+import {
+  Component,
+  DoCheck,
+  HostListener,
+  inject,
+  OnInit,
+} from '@angular/core';
 import { FeedService } from '../../services/feed.service';
 import { Post } from '../../models/post.interface';
 import { CommonModule } from '@angular/common';
 import { AuthenticationService } from '../../services/authentication.service';
 import { toObservable } from '@angular/core/rxjs-interop';
-import { combineLatestWith, filter, take } from 'rxjs';
+import { combineLatestWith, filter, Subscription, take } from 'rxjs';
+import { EventBusService } from '../../services/event-bus.service';
 
 @Component({
   selector: 'app-feed',
@@ -13,13 +20,21 @@ import { combineLatestWith, filter, take } from 'rxjs';
   templateUrl: './feed.component.html',
   styleUrl: './feed.component.scss',
 })
-export class FeedComponent implements OnInit {
+export class FeedComponent implements OnInit, DoCheck {
+  ngDoCheck(): void {
+    console.log('cachedPosts:', this.cachedPosts);
+  }
+
   posts: Post[] = [];
   loading = false;
-  noMoreData = false;
+  private subscriptions: Subscription = new Subscription();
 
   private feedService = inject(FeedService);
   private authenticationService = inject(AuthenticationService);
+  private eventBusService = inject(EventBusService);
+
+  cachedPosts = this.feedService.cachedPosts;
+  noMoreDataSignal = this.feedService.noreMoreDataSignal;
 
   private userSignal = this.authenticationService.getUser();
   private user$ = toObservable(this.userSignal);
@@ -35,6 +50,8 @@ export class FeedComponent implements OnInit {
       .subscribe(([user, followedUsers]) => {
         this.loadMorePosts();
       });
+
+    this.subscriptions.add();
   }
 
   @HostListener('window:scroll', [])
@@ -42,20 +59,11 @@ export class FeedComponent implements OnInit {
     const threshhold = 100;
     const position = window.innerHeight + window.scrollY;
     const height = document.body.offsetHeight;
-    console.log('window.innerHeight', window.innerHeight);
-    console.log('window.scrollY', window.scrollY);
-    console.log('position', position);
-    console.log('height', height);
-    console.log('treshhold', threshhold);
     if (
       position > height - threshhold &&
       height > window.innerHeight &&
-      !this.loading &&
-      !this.noMoreData
+      !this.loading
     ) {
-      console.log('position', position);
-      console.log('height', height);
-      console.log('treshhold', threshhold);
       this.loadMorePosts();
     }
   }
@@ -68,7 +76,7 @@ export class FeedComponent implements OnInit {
     try {
       const newPosts = await this.feedService.fetchPosts();
       if (newPosts.length === 0) {
-        this.noMoreData = true;
+        return;
       } else {
         this.posts.push(...newPosts);
       }

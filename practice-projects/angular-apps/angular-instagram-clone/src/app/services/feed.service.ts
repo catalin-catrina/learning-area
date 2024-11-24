@@ -1,4 +1,4 @@
-import { computed, effect, inject, Injectable } from '@angular/core';
+import { computed, effect, inject, Injectable, signal } from '@angular/core';
 import { AuthenticationService } from './authentication.service';
 import {
   collection,
@@ -27,6 +27,8 @@ export class FeedService {
   followedUsers$ = this.followedUsersSubject.asObservable();
 
   lastVisible: QueryDocumentSnapshot<DocumentData> | null = null;
+
+  noreMoreDataSignal = signal<boolean>(false);
 
   private authService = inject(AuthenticationService);
   private firestore = inject(Firestore);
@@ -63,7 +65,6 @@ export class FeedService {
     let queryRef;
 
     if (this.lastVisible) {
-      // console.log('1', this.lastVisible);
       queryRef = query(
         postsCollection,
         where('userId', 'in', this.followedUsers),
@@ -72,7 +73,6 @@ export class FeedService {
         limit(10)
       );
     } else {
-      // console.log('2', this.lastVisible);
       queryRef = query(
         postsCollection,
         where('userId', 'in', this.followedUsers),
@@ -84,13 +84,17 @@ export class FeedService {
     const querySnapshot = await getDocs(queryRef);
 
     if (querySnapshot.empty) {
-      console.log('aici');
-      return this.cachedPosts;
+      this.noreMoreDataSignal.set(true);
+      return [];
     } else {
+      this.noreMoreDataSignal.set(false);
       this.lastVisible =
         querySnapshot.docs[querySnapshot.docs.length - 1] || null;
 
-      const posts = querySnapshot.docs.map((doc) => doc.data() as Post);
+      const posts = querySnapshot.docs.map((doc) => {
+        console.log('post:', doc.data());
+        return doc.data() as Post;
+      });
       this.cachedPosts.push(...posts);
 
       return posts;

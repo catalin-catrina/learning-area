@@ -1,6 +1,21 @@
-<div class="feed-container">
-  <div *ngFor="let post of posts">
-    <h2>{{ post.post }}</h2>
-    <img [src]="post.imageUrl" />
+<ng-container *ngIf="noMoreDataSignal(); else noData">
+  <div class="feed-container">
+    <h1>no more data</h1>
+    <div *ngFor="let post of cachedPosts">
+      <h2>{{ post.post }}</h2>
+      <img [src]="post.imageUrl" />
+      <p>{{ post.createdAt }}</p>
+    </div>
   </div>
-</div>
+</ng-container>
+
+<ng-template #noData>
+  <div class="feed-container">
+    <h1>data coming in</h1>
+    <div *ngFor="let post of posts">
+      <h2>{{ post.post }}</h2>
+      <img [src]="post.imageUrl" />
+      <p>{{ post.createdAt }}</p>
+    </div>
+  </div>
+</ng-template>

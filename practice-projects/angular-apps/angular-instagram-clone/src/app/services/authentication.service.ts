@@ -6,9 +6,11 @@ import {
   signInWithEmailAndPassword,
   User,
   user,
+  UserCredential,
 } from '@angular/fire/auth';
 import { doc, Firestore, setDoc } from '@angular/fire/firestore';
 import { Router } from '@angular/router';
+import { EventBusService } from './event-bus.service';
 
 @Injectable({
   providedIn: 'root',
@@ -17,6 +19,7 @@ export class AuthenticationService {
   private auth = inject(Auth);
   private firestore = inject(Firestore);
   private router = inject(Router);
+  private eventBusService = inject(EventBusService);
 
   // how to get current user
   private _user$ = user(this.auth);
@@ -65,8 +68,9 @@ export class AuthenticationService {
 
   login(email: string, password: string) {
     signInWithEmailAndPassword(this.auth, email, password)
-      .then((userCredential) => {
+      .then((userCredential: UserCredential) => {
         this.router.navigate(['/home']);
+        this.eventBusService.userLoggedInSubject.next(userCredential);
       })
       .catch((error) => {
         console.log('Error logging in: ', error.message);
