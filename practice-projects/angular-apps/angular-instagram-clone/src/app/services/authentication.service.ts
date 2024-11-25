@@ -69,8 +69,8 @@ export class AuthenticationService {
   login(email: string, password: string) {
     signInWithEmailAndPassword(this.auth, email, password)
       .then((userCredential: UserCredential) => {
+        this.eventBusService.emitUserLoggedIn(userCredential);
         this.router.navigate(['/home']);
-        this.eventBusService.userLoggedInSubject.next(userCredential);
       })
       .catch((error) => {
         console.log('Error logging in: ', error.message);
@@ -81,6 +81,7 @@ export class AuthenticationService {
     this.auth
       .signOut()
       .then(() => {
+        this.eventBusService.emitUserLoggedOut();
         this.router.navigate(['/login']);
       })
       .catch((error) => {

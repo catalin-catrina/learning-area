@@ -32,7 +32,7 @@ export class FollowService {
           followedAt: serverTimestamp(),
         };
         await setDoc(followDocRef, data);
-        this.eventBusService.userFollowedSubject.next(followedId);
+        this.eventBusService.emitUserFollowed(followedId);
       }
     } catch (error) {
       console.error(
@@ -52,7 +52,7 @@ export class FollowService {
         const followId = `${followerId}_${followedId}`;
         const followDocRef = doc(followCollection, followId);
         await deleteDoc(followDocRef);
-        this.eventBusService.userUnfollowedSubject.next(followedId);
+        this.eventBusService.emitUserUnfollowed(followedId);
       }
     } catch (error) {
       console.error(

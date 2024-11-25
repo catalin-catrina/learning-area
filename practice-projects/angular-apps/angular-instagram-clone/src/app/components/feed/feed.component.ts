@@ -3,6 +3,7 @@ import {
   DoCheck,
   HostListener,
   inject,
+  OnDestroy,
   OnInit,
 } from '@angular/core';
 import { FeedService } from '../../services/feed.service';
@@ -20,9 +21,9 @@ import { EventBusService } from '../../services/event-bus.service';
   templateUrl: './feed.component.html',
   styleUrl: './feed.component.scss',
 })
-export class FeedComponent implements OnInit, DoCheck {
+export class FeedComponent implements OnInit, OnDestroy, DoCheck {
   ngDoCheck(): void {
-    console.log('cachedPosts:', this.cachedPosts);
+    // console.log('cachedPosts:', this.cachedPosts);
   }
 
   posts: Post[] = [];
@@ -35,6 +36,7 @@ export class FeedComponent implements OnInit, DoCheck {
 
   cachedPosts = this.feedService.cachedPosts;
   noMoreDataSignal = this.feedService.noreMoreDataSignal;
+  lastVisibleSignal = this.feedService.lastVisibleSignal;
 
   private userSignal = this.authenticationService.getUser();
   private user$ = toObservable(this.userSignal);
@@ -51,7 +53,26 @@ export class FeedComponent implements OnInit, DoCheck {
         this.loadMorePosts();
       });
 
-    this.subscriptions.add();
+    this.subscriptions.add(
+      this.eventBusService.userFollowed$.subscribe((userId: string) => {
+        this.cachedPosts = [];
+        this.lastVisibleSignal.set(null);
+        this.loadMorePosts();
+      })
+    );
+    this.subscriptions.add(
+      this.eventBusService.userUnfollowed$.subscribe((userId: string) => {
+        this.cachedPosts = [];
+        this.lastVisibleSignal.set(null);
+        this.loadMorePosts();
+      })
+    );
+    this.subscriptions.add(
+      this.eventBusService.userLoggedIn$.subscribe((user) => {})
+    );
+    this.subscriptions.add(
+      this.eventBusService.userLoggedOut$.subscribe(() => {})
+    );
   }
 
   @HostListener('window:scroll', [])
@@ -75,6 +96,7 @@ export class FeedComponent implements OnInit, DoCheck {
 
     try {
       const newPosts = await this.feedService.fetchPosts();
+      console.log('newPosts', newPosts);
       if (newPosts.length === 0) {
         return;
       } else {
@@ -85,5 +107,9 @@ export class FeedComponent implements OnInit, DoCheck {
     } finally {
       this.loading = false;
     }
+  }
+
+  ngOnDestroy(): void {
+    // this.subscriptions.unsubscribe();
   }
 }

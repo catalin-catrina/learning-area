@@ -6,13 +6,26 @@ import { UserCredential } from '@angular/fire/auth';
   providedIn: 'root',
 })
 export class EventBusService {
-  userFollowedSubject = new Subject<string>();
-  userUnfollowedSubject = new Subject<string>();
-  userLoggedInSubject = new Subject<UserCredential>();
-  userLoggedOutSubject = new Subject<void>();
+  private userFollowedSubject = new Subject<string>();
+  private userUnfollowedSubject = new Subject<string>();
+  private userLoggedInSubject = new Subject<UserCredential>();
+  private userLoggedOutSubject = new Subject<void>();
 
-  userFollowed$ = this.userFollowedSubject.asObservable();
-  userUnfollowed$ = this.userUnfollowedSubject.asObservable();
-  userLoggedIn$ = this.userLoggedInSubject.asObservable();
-  userLoggedOut$ = this.userLoggedOutSubject.asObservable();
+  readonly userFollowed$ = this.userFollowedSubject.asObservable();
+  readonly userUnfollowed$ = this.userUnfollowedSubject.asObservable();
+  readonly userLoggedIn$ = this.userLoggedInSubject.asObservable();
+  readonly userLoggedOut$ = this.userLoggedOutSubject.asObservable();
+
+  emitUserFollowed(followedId: string) {
+    this.userFollowedSubject.next(followedId);
+  }
+  emitUserUnfollowed(followedId: string) {
+    this.userUnfollowedSubject.next(followedId);
+  }
+  emitUserLoggedIn(user: UserCredential) {
+    this.userLoggedInSubject.next(user);
+  }
+  emitUserLoggedOut() {
+    this.userLoggedOutSubject.next();
+  }
 }

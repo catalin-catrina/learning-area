@@ -26,7 +26,7 @@ export class FeedService {
   followedUsersSubject = new BehaviorSubject<string[] | null>(null);
   followedUsers$ = this.followedUsersSubject.asObservable();
 
-  lastVisible: QueryDocumentSnapshot<DocumentData> | null = null;
+  lastVisibleSignal = signal<QueryDocumentSnapshot<DocumentData> | null>(null);
 
   noreMoreDataSignal = signal<boolean>(false);
 
@@ -64,12 +64,12 @@ export class FeedService {
     const postsCollection = collection(this.firestore, 'posts');
     let queryRef;
 
-    if (this.lastVisible) {
+    if (this.lastVisibleSignal()) {
       queryRef = query(
         postsCollection,
         where('userId', 'in', this.followedUsers),
         orderBy('createdAt', 'desc'),
-        startAfter(this.lastVisible),
+        startAfter(this.lastVisibleSignal()),
         limit(10)
       );
     } else {
@@ -88,11 +88,11 @@ export class FeedService {
       return [];
     } else {
       this.noreMoreDataSignal.set(false);
-      this.lastVisible =
-        querySnapshot.docs[querySnapshot.docs.length - 1] || null;
-
+      this.lastVisibleSignal.set(
+        querySnapshot.docs[querySnapshot.docs.length - 1] || null
+      );
       const posts = querySnapshot.docs.map((doc) => {
-        console.log('post:', doc.data());
+        // console.log('post:', doc.data());
         return doc.data() as Post;
       });
       this.cachedPosts.push(...posts);
