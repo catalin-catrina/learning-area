@@ -11,14 +11,12 @@ import {
   where,
 } from '@angular/fire/firestore';
 import { Follow } from '../models/follow.interface';
-import { EventBusService } from './event-bus.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class FollowService {
   private firestore = inject(Firestore);
-  private eventBusService = inject(EventBusService);
 
   async followUser(followerId: string, followedId: string) {
     try {
@@ -32,7 +30,6 @@ export class FollowService {
           followedAt: serverTimestamp(),
         };
         await setDoc(followDocRef, data);
-        this.eventBusService.emitUserFollowed(followedId);
       }
     } catch (error) {
       console.error(
@@ -52,7 +49,6 @@ export class FollowService {
         const followId = `${followerId}_${followedId}`;
         const followDocRef = doc(followCollection, followId);
         await deleteDoc(followDocRef);
-        this.eventBusService.emitUserUnfollowed(followedId);
       }
     } catch (error) {
       console.error(

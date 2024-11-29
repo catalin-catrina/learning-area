@@ -1,79 +1,91 @@
-import { computed, effect, inject, Injectable, signal } from '@angular/core';
+import { effect, inject, Injectable, OnDestroy } from '@angular/core';
 import { AuthenticationService } from './authentication.service';
+import { BehaviorSubject, Subscription } from 'rxjs';
 import {
   collection,
   DocumentData,
-  FieldPath,
   Firestore,
   getDocs,
   limit,
+  onSnapshot,
   orderBy,
   query,
-  QueryDocumentSnapshot,
   startAfter,
   where,
 } from '@angular/fire/firestore';
 import { Post } from '../models/post.interface';
-import { BehaviorSubject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
 })
-export class FeedService {
-  cachedPosts: Post[] = [];
-  followedUsers!: string[];
+export class FeedService implements OnDestroy {
+  private followedUsers: string[] = [];
+  private lastVisible: DocumentData | null = null;
 
-  followedUsersSubject = new BehaviorSubject<string[] | null>(null);
-  followedUsers$ = this.followedUsersSubject.asObservable();
+  private postsSubject = new BehaviorSubject<Post[]>([]);
+  private noMoreDataSubject = new BehaviorSubject<boolean>(false);
+  readonly posts$ = this.postsSubject.asObservable();
+  readonly noMoreData$ = this.noMoreDataSubject.asObservable();
 
-  lastVisibleSignal = signal<QueryDocumentSnapshot<DocumentData> | null>(null);
+  private subscriptions: Subscription = new Subscription();
+  private followSubscription: (() => void) | null = null;
 
-  noreMoreDataSignal = signal<boolean>(false);
-
-  private authService = inject(AuthenticationService);
   private firestore = inject(Firestore);
+  private authService = inject(AuthenticationService);
 
-  private loggedInUserSignal = this.authService.getUser();
-  private loggedInUserIdSignal = computed(() => this.loggedInUserSignal()?.uid);
+  private user = this.authService.getUser();
 
   constructor() {
     effect(() => {
-      this.getFollowers(this.loggedInUserIdSignal());
+      if (this.user()) {
+        this.resetFeed();
+        this.initializeFeed();
+      } else {
+        this.resetFeed();
+      }
     });
   }
 
-  async getFollowers(userId: string | undefined) {
-    try {
-      if (userId) {
-        const followCollection = collection(this.firestore, 'follow');
-        const q = query(followCollection, where('followerId', '==', userId));
-        const querySnapshot = await getDocs(q);
-        this.followedUsers = querySnapshot.docs.map((doc) => {
-          return doc.data()['followedId'];
-        });
-
-        this.followedUsersSubject.next(this.followedUsers);
-      }
-    } catch (error) {
-      console.error('Could not fetch followers', error);
+  private initializeFeed() {
+    if (this.followSubscription) {
+      this.followSubscription();
+      this.subscriptions.remove(this.followSubscription);
+      this.followSubscription = null;
     }
+
+    const followCollection = collection(this.firestore, 'follow');
+    const q = query(
+      followCollection,
+      where('followerId', '==', this.user()?.uid)
+    );
+
+    const unsub = onSnapshot(q, (querySnapshot) => {
+      this.resetFeed();
+      this.followedUsers = querySnapshot.docs.map((doc) => {
+        const data = doc.data();
+        return data['followedId'];
+      });
+      this.fetchPosts();
+    });
+
+    this.followSubscription = unsub;
+    this.subscriptions.add(unsub);
   }
 
   async fetchPosts(): Promise<Post[]> {
-    if (!this.followedUsers || this.followedUsers.length === 0) return [];
     const postsCollection = collection(this.firestore, 'posts');
-    let queryRef;
+    let q;
 
-    if (this.lastVisibleSignal()) {
-      queryRef = query(
+    if (this.lastVisible) {
+      q = query(
         postsCollection,
         where('userId', 'in', this.followedUsers),
         orderBy('createdAt', 'desc'),
-        startAfter(this.lastVisibleSignal()),
+        startAfter(this.lastVisible),
         limit(10)
       );
     } else {
-      queryRef = query(
+      q = query(
         postsCollection,
         where('userId', 'in', this.followedUsers),
         orderBy('createdAt', 'desc'),
@@ -81,23 +93,40 @@ export class FeedService {
       );
     }
 
-    const querySnapshot = await getDocs(queryRef);
+    try {
+      const querySnapshot = await getDocs(q);
 
-    if (querySnapshot.empty) {
-      this.noreMoreDataSignal.set(true);
-      return [];
-    } else {
-      this.noreMoreDataSignal.set(false);
-      this.lastVisibleSignal.set(
-        querySnapshot.docs[querySnapshot.docs.length - 1] || null
-      );
-      const posts = querySnapshot.docs.map((doc) => {
-        // console.log('post:', doc.data());
-        return doc.data() as Post;
-      });
-      this.cachedPosts.push(...posts);
+      if (querySnapshot.empty) {
+        this.noMoreDataSubject.next(true);
+        return [];
+      } else {
+        this.noMoreDataSubject.next(false);
 
-      return posts;
+        const newPosts = querySnapshot.docs.map((doc) => doc.data() as Post);
+        const currentPosts = this.postsSubject.value;
+
+        this.postsSubject.next([...currentPosts, ...newPosts]);
+
+        this.lastVisible = querySnapshot.docs[querySnapshot.docs.length - 1];
+
+        return newPosts;
+      }
+    } catch (error) {
+      console.error('Error fetching posts');
+      throw error;
     }
+  }
+
+  resetFeed() {
+    this.postsSubject.next([]);
+    this.noMoreDataSubject.next(false);
+    this.lastVisible = null;
+  }
+
+  ngOnDestroy(): void {
+    if (this.followSubscription) {
+      this.followSubscription();
+    }
+    this.subscriptions.unsubscribe();
   }
 }
