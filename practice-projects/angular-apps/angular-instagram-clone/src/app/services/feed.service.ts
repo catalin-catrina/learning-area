@@ -49,7 +49,6 @@ export class FeedService implements OnDestroy {
   private initializeFeed() {
     if (this.followSubscription) {
       this.followSubscription();
-      this.subscriptions.remove(this.followSubscription);
       this.followSubscription = null;
     }
 
@@ -60,16 +59,21 @@ export class FeedService implements OnDestroy {
     );
 
     const unsub = onSnapshot(q, (querySnapshot) => {
+      if (querySnapshot.metadata.hasPendingWrites) {
+        return;
+      }
+
       this.resetFeed();
+
       this.followedUsers = querySnapshot.docs.map((doc) => {
         const data = doc.data();
         return data['followedId'];
       });
+
       this.fetchPosts();
     });
 
     this.followSubscription = unsub;
-    this.subscriptions.add(unsub);
   }
 
   async fetchPosts(): Promise<Post[]> {

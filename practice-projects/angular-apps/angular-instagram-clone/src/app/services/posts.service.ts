@@ -20,6 +20,7 @@ import {
   where,
 } from '@angular/fire/firestore';
 import { Post } from '../models/post.interface';
+import { User } from '../models/user.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -34,16 +35,25 @@ export class PostsService {
 
   postsSignal = toSignal(this.getUserPosts());
 
-  async getUserPostById(id: string): Promise<Post | null> {
+  async getUserPostById(
+    id: string
+  ): Promise<(Post & { userName: string }) | null> {
     try {
-      const docRef = doc(this.firestore, 'posts', id);
-      const docSnapshot = await getDoc(docRef);
-      if (docSnapshot.exists()) {
-        const postData = {
-          ...docSnapshot.data(),
-          createdAt: new Date(docSnapshot.data()['createdAt']),
-        };
-        return postData as Post;
+      const postDocRef = doc(this.firestore, 'posts', id);
+      const postDocSnapshot = await getDoc(postDocRef);
+      if (postDocSnapshot.exists()) {
+        const postData = postDocSnapshot.data() as Post;
+        
+        const userDocRef = doc(this.firestore, 'users', postData.userId);
+        const userDocSnapshot = await getDoc(userDocRef);
+        if (userDocSnapshot.exists()) {
+          const userData = userDocSnapshot.data() as User;
+          const userName = userData.fullname;
+
+          return { ...postData, userName } as Post & { userName: string };
+        } else {
+          return null;
+        }
       } else {
         return null;
       }

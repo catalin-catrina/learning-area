@@ -18,7 +18,7 @@ import { Post } from '../../models/post.interface';
 export class PostComponent implements OnInit {
   months = months;
   postId!: string;
-  post!: Post | null;
+  post!: (Post & { userName: string }) | null;
 
   private route = inject(ActivatedRoute);
   private postsService = inject(PostsService);
