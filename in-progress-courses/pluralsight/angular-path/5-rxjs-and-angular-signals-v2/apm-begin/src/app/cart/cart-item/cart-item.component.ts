@@ -1,31 +1,40 @@
-import { Component, Input } from '@angular/core';
+import { Component, computed, inject, Input, signal } from '@angular/core';
 import { CurrencyPipe, NgFor, NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 import { CartItem } from '../cart';
+import { CartService } from '../cart.service';
 
 @Component({
   selector: 'sw-cart-item',
   standalone: true,
   imports: [CurrencyPipe, FormsModule, NgFor, NgIf],
-  templateUrl: './cart-item.component.html'
+  templateUrl: './cart-item.component.html',
 })
 export class CartItemComponent {
+  @Input({ required: true }) set cartItem(val: CartItem) {
+    this.cartItemSignal.set(val);
+  }
 
-  @Input({ required: true }) cartItem!: CartItem;
+  cartItemSignal = signal<CartItem>(undefined!);
+
+  exPrice = computed(
+    () => this.cartItemSignal().quantity * this.cartItemSignal().product.price
+  );
 
   // Quantity available (hard-coded to 8)
   // Mapped to an array from 1-8
-  qtyArr = [...Array(8).keys()].map(x => x + 1);
+  qtyArr = computed(() =>
+    [...Array(this.cartItemSignal().product.quantityInStock).keys()].map((x) => x + 1)
+  );
 
-  // Calculate the extended price
-  exPrice = this.cartItem?.quantity * this.cartItem?.product.price;
+  private cartService = inject(CartService);
 
   onQuantitySelected(quantity: number): void {
-
+    this.cartService.updateQuantity(this.cartItemSignal(), Number(quantity));
   }
 
   removeFromCart(): void {
-
+    this.cartService.deleteProduct(this.cartItemSignal());
   }
 }
