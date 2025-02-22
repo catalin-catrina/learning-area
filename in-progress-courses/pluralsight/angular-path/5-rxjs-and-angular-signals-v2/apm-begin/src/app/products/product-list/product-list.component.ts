@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { NgIf, NgFor, NgClass, AsyncPipe } from '@angular/common';
+import { NgIf, NgFor, NgClass } from '@angular/common';
 import { ProductDetailComponent } from '../product-detail/product-detail.component';
 import { ProductService } from '../product.service';
 import { catchError, EMPTY } from 'rxjs';
@@ -8,25 +8,26 @@ import { catchError, EMPTY } from 'rxjs';
   selector: 'pm-product-list',
   templateUrl: './product-list.component.html',
   standalone: true,
-  imports: [NgIf, NgFor, NgClass, ProductDetailComponent, AsyncPipe],
+  imports: [NgIf, NgFor, NgClass, ProductDetailComponent],
 })
 export class ProductListComponent {
   pageTitle = 'Products';
-  errorMessage = '';
 
   private productService = inject(ProductService);
 
-  readonly selectedProduct$ = this.productService.productSelected$;
+  selectedProduct = this.productService.selectedProduct;
 
-  readonly products$ = this.productService.products$.pipe(
-    catchError((err) => {
-      this.errorMessage = err;
-      return EMPTY;
-    })
-  );
+  // readonly products$ = this.productService.products$.pipe(
+  //   catchError((err) => {
+  //     this.errorMessage = err;
+  //     return EMPTY;
+  //   })
+  // );
+
+  products = this.productService.products;
+  errorMessage = this.productService.productsError;
 
   onSelected(productId: number): void {
     this.productService.selectProduct(productId);
-    console.log()
   }
 }
