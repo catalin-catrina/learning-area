@@ -1,0 +1,14 @@
+.menu {
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.menu.show {
+  visibility: visible;
+  opacity: 1;
+}
+
+.nav {
+  height: 60px;
+}
