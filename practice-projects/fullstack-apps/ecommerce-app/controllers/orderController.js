@@ -20,7 +20,7 @@ exports.getOrderById = (req, res, next) => {
   if (order) {
     res.json(order);
   } else {
-    next(new CustomError('Order does not exist', 404));
+    return next(new CustomError('Order not found', 404));
   }
 };
 
@@ -67,7 +67,7 @@ exports.editOrder = (req, res, next) => {
   const index = orders.findIndex(u => u.id === orderId);
 
   if (index === -1) {
-    next(new CustomError('Order does not exist', 404));
+    return next(new CustomError('Order not found', 404));
   }
 
   orders[index] = {
@@ -91,7 +91,7 @@ exports.deleteOrder = (req, res, next) => {
   const index = orders.findIndex(u => u.id === orderId);
 
   if (index === -1) {
-    next(new CustomError('Order does not exist', 404));
+    return next(new CustomError('Order not found', 404));
   }
 
   orders.splice(index, 1);
