@@ -1,0 +1,23 @@
+<div class="products">
+  <div class="products__filter">
+    <app-products-filter />
+  </div>
+  <div class="products__list">
+    @if(products()) {
+    <div class="product__container">
+      @for(product of products(); track product.id) {
+      <div class="product" (click)="onProductClicked(product.id)">
+        <p>{{ product.description }}</p>
+        <p>{{ product.price }}</p>
+        <p>{{ product.category }}</p>
+        <ul>
+          @for(review of product.reviews; track $index) {
+          <li>{{ review.comment }}</li>
+          }
+        </ul>
+      </div>
+      }
+    </div>
+    }
+  </div>
+</div>

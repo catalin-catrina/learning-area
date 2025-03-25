@@ -1,0 +1,21 @@
+.products__list {
+  border: 1px solid #ddd;
+
+  .product {
+    border: 1px solid #ddd;
+  }
+}
+
+.products {
+  display: flex;
+  justify-content: center;
+  gap: 3rem;
+
+  &__filter {
+    width: 40%;
+  }
+
+  &__list {
+    width: 40%;
+  }
+}

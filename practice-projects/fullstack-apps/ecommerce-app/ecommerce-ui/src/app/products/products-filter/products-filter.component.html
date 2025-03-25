@@ -1,0 +1,57 @@
+<form [formGroup]="filtersForm">
+  <div class="filter">
+    <label for="minPrice" [ngStyle]="{ display: 'block' }"
+      >Min Price: {{ filtersForm.controls.minPrice.value }}</label
+    >
+    <input
+      type="range"
+      name="minPrice"
+      id="minPrice"
+      min="0"
+      max="3000"
+      step="50"
+      formControlName="minPrice"
+    />
+  </div>
+
+  <div class="filter">
+    <label for="maxPrice" [ngStyle]="{ display: 'block' }"
+      >Max Price: {{ filtersForm.controls.maxPrice.value }}
+    </label>
+    <input
+      type="range"
+      id="maxPrice"
+      min="0"
+      max="3000"
+      step="50"
+      formControlName="maxPrice"
+    />
+  </div>
+
+  @for( category of categories(); track $index) {
+  <div class="filter">
+    <label [for]="category">{{ category }}</label>
+    <input
+      type="radio"
+      [id]="category"
+      [value]="category"
+      formControlName="category"
+    />
+  </div>
+  }
+  <div class="filter">
+    <label for="orderby-select">Sort by: </label>
+    <select id="sortby-select" formControlName="sortBy">
+      @for (filter of FILTER_OPTIONS; track $index ) {
+      <option [value]="filter">{{ filter }}</option>
+      }
+    </select>
+  </div>
+  <div class="filter">
+    <label for="asc">Asc</label>
+    <input type="radio" id="asc" value="asc" formControlName="sortOrder" />
+
+    <label for="desc">Desc</label>
+    <input type="radio" id="desc" value="desc" formControlName="sortOrder" />
+  </div>
+</form>
