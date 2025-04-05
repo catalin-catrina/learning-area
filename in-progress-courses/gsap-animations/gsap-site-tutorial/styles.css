@@ -1,0 +1,77 @@
+body {
+  margin: 0;
+  padding: 0;
+  min-block-size: 100svh;
+  background-color: #222;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.demo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+img {
+  max-block-size: 100%;
+}
+
+svg {
+  width: 300px;
+  height: 300px;
+}
+
+.circle {
+  width: 50px;
+  height: 50px;
+  border-radius: 100%;
+}
+
+.circles {
+  display: flex;
+  gap: 30px;
+}
+
+.circle-1 {
+  background-color: aqua;
+}
+
+.circle-2 {
+  background-color: blueviolet;
+}
+
+.circle-3 {
+  background-color: yellowgreen;
+}
+
+.circle-4 {
+  background-color: tomato;
+}
+
+.circle-5 {
+  background-color: chocolate;
+}
+
+.control-buttons {
+  display: flex;
+  margin-block: 2rem;
+  gap: 20px;
+}
+
+.btn {
+  padding: 12px 24px;
+  border-radius: 40px;
+  background-color: cadetblue;
+}
+
+.animating-svg {
+  height: 90vh;
+  max-height: 300px;
+  border: solid 2px white;
+  overflow: visible;
+}
