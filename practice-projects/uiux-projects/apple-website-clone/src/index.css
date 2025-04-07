@@ -30,11 +30,13 @@ canvas {
 }
 
 @layer utilities {
+  /* screen-max-width === set-max-width + mx-auto + relative */
+
   .set-max-width {
     max-width: var(--max-width);
   }
 
-  .nav-height {
+  .set-hero-height {
     @apply h-[calc(100vh-60px)];
   }
 
