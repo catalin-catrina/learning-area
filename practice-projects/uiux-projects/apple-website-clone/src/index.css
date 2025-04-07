@@ -9,12 +9,6 @@
   --color-zinc: #101010;
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
 body {
   color: white;
   width: 100dvw;
@@ -29,14 +23,17 @@ canvas {
   touch-action: none;
 }
 
-.screen-max-width {
-  margin-inline-start: auto;
-  margin-inline-end: auto;
-  position: relative;
-  max-width: 1120px;
+@layer theme {
+  :root {
+    --max-width: 1120px;
+  }
 }
 
 @layer utilities {
+  .set-max-width {
+    max-width: var(--max-width);
+  }
+
   .nav-height {
     @apply h-[calc(100vh-60px)];
   }

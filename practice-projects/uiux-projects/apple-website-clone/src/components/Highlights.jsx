@@ -1,7 +1,7 @@
 import React from "react";
 
 function Highlights() {
-  return <div>Highlights</div>;
+  return;
 }
 
 export default Highlights;
