@@ -1,9 +1,0 @@
-{
-  "scripts": {
-    "prettier": "prettier --check */*.html",
-    "prettier:fix": "prettier --write */*.html"
-  },
-  "dependencies": {
-    "prettier": "^3.1.0"
-  }
-}

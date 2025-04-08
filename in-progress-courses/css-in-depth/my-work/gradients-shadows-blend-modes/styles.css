@@ -1,0 +1,31 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  height: 100svh;
+  /* background-image: linear-gradient(
+      135deg,
+      hsl(231 80% 7% / 0.6),
+      hsl(195 80% 7% / 0.6)
+    ),
+    url(assets/hero-dark.jpg);
+  background-size: cover; */
+
+  /* background-image: url(assets/tower.jpg), url(assets/tower.jpg);
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: -30vw, 30vw;
+  background-blend-mode: multiply; */
+
+  /* TINTING an image */
+  background-image: url(assets/tower.jpg);
+  background-size: cover;
+  background-color: #148;
+  background-blend-mode: luminosity;
+}
