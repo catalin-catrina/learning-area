@@ -46,9 +46,24 @@ function KeyMetrics() {
 
   const isInView = useInView(ref, { once: false });
 
-  return <motion.section ref={ref} >
-
-  </motion.section>;
+  return (
+    <motion.section
+      ref={ref}
+      initial={{ opacity: 0, y: 50 }}
+      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
+      transition={{ duration: 0.8 }}
+      className="container mx-auto px-4 py-32 text-white"
+    >
+      <motion.h2
+        initial={{ opacity: 0, y: 20 }}
+        animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+        transition={{ delay: 0.2, duration: 0.6 }}
+        className="text-6xl font-bold mb-12 uppercase"
+      >
+        Key metrics
+      </motion.h2>
+    </motion.section>
+  );
 }
 
 export default KeyMetrics;
