@@ -67,7 +67,7 @@ function Portfolio() {
       <div className="max-w-7xl mx-auto px-4 grid lg:grid-cols-2 gap-12">
         <div>
           <h2 className="text-6xl font-bold mb-10">
-            Selected <span className="text-gray-400">projects</span>
+            Selected <span className="text-purple-400">projects</span>
           </h2>
           {projects.map((project) => (
             <div
@@ -77,15 +77,15 @@ function Portfolio() {
             >
               <p className="text-gray-400 text-xl mb-2">{project.year}</p>
               <h3
-                className={`text-3xl font-semibold group-hover:text-gray-400 transition-colors duration-300 ${
-                  selectedProject.id === project.id ? "text-gray-200" : ""
+                className={`text-3xl font-semibold group-hover:text-purple-400 transition-colors duration-300 ${
+                  selectedProject.id === project.id ? "text-purple-200" : ""
                 }`}
               >
                 {project.title}
               </h3>
               {selectedProject.id === project.id && (
                 <>
-                  <div className="border-b-2 border-gray-200 my-4"></div>
+                  <div className="border-b-2 border-purple-200 my-4"></div>
                   <p className="text-gray-400 transition-all duration-500 ease-in-out">
                     {project.description}
                   </p>
