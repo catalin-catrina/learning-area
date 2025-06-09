@@ -31,13 +31,15 @@ export class ProductsFilterComponent implements OnInit {
 
   categories = this.productsService.categoriesData;
 
-  defaultCategoryEffect = effect(() => {
-    const cats = this.categories();
+  constructor() {
+    effect(() => {
+      const cats = this.categories();
 
-    if (cats && cats.length) {
-      this.filtersForm.get('sortBy')?.setValue(cats[0]);
-    }
-  });
+      if (cats && cats.length) {
+        this.filtersForm.get('category')?.setValue(cats[0]);
+      }
+    });
+  }
 
   ngOnInit(): void {
     this.filtersForm.valueChanges
@@ -47,7 +49,7 @@ export class ProductsFilterComponent implements OnInit {
           (filters) =>
             ({
               minPrice: filters.minPrice ? Number(filters.minPrice) : 0,
-              maxPrice: filters.maxPrice ? Number(filters.maxPrice) : 1500,
+              maxPrice: filters.maxPrice ? Number(filters.maxPrice) : 3000,
               category: filters.category?.toLowerCase(),
               sortBy: filters.sortBy || '',
               sortOrder: filters.sortOrder || '',
