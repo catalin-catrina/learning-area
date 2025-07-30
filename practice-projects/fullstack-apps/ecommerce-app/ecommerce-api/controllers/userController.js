@@ -1,15 +1,16 @@
-const users = require('../data/usersData');
-const userSchema = require('../validators/userValidator');
-const jwt = require('jsonwebtoken');
-const SECRET_KEY = 'your_secret_key';
-const CustomError = require('../utils/customError');
+const users = require("../data/usersData");
+const userSchema = require("../validators/userValidator");
+const jwt = require("jsonwebtoken");
+const SECRET_KEY = "your_secret_key";
+const REFRESH_SECRET = "your_refresh_secret";
+const CustomError = require("../utils/customError");
 
 exports.getProfile = (req, res, next) => {
   const userId = req.user.id;
-  const user = users.find(u => u.id === userId);
+  const user = users.find((u) => u.id === userId);
 
   if (!user) {
-    return next(new CustomError('User not found', 404));
+    return next(new CustomError("User not found", 404));
   }
 
   res.json(user);
@@ -21,12 +22,12 @@ exports.getAllUsers = (req, res) => {
 
 exports.getUserById = (req, res, next) => {
   const userId = parseInt(req.params.id);
-  const user = users.find(u => u.id === userId);
+  const user = users.find((u) => u.id === userId);
 
   if (user) {
     res.json(user);
   } else {
-    return next(new CustomError('User not found', 404));
+    return next(new CustomError("User not found", 404));
   }
 };
 
@@ -38,12 +39,17 @@ exports.registerUser = (req, res, next) => {
 
   users.push(newUser);
 
-  const payload = { id: newUser.id, name: newUser.name, email: newUser.email };
-  const accessToken = jwt.sign(payload, SECRET_KEY, { expiresIn: '1h' });
-  const refreshToken = jwt.sign(payload, SECRET_KEY, { expiresIn: '7d' });
+  const payload = {
+    id: newUser.id,
+    name: newUser.name,
+    email: newUser.email,
+    role: newUser.role,
+  };
+  const accessToken = jwt.sign(payload, SECRET_KEY, { expiresIn: "1h" });
+  const refreshToken = jwt.sign(payload, REFRESH_SECRET, { expiresIn: "7d" });
 
   res.status(201).json({
-    message: 'User created',
+    message: "User created",
     user: newUser,
     accessToken,
     refreshToken,
@@ -57,17 +63,17 @@ exports.editUser = (req, res, next) => {
   const { error, value } = userSchema.validate(newUserData);
 
   if (userIdParam !== authenticatedUser.id) {
-    return next(new CustomError('Operation not permitted', 403));
+    return next(new CustomError("Operation not permitted", 403));
   }
 
   if (error) {
-    return next(new CustomError('Invalid fields', 400));
+    return next(new CustomError("Invalid fields", 400));
   }
 
-  const index = users.findIndex(u => u.id === userIdParam);
+  const index = users.findIndex((u) => u.id === userIdParam);
 
   if (index === -1) {
-    return next(new CustomError('User not found', 404));
+    return next(new CustomError("User not found", 404));
   }
 
   users[index] = {
@@ -76,7 +82,7 @@ exports.editUser = (req, res, next) => {
   };
 
   res.status(200).json({
-    message: 'User updated successfully',
+    message: "User updated successfully",
     user: users[index],
   });
 };
@@ -84,13 +90,13 @@ exports.editUser = (req, res, next) => {
 exports.deleteUser = (req, res, next) => {
   const userId = parseInt(req.params.id);
 
-  const index = users.findIndex(u => u.id === userId);
+  const index = users.findIndex((u) => u.id === userId);
 
   if (index === -1) {
-    return next(new CustomError('User not found', 404));
+    return next(new CustomError("User not found", 404));
   }
 
   users.splice(index, 1);
 
-  res.status(200).json('User deleted successfully');
+  res.status(200).json("User deleted successfully");
 };

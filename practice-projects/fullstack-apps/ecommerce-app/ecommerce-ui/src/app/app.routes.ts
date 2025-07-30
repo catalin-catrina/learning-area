@@ -4,8 +4,8 @@ import { ProductComponent } from './products/product/product.component';
 import { CreateProductComponent } from './products/create-product/create-product.component';
 import { EditProductComponent } from './products/edit-product/edit-product.component';
 import { ProductsListComponent } from './products/products-list/products-list.component';
-import { LoginComponent } from './login/login.component';
-import { RegisterComponent } from './register/register.component';
+import { LoginComponent } from './auth/login/login.component';
+import { RegisterComponent } from './auth/register/register.component';
 
 export const routes: Routes = [
   {
