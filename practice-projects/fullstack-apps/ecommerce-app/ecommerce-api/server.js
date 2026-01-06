@@ -1,30 +1,37 @@
-const express = require('express');
-const cors = require('cors'); // import cors
+const express = require("express");
+const cors = require("cors");
+const cookieParser = require("cookie-parser");
+const errorHandler = require("./middleware/errorHandler");
+
 const app = express();
 const PORT = 3000;
+const SPA_ORIGIN = "http://localhost:4200";
 
-app.use(cors());
+// Middleware
+app.use(express.json()); // to parse JSON bodies
+app.use(cookieParser());
+app.use(
+  cors({
+    origin: SPA_ORIGIN,
+    credentials: true,
+  })
+); // for CORS so browser is allowed to send and receive cookies with our API
+app.use(errorHandler);
 
-// Middleware to parse JSON bodies
-app.use(express.json());
+const productsRoute = require("./routes/products");
+const usersRoute = require("./routes/users");
+const ordersRoute = require("./routes/orders");
+const authRoute = require("./routes/auth");
 
-const productsRoute = require('./routes/products');
-const usersRoute = require('./routes/users');
-const ordersRoute = require('./routes/orders');
-const authRoute = require('./routes/auth');
-
-app.use('/api/products', productsRoute);
-app.use('/api/users', usersRoute);
-app.use('/api/orders', ordersRoute);
-app.use('/api/auth', authRoute);
+app.use("/api/products", productsRoute);
+app.use("/api/users", usersRoute);
+app.use("/api/orders", ordersRoute);
+app.use("/api/auth", authRoute);
 
 // Simple health-check route
-app.get('/', (req, res) => {
-  res.send('Welcome to our e-commerce API!');
+app.get("/", (req, res) => {
+  res.send("Welcome to our e-commerce API!");
 });
-
-const errorHandler = require('./middleware/errorHandler');
-app.use(errorHandler);
 
 // Starting the server
 app.listen(PORT, () => {

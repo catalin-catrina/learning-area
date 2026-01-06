@@ -1,12 +1,3 @@
-// ─────────────────────────  erste.js  ─────────────────────────
-// BCR Romania sandbox – minimal AIS PoC
-//---------------------------------------------------------------
-// 1. mTLS + API-key for every bank call
-// 2. OAuth PKCE (no /consents; direct SCA screen)
-// 3. Token swap via /sandbox-idp/token (requires client_secret)
-// 4. Tokens saved to Postgres; test route /erste/accounts/:state
-//----------------------------------------------------------------
-
 require("dotenv").config();
 const express = require("express");
 const axios = require("axios");
@@ -20,8 +11,8 @@ const { Pool } = require("pg");
 
 // ─── mTLS agent -------------------------------------------------
 const httpsAgent = new https.Agent({
-  cert: fs.readFileSync(path.join(__dirname, "../certs/bcr/qwac.pem")),
-  key: fs.readFileSync(path.join(__dirname, "../certs/bcr/qwac.key")),
+  cert: fs.readFileSync(path.join(__dirname, "../certs/qwac.pem")),
+  key: fs.readFileSync(path.join(__dirname, "../certs/qwac.key")),
   passphrase: process.env.BCR_QWAC_PASS || undefined,
 });
 
@@ -35,8 +26,6 @@ const TOKEN_URL =
   "https://webapi.developers.erstegroup.com/api/bcr/sandbox/v1/sandbox-idp/token";
 const ACCOUNTS_URL =
   "https://webapi.developers.erstegroup.com/api/bcr/sandbox/v1/aisp/v1/accounts";
-const FUNDS_CONFIRM_URL =
-  "https://webapi.developers.erstegroup.com/api/bcr/sandbox/v1/piisp/v1/funds-confirmations";
 
 // ─── Express setup ---------------------------------------------
 const app = express();
@@ -183,66 +172,6 @@ app.get("/bcr/accounts/:state", async (req, res) => {
       success: false,
       error: error.response?.data || { message: error.message },
     });
-  }
-});
-
-// ────────────────────────────────────────────────────────────────
-// 4.  /bcr/funds/:state  →  PIISP “confirmation of funds”
-//      body: { iban, currency, amount }
-// ────────────────────────────────────────────────────────────────
-app.post("/bcr/funds/:state", async (req, res) => {
-  const {
-    cardNumber = "12345678901234", // dummy PAN for sandbox
-    account: { iban } = {},
-    instructedAmount: { currency, amount } = {},
-  } = req.body || {};
-
-  if (!iban || !currency || !amount) {
-    return res.status(400).json({
-      error:
-        "Body must be { cardNumber, account:{iban}, instructedAmount:{currency,amount} }",
-    });
-  }
-
-  try {
-    // 1.  get access-token stored earlier
-    const { rows } = await db.query(
-      "SELECT access_token FROM bank_consents WHERE state = $1",
-      [req.params.state]
-    );
-    if (!rows.length)
-      return res.status(404).json({ error: "bank consent not found" });
-    const accessToken = rows[0].access_token;
-
-    // 2.  build the PIISP payload (Berlin-Group spec)
-    const payload = {
-      cardNumber,
-      account: { iban },
-      instructedAmount: {
-        currency,
-        amount: String(amount), // API wants a *string*
-      },
-    };
-
-    // 3.  fire the POST
-    const r = await axios.post(FUNDS_CONFIRM_URL, payload, {
-      httpsAgent,
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "web-api-key": process.env.BCR_API_KEY,
-        "x-request-id": crypto.randomUUID(),
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-    });
-
-    // 4.  forward raw answer for debugging
-    return res.status(r.status).json({ success: true, data: r.data });
-  } catch (err) {
-    console.error("PIISP error:", err.response?.data || err.message);
-    return res
-      .status(err.response?.status || 500)
-      .json({ success: false, error: err.response?.data || err.message });
   }
 });
 

@@ -1,11 +1,11 @@
 import { Routes } from '@angular/router';
-import { ProductsComponent } from './products/products.component';
-import { ProductComponent } from './products/product/product.component';
-import { CreateProductComponent } from './products/create-product/create-product.component';
-import { EditProductComponent } from './products/edit-product/edit-product.component';
-import { ProductsListComponent } from './products/products-list/products-list.component';
-import { LoginComponent } from './auth/login/login.component';
-import { RegisterComponent } from './auth/register/register.component';
+import { LoginComponent } from './features/auth/components/login/login.component';
+import { RegisterComponent } from './features/auth/components/register/register.component';
+import { ProductsComponent } from './features/products/products.component';
+import { ProductsListComponent } from './features/products/components/products-list/products-list.component';
+import { CreateProductComponent } from './features/products/components/create-product/create-product.component';
+import { EditProductComponent } from './features/products/components/edit-product/edit-product.component';
+import { ProductComponent } from './features/products/components/product/product.component';
 
 export const routes: Routes = [
   {
@@ -21,5 +21,5 @@ export const routes: Routes = [
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
 
-  { path: '', redirectTo: '/products', pathMatch: 'full' },
+  { path: '', redirectTo: '/login', pathMatch: 'full' },
 ];
