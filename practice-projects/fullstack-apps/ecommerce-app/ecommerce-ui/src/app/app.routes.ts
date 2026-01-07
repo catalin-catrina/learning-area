@@ -6,11 +6,13 @@ import { ProductsListComponent } from './features/products/components/products-l
 import { CreateProductComponent } from './features/products/components/create-product/create-product.component';
 import { EditProductComponent } from './features/products/components/edit-product/edit-product.component';
 import { ProductComponent } from './features/products/components/product/product.component';
+import { authGuard } from './domains/auth/guards/auth.guard';
 
 export const routes: Routes = [
   {
     path: 'products',
     component: ProductsComponent,
+    canActivateChild: [authGuard],
     children: [
       { path: '', component: ProductsListComponent },
       { path: 'create', component: CreateProductComponent },

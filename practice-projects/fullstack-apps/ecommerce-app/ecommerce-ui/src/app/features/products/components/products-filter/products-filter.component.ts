@@ -3,11 +3,8 @@ import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ProductsService } from '../../services/products.service';
 import { NgStyle } from '@angular/common';
 import { debounceTime, distinctUntilChanged, map } from 'rxjs';
-import { Filters } from '../../utilities/filters.interface';
-import {
-  FILTER_OPTIONS,
-  FilterOption,
-} from '../../utilities/filters.constants';
+import { Filters } from '../../models/filters.interface';
+import { FILTER_OPTIONS, FilterOption } from '../../models/filters.constants';
 
 @Component({
   standalone: true,

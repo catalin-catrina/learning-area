@@ -1,31 +1,49 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { UserDto } from '../../../domains/auth/data-access/user.dto';
 import { AuthApiService } from '../../../domains/auth/data-access/auth-api.service';
-import { catchError, tap } from 'rxjs';
-import { AccessTokenStore } from '../../../domains/auth/state/access-token.store';
+import { catchError, finalize, Observable, of, tap } from 'rxjs';
+import { LoginRequest } from '../models/login-request';
+import { LoginResponseDto } from '../../../domains/auth/data-access/login-response.dto';
+import { Result } from '../../../core/models/result.interface';
 
 @Injectable({ providedIn: 'root' })
 export class AuthFacade {
   authenticated = signal(false);
+  loading = signal(false);
   user: UserDto | null = null;
-  loading = false;
 
   private readonly authApiService = inject(AuthApiService);
-  private readonly accessTokenStore = inject(AccessTokenStore);
 
   init() {
-    this.loading = true;
+    this.loading.set(true);
 
-    this.authApiService.refreshToken().pipe(
+    return this.authApiService.refreshToken().pipe(
       tap(() => this.authenticated.set(true)),
       catchError((err) => {
         this.authenticated.set(false);
-        throw err;
+        return of(err);
+      }),
+      finalize(() => this.loading.set(false))
+    );
+  }
+
+  login(req: LoginRequest): Observable<Result<LoginResponseDto>> {
+    return this.authApiService.login(req).pipe(
+      tap((res) => {
+        if (res.data) {
+          this.user = res.data.payload;
+        }
+        this.authenticated.set(true);
       })
     );
   }
 
-  login() {}
-
-  logout() {}
+  logout(): Observable<void> {
+    return this.authApiService.logout().pipe(
+      tap(() => {
+        this.user = null;
+        this.authenticated.set(false);
+      })
+    );
+  }
 }

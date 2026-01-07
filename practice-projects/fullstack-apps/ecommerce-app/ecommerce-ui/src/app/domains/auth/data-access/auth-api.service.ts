@@ -3,7 +3,7 @@ import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { LoginRequest } from '../../../features/auth/models/login-request';
 import { LoginResponseDto } from './login-response.dto';
-import { catchError, map, Observable, of, tap } from 'rxjs';
+import { catchError, map, Observable, of, shareReplay, tap } from 'rxjs';
 import { AccessTokenDto } from './access-token.dto';
 import { AccessTokenStore } from '../state/access-token.store';
 import { HttpErrorService } from '../../../core/services/http-error.service';
@@ -13,7 +13,7 @@ import { Result } from '../../../core/models/result.interface';
   providedIn: 'root',
 })
 export class AuthApiService {
-  private baseUrl = `${environment.apiUrl}/auth/login`;
+  private baseUrl = `${environment.apiUrl}/auth/`;
 
   private readonly http = inject(HttpClient);
   private readonly accessTokenStore = inject(AccessTokenStore);
@@ -25,6 +25,7 @@ export class AuthApiService {
         this.accessTokenStore.set(res.accessToken);
       }),
       map((res) => ({ data: res } as Result<LoginResponseDto>)),
+      shareReplay(1),
       catchError((err) => {
         this.accessTokenStore.clear();
         return of({
@@ -36,15 +37,11 @@ export class AuthApiService {
   }
 
   refreshToken(): Observable<AccessTokenDto> {
-    return this.http
-      .post<AccessTokenDto>(`${this.baseUrl}/refresh`, null, {
-        withCredentials: true, // Ensures cookies are sent with request
+    return this.http.post<AccessTokenDto>(`${this.baseUrl}/refresh`, null).pipe(
+      tap((res) => {
+        this.accessTokenStore.set(res.accessToken);
       })
-      .pipe(
-        tap((res) => {
-          this.accessTokenStore.set(res.accessToken);
-        })
-      );
+    );
   }
 
   logout(): Observable<void> {
