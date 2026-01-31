@@ -93,7 +93,7 @@ exports.refreshToken = (req, res, next) => {
     res.cookie("refresh_token", newRefreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       path: "/api/auth",
     });
 

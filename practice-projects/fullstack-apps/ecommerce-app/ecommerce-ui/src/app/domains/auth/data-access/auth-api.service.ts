@@ -13,7 +13,7 @@ import { Result } from '../../../core/models/result.interface';
   providedIn: 'root',
 })
 export class AuthApiService {
-  private baseUrl = `${environment.apiUrl}/auth/`;
+  private baseUrl = `${environment.apiUrl}/auth`;
 
   private readonly http = inject(HttpClient);
   private readonly accessTokenStore = inject(AccessTokenStore);
@@ -25,7 +25,6 @@ export class AuthApiService {
         this.accessTokenStore.set(res.accessToken);
       }),
       map((res) => ({ data: res } as Result<LoginResponseDto>)),
-      shareReplay(1),
       catchError((err) => {
         this.accessTokenStore.clear();
         return of({

@@ -1,5 +1,5 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 
-export const authInterceptor: HttpInterceptorFn = (req, next) => {
+export const refreshOn401Interceptor: HttpInterceptorFn = (req, next) => {
   return next(req);
 };

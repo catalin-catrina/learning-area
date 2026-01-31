@@ -16,7 +16,6 @@ app.use(
     credentials: true,
   })
 ); // for CORS so browser is allowed to send and receive cookies with our API
-app.use(errorHandler);
 
 const productsRoute = require("./routes/products");
 const usersRoute = require("./routes/users");
@@ -27,6 +26,7 @@ app.use("/api/products", productsRoute);
 app.use("/api/users", usersRoute);
 app.use("/api/orders", ordersRoute);
 app.use("/api/auth", authRoute);
+app.use(errorHandler);
 
 // Simple health-check route
 app.get("/", (req, res) => {

@@ -6,6 +6,10 @@ import { Injectable, signal } from '@angular/core';
 export class AccessTokenStore {
   token = signal<string | null>(null);
 
+  get() {
+    return this.token();
+  }
+
   set(token: string | null): void {
     this.token.set(token);
   }
