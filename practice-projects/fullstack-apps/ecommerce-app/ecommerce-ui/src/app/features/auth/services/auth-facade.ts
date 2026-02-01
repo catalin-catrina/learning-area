@@ -5,6 +5,7 @@ import { catchError, finalize, Observable, of, tap } from 'rxjs';
 import { LoginRequest } from '../models/login-request';
 import { LoginResponseDto } from '../../../domains/auth/data-access/login-response.dto';
 import { Result } from '../../../core/models/result.interface';
+import { Router } from '@angular/router';
 
 @Injectable({ providedIn: 'root' })
 export class AuthFacade {
@@ -13,6 +14,7 @@ export class AuthFacade {
   user: UserDto | null = null;
 
   private readonly authApiService = inject(AuthApiService);
+  private readonly router = inject(Router);
 
   init() {
     this.loading.set(true);
@@ -23,7 +25,7 @@ export class AuthFacade {
         this.authenticated.set(false);
         return of(err);
       }),
-      finalize(() => this.loading.set(false))
+      finalize(() => this.loading.set(false)),
     );
   }
 
@@ -34,7 +36,7 @@ export class AuthFacade {
           this.user = res.data.payload;
         }
         this.authenticated.set(true);
-      })
+      }),
     );
   }
 
@@ -43,7 +45,9 @@ export class AuthFacade {
       tap(() => {
         this.user = null;
         this.authenticated.set(false);
-      })
+        // Redirect to login after logout
+        this.router.navigate(['/login']);
+      }),
     );
   }
 }

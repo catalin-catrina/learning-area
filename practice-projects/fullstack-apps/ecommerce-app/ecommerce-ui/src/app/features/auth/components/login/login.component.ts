@@ -7,6 +7,7 @@ import {
 } from '@angular/forms';
 import { AuthApiService } from '../../../../domains/auth/data-access/auth-api.service';
 import { tap } from 'rxjs';
+import { Router } from '@angular/router';
 
 @Component({
   standalone: true,
@@ -20,6 +21,7 @@ export class LoginComponent implements OnInit {
 
   private formBuilder = inject(FormBuilder);
   private readonly authService = inject(AuthApiService);
+  private readonly router = inject(Router);
 
   ngOnInit(): void {
     this.initializeform();
@@ -28,7 +30,12 @@ export class LoginComponent implements OnInit {
   onSubmit(): void {
     this.authService
       .login(this.loginForm.value)
-      .pipe(tap((x) => console.log(x)))
+      .pipe(
+        tap((x) => {
+          console.log(x);
+          this.router.navigate(['']);
+        }),
+      )
       .subscribe();
   }
 
