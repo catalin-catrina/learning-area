@@ -8,6 +8,7 @@ import {
 import { AuthApiService } from '../../../../domains/auth/data-access/auth-api.service';
 import { tap } from 'rxjs';
 import { Router } from '@angular/router';
+import { AuthFacade } from '../../services/auth-facade';
 
 @Component({
   standalone: true,
@@ -20,7 +21,7 @@ export class LoginComponent implements OnInit {
   loginForm!: FormGroup;
 
   private formBuilder = inject(FormBuilder);
-  private readonly authService = inject(AuthApiService);
+  private readonly authService = inject(AuthFacade);
   private readonly router = inject(Router);
 
   ngOnInit(): void {
@@ -31,9 +32,10 @@ export class LoginComponent implements OnInit {
     this.authService
       .login(this.loginForm.value)
       .pipe(
-        tap((x) => {
-          console.log(x);
-          this.router.navigate(['']);
+        tap((res) => {
+          if (res.data) {
+            this.router.navigate(['/products']);
+          }
         }),
       )
       .subscribe();

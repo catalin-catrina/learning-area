@@ -19,14 +19,20 @@ export class AuthFacade {
   init() {
     this.loading.set(true);
 
-    return this.authApiService.refreshToken().pipe(
-      tap(() => this.authenticated.set(true)),
-      catchError((err) => {
-        this.authenticated.set(false);
-        return of(err);
-      }),
-      finalize(() => this.loading.set(false)),
-    );
+    const hasSession = localStorage.getItem('hasSession');
+    if (hasSession === 'true') {
+      return this.authApiService.refreshToken().pipe(
+        tap(() => this.authenticated.set(true)),
+        catchError((err) => {
+          this.authenticated.set(false);
+          return of(err);
+        }),
+        finalize(() => this.loading.set(false)),
+      );
+    } else {
+      this.loading.set(false);
+      return of(null);
+    }
   }
 
   login(req: LoginRequest): Observable<Result<LoginResponseDto>> {
@@ -34,8 +40,9 @@ export class AuthFacade {
       tap((res) => {
         if (res.data) {
           this.user = res.data.payload;
+          this.authenticated.set(true);
+          localStorage.setItem('hasSession', 'true');
         }
-        this.authenticated.set(true);
       }),
     );
   }
@@ -45,8 +52,8 @@ export class AuthFacade {
       tap(() => {
         this.user = null;
         this.authenticated.set(false);
-        // Redirect to login after logout
         this.router.navigate(['/login']);
+        localStorage.setItem('hasSession', 'false');
       }),
     );
   }

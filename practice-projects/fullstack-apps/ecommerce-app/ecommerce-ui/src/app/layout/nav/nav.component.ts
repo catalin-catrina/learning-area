@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { AuthFacade } from '../../features/auth/services/auth-facade';
 
 @Component({
   standalone: true,
@@ -8,4 +9,8 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
   templateUrl: './nav.component.html',
   styleUrl: './nav.component.scss',
 })
-export class NavComponent {}
+export class NavComponent {
+  private readonly authService = inject(AuthFacade);
+
+  isAuth = this.authService.authenticated;
+}

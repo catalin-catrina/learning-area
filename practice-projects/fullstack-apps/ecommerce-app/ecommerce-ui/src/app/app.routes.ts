@@ -7,6 +7,7 @@ import { CreateProductComponent } from './features/products/components/create-pr
 import { EditProductComponent } from './features/products/components/edit-product/edit-product.component';
 import { ProductComponent } from './features/products/components/product/product.component';
 import { authGuard } from './domains/auth/guards/auth.guard';
+import { noAuthGuard } from './domains/auth/guards/no-auth.guard';
 
 export const routes: Routes = [
   {
@@ -20,8 +21,12 @@ export const routes: Routes = [
       { path: ':id', component: ProductComponent },
     ],
   },
-  { path: 'login', component: LoginComponent },
-  { path: 'register', component: RegisterComponent },
+  { path: 'login', component: LoginComponent, canActivate: [noAuthGuard] },
+  {
+    path: 'register',
+    component: RegisterComponent,
+    canActivate: [noAuthGuard],
+  },
 
   { path: '', redirectTo: '/login', pathMatch: 'full' },
 ];

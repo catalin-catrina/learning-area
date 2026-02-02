@@ -71,6 +71,8 @@ exports.login = (req, res, next) => {
 exports.refreshToken = (req, res, next) => {
   const refreshToken = req.cookies.refresh_token;
 
+  console.log("refreshToken", refreshToken);
+
   if (!refreshToken) {
     logger.warn("Token refresh attempted without refresh_token cookie", {
       ip: req.ip,
@@ -82,10 +84,12 @@ exports.refreshToken = (req, res, next) => {
     const payload = jwt.verify(refreshToken, refreshTokenSecret);
 
     // Issue new tokens
-    const newAccessToken = jwt.sign(payload, accessTokenSecret, {
+    const { iat, exp, ...userData } = payload;
+
+    const newAccessToken = jwt.sign(userData, accessTokenSecret, {
       expiresIn: "1h",
     });
-    const newRefreshToken = jwt.sign(payload, refreshTokenSecret, {
+    const newRefreshToken = jwt.sign(userData, refreshTokenSecret, {
       expiresIn: "7d",
     });
 
