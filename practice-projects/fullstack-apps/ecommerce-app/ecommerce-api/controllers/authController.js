@@ -71,8 +71,6 @@ exports.login = (req, res, next) => {
 exports.refreshToken = (req, res, next) => {
   const refreshToken = req.cookies.refresh_token;
 
-  console.log("refreshToken", refreshToken);
-
   if (!refreshToken) {
     logger.warn("Token refresh attempted without refresh_token cookie", {
       ip: req.ip,
