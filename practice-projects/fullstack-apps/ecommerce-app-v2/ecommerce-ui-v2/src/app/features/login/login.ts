@@ -1,7 +1,13 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { Router } from '@angular/router';
 import { tap } from 'rxjs';
+import { AuthFacade } from './services/auth-facade';
 
 @Component({
   selector: 'app-login',
@@ -9,7 +15,7 @@ import { tap } from 'rxjs';
   templateUrl: './login.html',
   styleUrl: './login.scss',
 })
-export class Login  implements OnInit {
+export class Login implements OnInit {
   loginForm!: FormGroup;
 
   private formBuilder = inject(FormBuilder);
@@ -24,10 +30,8 @@ export class Login  implements OnInit {
     this.authService
       .login(this.loginForm.value)
       .pipe(
-        tap((res) => {
-          if (res.data) {
-            this.router.navigate(['/products']);
-          }
+        tap(() => {
+          this.router.navigate(['/home']);
         }),
       )
       .subscribe();

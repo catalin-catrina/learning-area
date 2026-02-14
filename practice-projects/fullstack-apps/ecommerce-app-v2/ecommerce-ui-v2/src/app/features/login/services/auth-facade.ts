@@ -1,4 +1,5 @@
 import { inject, Injectable, signal } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { HttpErrorService } from '../../../core/services/http-error.service';
@@ -31,7 +32,9 @@ export class AuthFacade {
 
     return this.me().pipe(
       tap(() => {
-        this.authenticated.set(true);
+        if (this.user) {
+          this.authenticated.set(true);
+        }
       }),
     );
   }
@@ -56,10 +59,6 @@ export class AuthFacade {
         localStorage.setItem('hasSession', 'true');
         this.router.navigate(['/home']);
       }),
-      catchError((err) => {
-        this.httpError.formatError(err);
-        return of({});
-      }),
     );
   }
 
@@ -70,10 +69,6 @@ export class AuthFacade {
         this.user = null;
         localStorage.removeItem('hasSession');
         this.router.navigate(['/login']);
-      }),
-      catchError((err) => {
-        this.httpError.formatError(err);
-        return of({});
       }),
     );
   }

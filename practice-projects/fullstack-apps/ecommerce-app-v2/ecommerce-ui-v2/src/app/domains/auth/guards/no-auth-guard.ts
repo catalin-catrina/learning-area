@@ -7,6 +7,7 @@ export const noAuthGuard: CanActivateFn = (route, state) => {
   if (authFacade.authenticated()) {
     return false;
   } else {
+    console.log(authFacade.authenticated());
     return true;
   }
 };

@@ -19,7 +19,7 @@ export class AuthApi {
     );
   }
 
-  refresh() {
+  refreshToken() {
     return this.http.post(`${this.baseUrl}/refresh`, null);
   }
 

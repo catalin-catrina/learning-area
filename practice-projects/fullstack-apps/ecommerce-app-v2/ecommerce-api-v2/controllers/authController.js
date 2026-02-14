@@ -27,13 +27,13 @@ exports.login = (req, res, next) => {
   res.cookie("access_token", accessToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     path: "/api/",
   });
   res.cookie("refresh_token", refreshToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     path: "/api/auth",
   });
 
@@ -43,7 +43,7 @@ exports.login = (req, res, next) => {
   });
 };
 
-exports.refresh = (req, res, next) => {
+exports.refreshToken = (req, res, next) => {
   const refreshToken = req.cookies.refresh_token;
 
   if (!refreshToken) {
@@ -64,13 +64,13 @@ exports.refresh = (req, res, next) => {
     res.cookie("access_token", accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       path: "/api/",
     });
     res.cookie("refresh_token", newRefreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       path: "/api/auth",
     });
 

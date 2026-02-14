@@ -2,7 +2,7 @@ const CustomError = require("../../../ecommerce-app/ecommerce-api/utils/customEr
 const { accessTokenSecret } = require("../config/secrets");
 const jwt = require("jsonwebtoken");
 
-exports.verifyToken = (req, res, next) => {
+function verifyToken (req, res, next) {
   const accessToken = req.cookies.access_token;
 
   if (!accessToken) {
@@ -17,3 +17,6 @@ exports.verifyToken = (req, res, next) => {
     return next(new CustomError("Invalid or expired token", 401));
   }
 };
+
+
+module.exports = verifyToken;

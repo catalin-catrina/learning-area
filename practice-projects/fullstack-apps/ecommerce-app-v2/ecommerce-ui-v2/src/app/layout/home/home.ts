@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { AuthFacade } from '../../features/login/services/auth-facade';
 
 @Component({
   selector: 'app-home',
@@ -7,5 +8,8 @@ import { Component } from '@angular/core';
   styleUrl: './home.scss',
 })
 export class Home {
+  private readonly authFacade = inject(AuthFacade);
 
+  user = this.authFacade.user;
+  auth = this.authFacade.authenticated;
 }
