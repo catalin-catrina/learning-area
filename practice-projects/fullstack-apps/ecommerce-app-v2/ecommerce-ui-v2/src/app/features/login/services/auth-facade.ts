@@ -26,27 +26,23 @@ export class AuthFacade {
 
   init() {
     const hasSession = localStorage.getItem('hasSession');
-    if (!hasSession) {
-      return of({});
-    }
+    if (hasSession !== 'true') return of({});
 
     return this.me().pipe(
       tap(() => {
-        if (this.user) {
-          this.authenticated.set(true);
-        }
+        this.authenticated.set(true);
+      }),
+      catchError(() => {
+        this.authenticated.set(false);
+        return of({});
       }),
     );
   }
 
   me(): Observable<UserDto | {}> {
-    return this.http.get<UserDto>(`${this.baseUrl}/profile`).pipe(
+    return this.http.get<UserDto>(`${this.baseUrl}/users/profile`).pipe(
       tap((data: UserDto) => {
         this.user = data;
-      }),
-      catchError((err) => {
-        this.httpError.formatError(err);
-        return of({});
       }),
     );
   }
