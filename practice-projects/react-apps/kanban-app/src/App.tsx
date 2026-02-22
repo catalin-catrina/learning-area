@@ -1,68 +1,48 @@
+import { useState } from "react";
+import type { Column } from "./models/column.type";
+import Board from "./components/Board";
 import "./App.css";
 
 function App() {
+  const [columns] = useState<Column[]>([
+    {
+      id: "todo",
+      title: "To Do",
+      cards: [
+        {
+          id: "card-1",
+          title: "Card 1",
+          description: "sdajdsaadsadsasddasdasd",
+        },
+      ],
+    },
+    {
+      id: "inprogress",
+      title: "In Progress",
+      cards: [
+        {
+          id: "card-2",
+          title: "Card 2",
+          description: "sdajdsaadsadsasddasdasd",
+        },
+      ],
+    },
+    {
+      id: "done",
+      title: "Done",
+      cards: [
+        {
+          id: "card-3",
+          title: "Card 3",
+          description: "sdajdsaadsadsasddasdasd",
+        },
+      ],
+    },
+  ]);
+
   return (
     <>
-      <div className="container">
-        <div className="cols">
-          <div className="col">
-            <div className="col-header">
-              <h2>To Do</h2>
-            </div>
-            <div className="col-body"></div>
-          </div>
-          <div className="col">
-            <div className="col-header">
-              <h2>In Progress</h2>
-            </div>
-            <div className="col-body"></div>
-          </div>
-          <div className="col">
-            <div className="col-header">
-              <h2>Done</h2>
-            </div>
-            <div className="col-body"></div>
-          </div>
-        </div>
-        <div className="cards">
-          <div className="card">
-            <div className="card-header">
-              <h2>Create the project template</h2>
-            </div>
-            <div className="card-body">
-              Lorem ipsum dolor sit amet consectetur adipisicing elit. Veniam,
-              voluptates!
-            </div>
-          </div>
-          <div className="card">
-            <div className="card-header">
-              <h2>Define the structure</h2>
-            </div>
-            <div className="card-body">
-              Lorem ipsum dolor sit amet consectetur adipisicing elit. Veniam,
-              voluptates!
-            </div>
-          </div>
-          <div className="card">
-            <div className="card-header">
-              <h2>Add reactivity</h2>
-            </div>
-            <div className="card-body">
-              Lorem ipsum dolor sit amet consectetur adipisicing elit. Veniam,
-              voluptates!
-            </div>
-          </div>
-          <div className="card">
-            <div className="card-header">
-              <h2>Allow users to create new cards</h2>
-            </div>
-            <div className="card-body">
-              Lorem ipsum dolor sit amet consectetur adipisicing elit. Veniam,
-              voluptates!
-            </div>
-          </div>
-        </div>
-      </div>
+      <Board cols={columns} />
     </>
   );
 }
