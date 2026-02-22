@@ -4,7 +4,7 @@ import Board from "./components/Board";
 import "./App.css";
 
 function App() {
-  const [columns] = useState<Column[]>([
+  const [columns, setColumns] = useState<Column[]>([
     {
       id: "todo",
       title: "To Do",
@@ -40,9 +40,13 @@ function App() {
     },
   ]);
 
+  function onColsChanged(cols) {
+    setColumns(cols);
+  }
+
   return (
     <>
-      <Board cols={columns} />
+      <Board cols={columns} colsChanged={onColsChanged} />
     </>
   );
 }

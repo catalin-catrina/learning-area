@@ -3,7 +3,11 @@ import type { Column } from "../models/column.type";
 import AddCardForm from "./AddCardForm";
 import CardComponent from "./Card";
 
-function ColumnComponent({ col }: {col: Column}) {
+function ColumnComponent({ col, onCardAdded }) {
+  function handleCardAdded(cardData: { title: string; description: string }) {
+    onCardAdded(cardData, col.id);
+  }
+
   return (
     <div>
       <div className="col">
@@ -16,7 +20,7 @@ function ColumnComponent({ col }: {col: Column}) {
           ))}
         </div>
       </div>
-      <AddCardForm />
+      <AddCardForm onCardAdded={handleCardAdded} />
     </div>
   );
 }

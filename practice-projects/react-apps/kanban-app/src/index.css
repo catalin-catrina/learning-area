@@ -61,6 +61,7 @@ a {
   color: #eee;
   border-radius: 20px;
   padding: 1rem;
+  margin: 1rem;
 
   display: flex;
   flex-direction: column;

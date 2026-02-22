@@ -1,17 +1,19 @@
 import { useState } from "react";
 
-function AddCardForm() {
+function AddCardForm({ onCardAdded }: {onCardAdded: ({title, description}: {title: string, description: string}) => void}) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
 
-  function handleSubmit(event: React.SubmitEvent<HTMLButtonElement>): void {
+  function handleSubmit(event: React.SubmitEvent<HTMLFormElement>): void {
     event.preventDefault();
-    console.log("event", event);
+    onCardAdded({ title, description });
+    setTitle("");
+    setDescription("");
   }
 
   return (
     <>
-      <form>
+      <form onSubmit={handleSubmit}>
         <label htmlFor="title">Title: </label>
         <input
           type="text"
@@ -30,7 +32,7 @@ function AddCardForm() {
           onChange={(e) => setDescription(e.target.value)}
         />
 
-        <button onSubmit={handleSubmit}>Submit</button>
+        <button type="submit">Submit</button>
       </form>
     </>
   );
