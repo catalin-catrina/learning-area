@@ -1,20 +1,8 @@
-import CardComponent from "./Card";
-import type { Card } from "../models/card.type";
 import type { Column } from "../models/column.type";
+import ColumnComponent from "./Column";
 
 function Board({ cols }: { cols: Column[] }) {
-  const colsTemplate = cols.map((col: Column) => (
-    <div className="col">
-      <div className="col-header">
-        <h2>{col.title}</h2>
-      </div>
-      <div className="col-body">
-        {col.cards.map((card: Card) => (
-          <CardComponent card={card} />
-        ))}
-      </div>
-    </div>
-  ));
+  const colsTemplate = cols.map((col: Column) => <ColumnComponent key={col.id} col={col} />);
 
   return (
     <>
