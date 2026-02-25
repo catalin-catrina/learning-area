@@ -1,10 +1,18 @@
+import { DragDropProvider } from "@dnd-kit/react";
 import type { Column } from "../models/column.type";
 import ColumnComponent from "./Column";
+import { useState } from "react";
+import Droppable from "./Droppable";
 
-function Board({ cols, colsChanged }) {
+type BoardProps = { cols: Column[]; colsChanged: (cols: Column[]) => void };
+
+function Board({ cols, colsChanged }: BoardProps) {
   const colsTemplate = cols.map((col: Column) => (
-    <ColumnComponent key={col.id} col={col} onCardAdded={handleCardAdded} />
+    <Droppable key={col.id} id={col.id}>
+      <ColumnComponent key={col.id} col={col} onCardAdded={handleCardAdded} />
+    </Droppable>
   ));
+  const [target, setTarget] = useState<string | number | undefined>();
 
   function handleCardAdded(
     cardData: { title: string; description: string },
@@ -27,11 +35,19 @@ function Board({ cols, colsChanged }) {
 
   return (
     <>
-      <div className="container">
-        <div className="cols">{colsTemplate}</div>
+      <DragDropProvider
+        onDragEnd={(event) => {
+          if (event.canceled) return;
 
-        <div className="cards"></div>
-      </div>
+          setTarget(event.operation.target?.id);
+        }}
+      >
+        <div className="container">
+          <div className="cols">{colsTemplate}</div>
+
+          <div className="cards"></div>
+        </div>
+      </DragDropProvider>
     </>
   );
 }

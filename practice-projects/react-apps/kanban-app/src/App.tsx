@@ -40,7 +40,7 @@ function App() {
     },
   ]);
 
-  function onColsChanged(cols) {
+  function onColsChanged(cols: Column[]) {
     setColumns(cols);
   }
 
