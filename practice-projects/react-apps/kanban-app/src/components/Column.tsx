@@ -3,6 +3,7 @@ import type { Card } from "../models/card.type";
 import type { Column } from "../models/column.type";
 import AddCardForm from "./AddCardForm";
 import CardComponent from "./Card";
+import { Draggable } from "./Draggable";
 
 type ColumnProps = {
   col: Column;
@@ -13,12 +14,11 @@ type ColumnProps = {
 };
 
 function ColumnComponent({ col, onCardAdded }: ColumnProps) {
-  const cardsTemplate = col.cards.map((card: Card) => {
-    const { ref } = useDraggable({
-      id: "draggable",
-    });
-    return <CardComponent key={card.id} card={card} />;
-  });
+  const cardsTemplate = col.cards.map((card: Card) => (
+    <Draggable key={card.id} id={card.id}>
+      <CardComponent key={card.id} card={card} />;
+    </Draggable>
+  ));
 
   function handleCardAdded(cardData: { title: string; description: string }) {
     onCardAdded(cardData, col.id);

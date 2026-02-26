@@ -7,12 +7,13 @@ import Droppable from "./Droppable";
 type BoardProps = { cols: Column[]; colsChanged: (cols: Column[]) => void };
 
 function Board({ cols, colsChanged }: BoardProps) {
+  const [target, setTarget] = useState<string | number | undefined>();
+  
   const colsTemplate = cols.map((col: Column) => (
     <Droppable key={col.id} id={col.id}>
       <ColumnComponent key={col.id} col={col} onCardAdded={handleCardAdded} />
     </Droppable>
   ));
-  const [target, setTarget] = useState<string | number | undefined>();
 
   function handleCardAdded(
     cardData: { title: string; description: string },

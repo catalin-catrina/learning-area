@@ -1,13 +1,12 @@
-import {useDraggable} from '@dnd-kit/react';
+import { useDraggable } from "@dnd-kit/react";
+import type { ReactNode } from "react";
 
-export function Draggable() {
-  const {ref} = useDraggable({
-    id: 'draggable',
+type DraggableType = { id: string; children: ReactNode };
+
+export function Draggable({ id, children }: DraggableType) {
+  const { ref } = useDraggable({
+    id,
   });
 
-  return (
-    <button ref={ref}>
-      Draggable
-    </button>
-  );
+  return <button ref={ref}>{children}</button>;
 }
