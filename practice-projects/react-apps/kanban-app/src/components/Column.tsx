@@ -13,7 +13,7 @@ type ColumnProps = {
 };
 
 function ColumnComponent({ col, onCardAdded }: ColumnProps) {
-  const cardsTemplate = col.cards.map((card: Card) => (
+  const cardsTemplate = col.cards?.map((card: Card) => (
     <Draggable key={card.id} id={card.id}>
       <CardComponent key={card.id} card={card} />
     </Draggable>

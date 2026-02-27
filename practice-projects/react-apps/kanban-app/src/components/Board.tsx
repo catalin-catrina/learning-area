@@ -1,14 +1,11 @@
 import { DragDropProvider } from "@dnd-kit/react";
 import type { Column } from "../models/column.type";
 import ColumnComponent from "./Column";
-import { useState } from "react";
 import Droppable from "./Droppable";
 
 type BoardProps = { cols: Column[]; colsChanged: (cols: Column[]) => void };
 
 function Board({ cols, colsChanged }: BoardProps) {
-  const [target, setTarget] = useState<string | number | undefined>();
-
   const colsTemplate = cols.map((col: Column) => (
     <Droppable key={col.id} id={col.id}>
       <ColumnComponent key={col.id} col={col} onCardAdded={handleCardAdded} />
@@ -24,7 +21,7 @@ function Board({ cols, colsChanged }: BoardProps) {
         ? {
             ...col,
             cards: [
-              ...col.cards,
+              ...(col.cards ?? []),
               { id: String(Math.random() * 100), ...cardData },
             ],
           }
@@ -45,21 +42,33 @@ function Board({ cols, colsChanged }: BoardProps) {
           if (!cardId || !targetColId) return;
 
           const targetCol = cols.find((col) => col.id === targetColId);
-          const cardAlreadyInCol = !!targetCol?.cards.find(
+          const cardAlreadyInCol = !!targetCol?.cards?.find(
             (card) => card.id === cardId,
           );
           if (!targetCol || cardAlreadyInCol) return;
 
-          const card = cols.map((col) =>
-            col.cards.find((c) => c.id === cardId),
+          const sourceCol = cols.find((col) =>
+            col.cards?.some((card) => card.id === cardId),
           );
-          if (!card) return;
+          const card = cols
+            .flatMap((col) => col.cards ?? [])
+            .find((c) => c.id === cardId);
+          if (!sourceCol || !card) return;
 
-          const newCols = cols.map((col) =>
-            col.id === targetColId
-              ? { ...col, cards: [...col.cards, card] }
-              : col,
-          );
+          const newCols: Column[] = cols.map((col: Column) => {
+            if (col.id === targetColId) {
+              return { ...col, cards: [...(col.cards ?? []), card] };
+            } else if (col.id === sourceCol.id) {
+              return {
+                ...col,
+                cards: col.cards?.filter((card) => card.id !== cardId),
+              };
+            } else {
+              return col;
+            }
+          });
+
+          colsChanged(newCols);
         }}
       >
         <div className="container">
