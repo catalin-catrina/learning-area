@@ -1,4 +1,3 @@
-import { useDraggable } from "@dnd-kit/react";
 import type { Card } from "../models/card.type";
 import type { Column } from "../models/column.type";
 import AddCardForm from "./AddCardForm";
@@ -16,7 +15,7 @@ type ColumnProps = {
 function ColumnComponent({ col, onCardAdded }: ColumnProps) {
   const cardsTemplate = col.cards.map((card: Card) => (
     <Draggable key={card.id} id={card.id}>
-      <CardComponent key={card.id} card={card} />;
+      <CardComponent key={card.id} card={card} />
     </Draggable>
   ));
 
