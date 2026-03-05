@@ -1,0 +1,16 @@
+nav {
+  background-color: #242526;
+  padding: 2rem;
+  font-size: 1.1rem;
+}
+
+.navList {
+  display: flex;
+  justify-content: space-between;
+}
+
+.navListLeft,
+.navListRight {
+  display: flex;
+  gap: 0.8rem;
+}
