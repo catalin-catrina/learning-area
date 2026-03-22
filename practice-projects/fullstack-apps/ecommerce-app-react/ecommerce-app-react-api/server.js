@@ -5,7 +5,7 @@ const errorHandler = require("./middleware/errorHandler");
 
 const app = express();
 const PORT = 3000;
-const SPA_ORIGIN = "http://localhost:4200";
+const SPA_ORIGIN = "http://localhost:5173";
 
 // Middleware
 app.use(express.json()); // to parse JSON bodies
@@ -14,7 +14,7 @@ app.use(
   cors({
     origin: SPA_ORIGIN,
     credentials: true,
-  })
+  }),
 ); // for CORS so browser is allowed to send and receive cookies with our API
 
 const productsRoute = require("./routes/products");

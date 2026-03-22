@@ -6,14 +6,37 @@ import ProductsList from "./features/products/components/ProductsList";
 import CreateProduct from "./features/products/components/CreateProduct";
 import EditProduct from "./features/products/components/EditProduct";
 import Product from "./features/products/components/Product";
+import PublicRoute from "./shared/components/PublicRoute";
+import ProtectedRoute from "./shared/components/ProtectedRoute";
 
 function AppRoutes() {
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
+      <Route
+        path="/login"
+        element={
+          <PublicRoute>
+            <Login />
+          </PublicRoute>
+        }
+      />
+      <Route
+        path="/register"
+        element={
+          <PublicRoute>
+            <Register />
+          </PublicRoute>
+        }
+      />
 
-      <Route path="products" element={<Products />}>
+      <Route
+        path="products"
+        element={
+          <ProtectedRoute>
+            <Products />
+          </ProtectedRoute>
+        }
+      >
         <Route index element={<ProductsList />} />
         <Route path="create" element={<CreateProduct />} />
         <Route path="edit" element={<EditProduct />} />

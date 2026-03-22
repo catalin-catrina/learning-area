@@ -1,0 +1,4 @@
+let token: string | null = null;
+
+export function getToken() { return token; }
+export function setToken(t: string | null) { token = t; }
