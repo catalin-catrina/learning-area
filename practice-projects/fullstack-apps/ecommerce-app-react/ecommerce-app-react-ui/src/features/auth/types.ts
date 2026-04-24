@@ -1,6 +1,6 @@
 import type { User } from "../../shared/types/User";
 
-export type LoginRequest = { username: string; password: string };
+export type LoginRequest = { email: string; password: string };
 export type LoginResponseDto = {
   message: string;
   accessToken: string;

@@ -1,12 +1,16 @@
 import { useState, type SubmitEvent } from "react";
 import styles from "./Login.module.css";
+import { useAuth } from "../hooks/useAuth";
 
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  const { handleLogin } = useAuth();
+
   const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
+    handleLogin({ email, password });
   };
 
   return (

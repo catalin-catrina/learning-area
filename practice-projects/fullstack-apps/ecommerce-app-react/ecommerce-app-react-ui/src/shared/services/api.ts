@@ -14,12 +14,25 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+let interceptCount = 0;
+
 // Response interceptor — handle 401 → refresh → retry
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
+    interceptCount++;
     const original = error.config;
-    if (error.response?.status === 401 && !original._retry) {
+    console.log("url:", original.url);
+    console.log("includes check:", original.url?.includes("/auth/refresh"));
+    if (interceptCount > 5) {
+      console.log("BAILING — check logs above");
+      return Promise.reject(error);
+    }
+    if (
+      error.response?.status === 401 &&
+      !original._retry &&
+      !original.url?.includes("/auth/refresh")
+    ) {
       original._retry = true;
       try {
         const { accessToken } = await refreshToken();
@@ -28,7 +41,6 @@ api.interceptors.response.use(
         return api(original); // retry
       } catch {
         setToken(null);
-        window.location.href = "/login";
         return Promise.reject(error);
       }
     }

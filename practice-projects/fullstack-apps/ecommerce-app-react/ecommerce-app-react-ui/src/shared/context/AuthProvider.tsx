@@ -1,21 +1,20 @@
 import { useEffect, useState } from "react";
 import type { User } from "../types/User";
 import { AuthContext } from "./AuthContext";
-import type { AuthState } from "../types/AuthState";
 import { me } from "../../features/profile/services/profileService";
 import { getToken, setToken } from "../services/tokenStore";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [auth, setAuthState] = useState<AuthState>({
-    token: null,
-    user: null,
-  });
+  const [token, setTokenState] = useState<string | null>(null);
+  const [user, setUserState] = useState<User | null>(null);
   const [, setLoading] = useState(true);
 
   useEffect(() => {
     me()
       .then((user) => {
-        setAuthState({ token: getToken(), user });
+        const token = getToken();
+        if (token) setTokenState(token);
+        setUserState(user);
       })
       .catch(() => {
         setToken(null);
@@ -26,15 +25,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   function setAuth(token: string, user: User) {
-    setAuthState({ token, user });
+    setTokenState(token);
+    setUserState(user);
   }
 
   function clearAuth() {
-    setAuthState({ token: null, user: null });
+    setTokenState(null);
+    setUserState(null);
   }
 
   return (
-    <AuthContext value={{ ...auth, setAuth, clearAuth }}>
+    <AuthContext value={{ token, user, setAuth, clearAuth }}>
       {children}
     </AuthContext>
   );
