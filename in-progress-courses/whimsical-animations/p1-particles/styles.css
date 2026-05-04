@@ -1,0 +1,258 @@
+html {
+  --red: oklch(0.65 0.3 19.41);
+}
+
+body {
+  background: hsl(210deg 15% 6%);
+}
+
+.practice-container,
+.lesson-container,
+.starry-night,
+.shimmer-particle {
+  height: 100vh;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.practice-container {
+  gap: 50px;
+}
+
+/* 1. Practice */
+@keyframes spin {
+  from {
+    transform: rotate(0);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes twinkle {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.box {
+  width: 50px;
+  height: 50px;
+  background-color: orangered;
+
+  animation:
+    /* spin 1s infinite, */ twinkle 1s infinite alternate;
+}
+
+.box-2 {
+  width: 50px;
+  height: 50px;
+  background-color: orangered;
+
+  animation: spin 1s infinite ease-in-out;
+}
+
+@keyframes bounce {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-32px);
+  }
+}
+
+.box-3 {
+  width: 75px;
+  height: 75px;
+  border-radius: 50%;
+  background-color: yellowgreen;
+  animation: bounce 500ms infinite ease-out alternate;
+}
+
+/* 2. Lesson */
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+.particle {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: white;
+  animation: fadeOut forwards;
+}
+
+.particleButton {
+  position: relative;
+  padding: 16px;
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.particleButton:hover {
+  background: hsl(0deg 0% 100% / 0.1);
+}
+
+.particleButton:hover path {
+  stroke: var(--red);
+}
+
+.particleButton.liked path {
+  fill: var(--red);
+  stroke: var(--red);
+}
+
+.particleButton svg {
+  position: relative;
+  display: block;
+  width: 3rem;
+  height: 3rem;
+}
+
+/*
+  Hide the element from the screen, but remain accessible for folks using screen readers. For more info, see:
+  https://www.joshwcomeau.com/snippets/react-components/visually-hidden/
+*/
+.visually-hidden:not(:focus):not(:active) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* 3. Exercises */
+/* 3.1 Starry Night */
+.starry-night {
+  position: relative;
+}
+
+.starLayer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  user-select: none;
+  pointer-events: none;
+}
+
+.particleButtonEx {
+  z-index: 2;
+  width: fit-content;
+  margin-inline: auto;
+  padding: 1rem 3rem;
+  border: none;
+  border-bottom: 3px solid hsl(240deg 90% 36%);
+  border-radius: 6px;
+  background: hsl(240deg 90% 48%);
+  font-weight: 900;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+.star {
+  animation: fadeInOut 2s ease-in-out forwards;
+}
+
+.particleButtonEx:active {
+  border-bottom-width: 1px;
+}
+
+/* 3.2 Shimmer Particle */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-70px);
+  }
+
+  100% {
+    transform: translateX(70px);
+  }
+}
+
+.shimmer-particle {
+  position: relative;
+}
+
+.buyButton {
+  display: block;
+  position: relative;
+  padding: 1rem 3rem;
+  border: none;
+  border-radius: 1000px;
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      oklch(0.5 0.15 165 / 0) 0% 60%,
+      oklch(0.5 0.15 165 / 0.125) 70%,
+      oklch(0.5 0.15 165 / 0.325) 80%,
+      oklch(0.5 0.15 165 / 0) 100%
+    ),
+    linear-gradient(to top, oklch(0.6 0.19 164 / 1), oklch(0.9 0.2 182 / 1));
+  box-shadow:
+    inset 0px -1px 2px hsl(175deg 100% 20% / 0.5),
+    inset 0px -3px 6px hsl(175deg 100% 20% / 0.4),
+    inset 0px 5px 5px hsl(175deg 100% 90% / 0.75);
+  font-weight: 500;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+/*
+    Add a white glow near the top of the button,
+    to make the button feel a bit more 3D and gel-like:
+*/
+.buyButton::before {
+  content: "";
+  position: absolute;
+  top: 4px;
+  left: 16px;
+  right: 16px;
+  height: 10px;
+  border-radius: 100px 100px 0 0;
+  border-top: 4px solid white;
+  filter: blur(4px);
+  opacity: 0.625;
+}
+
+.shimmer {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(
+    to right,
+    transparent,
+    hsl(180deg 100% 90%),
+    transparent
+  );
+
+  animation: shimmer 0.2s forwards;
+}
