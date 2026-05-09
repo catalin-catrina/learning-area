@@ -1,5 +1,5 @@
 import { useState } from "react";
-import styles from "./Login.module.css"
+import styles from "./Login.module.css";
 import { useAuth } from "../hooks/useAuth";
 
 const Login = () => {
@@ -15,8 +15,8 @@ const Login = () => {
 
   return (
     <form onSubmit={handleSubmit}>
-      <div className={styles.formContainer}>
-        <div className={styles.formFields}>
+      <div className="p-4 flex flex-col gap-4">
+        <div className="flex flex-col gap-4 ">
           <div className={styles.formFieldsUser}>
             <label htmlFor="email">Email:</label>
             <input
@@ -24,6 +24,7 @@ const Login = () => {
               id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              className="border"
             />
           </div>
 
@@ -34,12 +35,18 @@ const Login = () => {
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              className="border"
             />
           </div>
         </div>
 
         <div className={styles.formButton}>
-          <button type="submit">Login</button>
+          <button
+            type="submit"
+            className="px-6 py-4 bg-violet-900 text-gray-100 text-lg text-center"
+          >
+            Login
+          </button>
         </div>
       </div>
     </form>

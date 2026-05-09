@@ -8,14 +8,17 @@ import Home from "./features/home/components/Home";
 import ProductList from "./features/products/product-list/components/ProductList";
 import ProductDetail from "./features/products/product-detail/components/ProductDetail";
 import Profile from "./features/profile/components/Profile";
+import PublicLayout from "./features/layouts/PublicLayout";
 
 function AppRoutes() {
   return (
     <Routes>
       {/* Public routes — no layout */}
       <Route element={<PublicRoute />}>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        <Route element={<PublicLayout />}>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+        </Route>
       </Route>
 
       {/* Protected routes — shared layout */}
