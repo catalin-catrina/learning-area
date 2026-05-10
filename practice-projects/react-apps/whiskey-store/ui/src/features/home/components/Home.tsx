@@ -1,5 +1,8 @@
+import { useAuthContext } from "../../../shared/context/auth/AuthContext";
+
 const Home = () => {
-  return <div>Home</div>;
+  const { user } = useAuthContext();
+  return <div>Welcome {user?.name}</div>;
 };
 
 export default Home;

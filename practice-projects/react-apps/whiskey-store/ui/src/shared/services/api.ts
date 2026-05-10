@@ -22,10 +22,7 @@ api.interceptors.response.use(
   async (error) => {
     interceptCount++;
     const original = error.config;
-    console.log("url:", original.url);
-    console.log("includes check:", original.url?.includes("/auth/refresh"));
     if (interceptCount > 5) {
-      console.log("BAILING — check logs above");
       return Promise.reject(error);
     }
     if (
