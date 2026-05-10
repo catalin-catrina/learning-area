@@ -14,17 +14,11 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-let interceptCount = 0;
-
 // Response interceptor — handle 401 → refresh → retry
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    interceptCount++;
     const original = error.config;
-    if (interceptCount > 5) {
-      return Promise.reject(error);
-    }
     if (
       error.response?.status === 401 &&
       !original._retry &&
