@@ -1,1 +1,3 @@
-export * from './lib/ui-kit.module';
+export * from './lib/button/button';
+export * from './lib/card/card';
+export * from './lib/input/input';
