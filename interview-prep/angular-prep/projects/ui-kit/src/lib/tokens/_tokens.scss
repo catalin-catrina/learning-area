@@ -1,0 +1,37 @@
+:root {
+  // Colors
+  --color-primary: #1a73e8;
+  --color-primary-dark: #1557b0;
+  --color-secondary: #6c757d;
+  --color-surface: #ffffff;
+  --color-background: #f5f5f5;
+  --color-on-surface: #212121;
+  --color-on-primary: #ffffff;
+  --color-error: #d32f2f;
+  --color-border: #e0e0e0;
+
+  // Spacing scale
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+
+  // Typography
+  --font-size-sm: 12px;
+  --font-size-md: 14px;
+  --font-size-lg: 16px;
+  --font-size-xl: 20px;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-bold: 700;
+
+  // Shape
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+
+  // Elevation
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.16);
+}
