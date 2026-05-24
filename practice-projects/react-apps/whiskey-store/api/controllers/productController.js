@@ -1,9 +1,8 @@
 const productsData = require("../data/productsData");
-const products = require("../data/productsData");
 const CustomError = require("../utils/customError");
 
 exports.getProducts = (req, res) => {
-  let filteredProducts = products;
+  let filteredProducts = productsData;
 
   const ALLOWED_FILTERS = ["region", "type", "country", "inStock"];
 
@@ -53,7 +52,7 @@ exports.getProducts = (req, res) => {
         typeof b[sortField] === "string"
       ) {
         return sortOrder === "desc"
-          ? b[sortField].localeCompare(b[sortField])
+          ? b[sortField].localeCompare(a[sortField])
           : a[sortField].localeCompare(b[sortField]);
       }
 
@@ -83,8 +82,8 @@ exports.getFilters = (req, res) => {
   const countries = [...new Set(products.map((p) => p.country))];
 
   const products = productsData;
-  const minPrice = Math.min([...products.map((p) => p.price)]);
-  const maxPrice = Math.max([...products.map((p) => p.price)]);
+  const minPrice = Math.min(...products.map((p) => p.price));
+  const maxPrice = Math.max(...products.map((p) => p.price));
   const priceRange = { min: minPrice, max: maxPrice };
 
   const response = { regions, types, countries, priceRange };
@@ -93,7 +92,7 @@ exports.getFilters = (req, res) => {
 };
 
 exports.getProductById = (req, res, next) => {
-  const product = products.find((p) => p.id === parseInt(req.params.id));
+  const product = productsData.find((p) => p.id === parseInt(req.params.id));
   if (product) {
     res.json(product);
   } else {
@@ -106,7 +105,7 @@ exports.createProduct = (req, res) => {
     id: products.length + 1, // Simple way to generate an ID
     ...req.body,
   };
-  products.push(newProduct);
+  productsData.push(newProduct);
   res.status(201).json(newProduct);
 };
 
@@ -114,29 +113,29 @@ exports.putProduct = (req, res, next) => {
   const productId = parseInt(req.params.id);
   const newProductData = req.body;
 
-  const index = products.findIndex((p) => p.id === productId);
+  const index = productsData.findIndex((p) => p.id === productId);
 
   if (index === -1) {
     return next(new CustomError("Product not found", 404));
   }
 
-  products[index] = { id: productId, ...newProductData };
+  productsData[index] = { id: productId, ...newProductData };
 
   res.status(200).json({
     message: "Product updated successfully",
-    product: products[index],
+    product: productsData[index],
   });
 };
 
 exports.deleteProduct = (req, res, next) => {
   const productId = parseInt(req.params.id);
-  const index = products.findIndex((p) => p.id === productId);
+  const index = productsData.findIndex((p) => p.id === productId);
 
   if (index === -1) {
     return next(new CustomError("Product not found", 404));
   }
 
-  products.splice(index, 1);
+  productsData.splice(index, 1);
 
   res.status(200).json({ message: "Product deleted successfully" });
 };
