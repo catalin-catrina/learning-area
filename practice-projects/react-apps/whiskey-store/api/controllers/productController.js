@@ -1,4 +1,5 @@
 const productsData = require("../data/productsData");
+const productSchema = require("../validators/productValidator");
 const CustomError = require("../utils/customError");
 
 exports.getProducts = (req, res) => {
@@ -101,8 +102,15 @@ exports.getProductById = (req, res, next) => {
 };
 
 exports.createProduct = (req, res) => {
+  const newProductData = req.body;
+  const { error, value } = productSchema(newProductData);
+
+  if (error) {
+    return next(new CustomError("Invalid fields", 400));
+  }
+
   const newProduct = {
-    id: products.length + 1, // Simple way to generate an ID
+    id: Math.max(...productsData.map((p) => p.id)) + 1, // Simple way to generate an ID
     ...req.body,
   };
   productsData.push(newProduct);
