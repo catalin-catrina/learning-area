@@ -101,9 +101,9 @@ exports.getProductById = (req, res, next) => {
   }
 };
 
-exports.createProduct = (req, res) => {
+exports.createProduct = (req, res, next) => {
   const newProductData = req.body;
-  const { error, value } = productSchema(newProductData);
+  const { error, value } = productSchema.validate(newProductData);
 
   if (error) {
     return next(new CustomError("Invalid fields", 400));
@@ -120,6 +120,11 @@ exports.createProduct = (req, res) => {
 exports.putProduct = (req, res, next) => {
   const productId = parseInt(req.params.id);
   const newProductData = req.body;
+  const { error, value } = productSchema.validate(newProductData);
+
+  if (error) {
+    return next(new CustomError("Invalid fields", 400));
+  }
 
   const index = productsData.findIndex((p) => p.id === productId);
 

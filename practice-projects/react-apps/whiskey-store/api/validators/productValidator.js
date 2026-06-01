@@ -1,9 +1,9 @@
 const Joi = require("joi");
 
 const schema = Joi.object({
-  name: Joi.required().string().min(3).max(30),
-  price: Joi.required().number().min(0),
-  type: Joi.required().valid(
+  name: Joi.string().min(3).max(30).required(),
+  price: Joi.number().min(0).required(),
+  type: Joi.valid(
     "single_malt",
     "blended_scotch",
     "blended_malt",
@@ -11,8 +11,8 @@ const schema = Joi.object({
     "rye",
     "irish",
     "japanese",
-  ),
-  inStock: Joi.required().boolean(),
+  ).required(),
+  inStock: Joi.boolean().required(),
   distillery: Joi.string().min(3).max(30),
   region: Joi.string().min(3).max(30),
   country: Joi.string().min(3).max(30),
