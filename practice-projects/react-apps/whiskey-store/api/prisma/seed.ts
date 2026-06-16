@@ -1,9 +1,11 @@
-const { PrismaClient } = require("../generated/prisma");
+import { PrismaPg } from "@prisma/adapter-pg";
+import { PrismaClient } from "../generated/prisma/client";
 const usersData = require("../data/usersData");
 const productsData = require("../data/productsData");
 const ordersData = require("../data/ordersData");
 
-const prisma = new PrismaClient();
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+const prisma = new PrismaClient({ adapter });
 
 async function main() {
   // seed users loop
