@@ -4,6 +4,7 @@ const { accessTokenSecret, refreshTokenSecret } = require("../config/secrets");
 const CustomError = require("../utils/customError");
 const logger = require("../utils/logger");
 const { blacklistToken } = require("../utils/tokenBlacklist");
+import { prisma } from "../lib/prisma";
 
 /**
  * User login endpoint
@@ -17,7 +18,9 @@ const { blacklistToken } = require("../utils/tokenBlacklist");
 exports.login = (req, res, next) => {
   const { email, password } = req.body;
 
-  const user = users.find((u) => u.email === email && u.password === password);
+  const user = prisma.user.findUnique({
+    where: { email, password },
+  });
 
   if (!user) {
     logger.warn("Login failed: invalid credentials", {
