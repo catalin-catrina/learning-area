@@ -31,31 +31,6 @@ exports.getUserById = (req, res, next) => {
   }
 };
 
-exports.registerUser = (req, res, next) => {
-  const newUser = {
-    id: users.length + 1,
-    ...req.body,
-  };
-
-  users.push(newUser);
-
-  const payload = {
-    id: newUser.id,
-    name: newUser.name,
-    email: newUser.email,
-    role: newUser.role,
-  };
-  const accessToken = jwt.sign(payload, SECRET_KEY, { expiresIn: "1h" });
-  const refreshToken = jwt.sign(payload, REFRESH_SECRET, { expiresIn: "7d" });
-
-  res.status(201).json({
-    message: "User created",
-    user: newUser,
-    accessToken,
-    refreshToken,
-  });
-};
-
 exports.editUser = (req, res, next) => {
   const userIdParam = parseInt(req.params.id);
   const authenticatedUser = req.user;

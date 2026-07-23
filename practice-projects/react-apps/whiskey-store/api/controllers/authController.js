@@ -15,14 +15,15 @@ import { prisma } from "../lib/prisma";
  * @param {Object} res - Response object
  * @param {Function} next - Next middleware
  */
-exports.login = (req, res, next) => {
+exports.login = async (req, res, next) => {
   const { email, password } = req.body;
 
-  const user = prisma.user.findUnique({
-    where: { email, password },
-  });
-
-  if (!user) {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
+    const validPass = await bcrypt.compare(password, user.password);
+  } catch (_) {
     logger.warn("Login failed: invalid credentials", {
       email,
       ip: req.ip,
@@ -119,6 +120,31 @@ exports.refreshToken = (req, res, next) => {
 
     return next(new CustomError("Invalid or expired refresh token", 401));
   }
+};
+
+exports.registerUser = (req, res, next) => {
+  const newUser = {
+    id: users.length + 1,
+    ...req.body,
+  };
+
+  users.push(newUser);
+
+  const payload = {
+    id: newUser.id,
+    name: newUser.name,
+    email: newUser.email,
+    role: newUser.role,
+  };
+  const accessToken = jwt.sign(payload, SECRET_KEY, { expiresIn: "1h" });
+  const refreshToken = jwt.sign(payload, REFRESH_SECRET, { expiresIn: "7d" });
+
+  res.status(201).json({
+    message: "User created",
+    user: newUser,
+    accessToken,
+    refreshToken,
+  });
 };
 
 /**
