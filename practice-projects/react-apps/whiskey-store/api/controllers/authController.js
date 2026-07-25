@@ -1,10 +1,11 @@
 const jwt = require("jsonwebtoken");
-const users = require("../data/usersData");
 const { accessTokenSecret, refreshTokenSecret } = require("../config/secrets");
 const CustomError = require("../utils/customError");
 const logger = require("../utils/logger");
 const { blacklistToken } = require("../utils/tokenBlacklist");
-import { prisma } from "../lib/prisma";
+const bcrypt = require("bcrypt");
+const { prisma } = require("../lib/prisma");
+const userSchema = require("../validators/userValidator");
 
 /**
  * User login endpoint
@@ -22,45 +23,58 @@ exports.login = async (req, res, next) => {
     const user = await prisma.user.findUnique({
       where: { email },
     });
-    const validPass = await bcrypt.compare(password, user.password);
-  } catch (_) {
-    logger.warn("Login failed: invalid credentials", {
+    if (!user) return next(new CustomError("Invalid credentials", 401));
+
+    const valid = await bcrypt.compare(password, user.password);
+    if (!valid) return next(new CustomError("Invalid credentials", 401));
+
+    const payload = {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    };
+
+    const accessToken = jwt.sign(payload, accessTokenSecret, {
+      expiresIn: "1h",
+    });
+    const refreshToken = jwt.sign(payload, refreshTokenSecret, {
+      expiresIn: "7d",
+    });
+
+    await prisma.refreshToken.create({
+      data: {
+        token: refreshToken,
+        userId: user.id,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      },
+    });
+
+    res.cookie("refresh_token", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // Only HTTPS in production
+      sameSite: "strict",
+      path: "/api/auth",
+    });
+
+    logger.info("User login successful", {
+      userId: user.id,
+      email: user.email,
+      ip: req.ip,
+    });
+
+    res.status(200).json({
+      message: "Login successful",
+      payload,
+      accessToken,
+    });
+  } catch (err) {
+    logger.warn("Login failed", {
       email,
       ip: req.ip,
     });
-    return next(new CustomError("Invalid credentials", 401));
+    return next(new CustomError("Login failed", 500));
   }
-
-  const payload = {
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    role: user.role,
-  };
-
-  const accessToken = jwt.sign(payload, accessTokenSecret, { expiresIn: "1h" });
-  const refreshToken = jwt.sign(payload, refreshTokenSecret, {
-    expiresIn: "7d",
-  });
-
-  res.cookie("refresh_token", refreshToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production", // Only HTTPS in production
-    sameSite: "strict",
-    path: "/api/auth",
-  });
-
-  logger.info("User login successful", {
-    userId: user.id,
-    email: user.email,
-    ip: req.ip,
-  });
-
-  res.status(200).json({
-    message: "Login successful",
-    payload,
-    accessToken,
-  });
 };
 
 /**
@@ -122,29 +136,62 @@ exports.refreshToken = (req, res, next) => {
   }
 };
 
-exports.registerUser = (req, res, next) => {
-  const newUser = {
-    id: users.length + 1,
-    ...req.body,
-  };
+exports.registerUser = async (req, res, next) => {
+  try {
+    const { error } = userSchema.validate(req.body);
+    if (error) {
+      return next(new CustomError("Invalid or missing fields", 400));
+    }
 
-  users.push(newUser);
+    const hashed = await bcrypt.hash(req.body.password, 10);
 
-  const payload = {
-    id: newUser.id,
-    name: newUser.name,
-    email: newUser.email,
-    role: newUser.role,
-  };
-  const accessToken = jwt.sign(payload, SECRET_KEY, { expiresIn: "1h" });
-  const refreshToken = jwt.sign(payload, REFRESH_SECRET, { expiresIn: "7d" });
+    const newUser = {
+      name: req.body.name,
+      email: req.body.email,
+      password: hashed,
+      role: req.body.role,
+    };
 
-  res.status(201).json({
-    message: "User created",
-    user: newUser,
-    accessToken,
-    refreshToken,
-  });
+    const userRecord = await prisma.user.create({
+      data: newUser,
+    });
+
+    const payload = {
+      id: newUser.id,
+      email: newUser.email,
+      role: newUser.role,
+    };
+
+    const accessToken = jwt.sign(payload, accessTokenSecret, {
+      expiresIn: "1h",
+    });
+    const refreshToken = jwt.sign(payload, refreshTokenSecret, {
+      expiresIn: "7d",
+    });
+
+    const refreshTokenRecord = await prisma.refreshToken.create({
+      data: {
+        token: refreshToken,
+        userId: userRecord.id,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      },
+    });
+
+    const { password, ...safeUser } = userRecord;
+
+    res.status(201).json({
+      message: "User created",
+      user: safeUser,
+      accessToken,
+      refreshToken,
+    });
+  } catch (err) {
+    logger.warn("Register failed", {
+      email: req.body?.email,
+      ip: req.ip,
+    });
+    return next(new CustomError("Register failed", 500));
+  }
 };
 
 /**
