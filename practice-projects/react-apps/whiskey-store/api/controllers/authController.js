@@ -2,20 +2,11 @@ const jwt = require("jsonwebtoken");
 const { accessTokenSecret, refreshTokenSecret } = require("../config/secrets");
 const CustomError = require("../utils/customError");
 const logger = require("../utils/logger");
-const { blacklistToken } = require("../utils/tokenBlacklist");
 const bcrypt = require("bcrypt");
 const { prisma } = require("../lib/prisma");
 const userSchema = require("../validators/userValidator");
+const cookieOptions = require("../utils/cookieOptions");
 
-/**
- * User login endpoint
- * Generates access token (1h) and refresh token (7d)
- * Refresh token stored in httpOnly cookie (secure against XSS)
- *
- * @param {Object} req - Request with email and password in body
- * @param {Object} res - Response object
- * @param {Function} next - Next middleware
- */
 exports.login = async (req, res, next) => {
   const { email, password } = req.body;
 
@@ -51,9 +42,7 @@ exports.login = async (req, res, next) => {
     });
 
     res.cookie("refresh_token", refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // Only HTTPS in production
-      sameSite: "strict",
+      ...cookieOptions,
       path: "/api/auth",
     });
 
@@ -77,26 +66,31 @@ exports.login = async (req, res, next) => {
   }
 };
 
-/**
- * Refresh token endpoint
- * Takes old refresh token from cookie, validates it, and issues new tokens
- * This enforces token rotation: old refresh token + new refresh token pair
- *
- * @param {Object} req - Request object (refresh_token in cookies)
- * @param {Object} res - Response object
- * @param {Function} next - Next middleware
- */
-exports.refreshToken = (req, res, next) => {
-  const refreshToken = req.cookies.refresh_token;
-
-  if (!refreshToken) {
-    logger.warn("Token refresh attempted without refresh_token cookie", {
-      ip: req.ip,
-    });
-    return next(new CustomError("No refresh token provided", 401));
-  }
-
+exports.refreshToken = async (req, res, next) => {
   try {
+    const refreshToken = req.cookies.refresh_token;
+
+    if (!refreshToken) {
+      logger.warn("Token refresh attempted without refresh_token cookie", {
+        ip: req.ip,
+      });
+      return next(new CustomError("No refresh token provided", 401));
+    }
+
+    const refreshTokenRecord = await prisma.refreshToken.findUnique({
+      where: { token: refreshToken },
+    });
+
+    if (!refreshTokenRecord || refreshTokenRecord.expiresAt < new Date()) {
+      logger.warn(
+        "Token refresh attempted with expired or invalid refresh token",
+        {
+          ip: req.ip,
+        },
+      );
+      return next(new CustomError("Refresh token expired or is invalid", 401));
+    }
+
     const payload = jwt.verify(refreshToken, refreshTokenSecret);
 
     // Issue new tokens
@@ -109,11 +103,18 @@ exports.refreshToken = (req, res, next) => {
       expiresIn: "7d",
     });
 
+    // Update refresh token in database
+    await prisma.refreshToken.update({
+      where: { token: refreshToken },
+      data: {
+        token: newRefreshToken,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      },
+    });
+
     // Update refresh token cookie
     res.cookie("refresh_token", newRefreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      ...cookieOptions,
       path: "/api/auth",
     });
 
@@ -127,12 +128,12 @@ exports.refreshToken = (req, res, next) => {
     // Clear invalid refresh token cookie
     res.clearCookie("refresh_token", { path: "/api/auth" });
 
-    logger.warn("Token refresh failed: invalid or expired refresh token", {
+    logger.warn("Refresh failed", {
       ip: req.ip,
       errorName: error.name,
     });
 
-    return next(new CustomError("Invalid or expired refresh token", 401));
+    return next(new CustomError("Refresh failed", 401));
   }
 };
 
@@ -157,9 +158,9 @@ exports.registerUser = async (req, res, next) => {
     });
 
     const payload = {
-      id: newUser.id,
-      email: newUser.email,
-      role: newUser.role,
+      id: userRecord.id,
+      email: userRecord.email,
+      role: userRecord.role,
     };
 
     const accessToken = jwt.sign(payload, accessTokenSecret, {
@@ -186,6 +187,7 @@ exports.registerUser = async (req, res, next) => {
       refreshToken,
     });
   } catch (err) {
+    console.error(err);
     logger.warn("Register failed", {
       email: req.body?.email,
       ip: req.ip,
@@ -194,27 +196,14 @@ exports.registerUser = async (req, res, next) => {
   }
 };
 
-/**
- * Logout endpoint
- * Clears refresh token cookie and blacklists the access token
- * This prevents token reuse even if someone has it
- *
- * Requires: Authorization header with access token
- *
- * @param {Object} req - Request object (must have req.token from verifyToken middleware)
- * @param {Object} res - Response object
- * @param {Function} next - Next middleware
- */
-exports.logout = (req, res, next) => {
+exports.logout = async (req, res, next) => {
   try {
-    // Clear refresh token cookie
-    res.clearCookie("refresh_token", { path: "/api/auth" });
-
-    // Blacklist the access token so it can't be used again
-    // Pass token expiration time (1h = 3600 seconds)
-    if (req.token) {
-      blacklistToken(req.token, 3600);
+    const token = req.cookies.refresh_token;
+    if (token) {
+      await prisma.refreshToken.delete({ where: { token } }).catch(() => {});
     }
+
+    res.clearCookie("refresh_token", { path: "/api/auth" });
 
     logger.info("User logout successful", {
       userId: req.user?.id,

@@ -11,6 +11,5 @@ router.delete('/:id', verifyToken, userController.deleteUser);
 // Other user routes
 router.get('/', userController.getAllUsers);
 router.get('/:id', userController.getUserById);
-router.post('/', userController.registerUser);
 
 module.exports = router;
