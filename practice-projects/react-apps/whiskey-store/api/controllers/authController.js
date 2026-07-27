@@ -201,22 +201,51 @@ exports.logout = async (req, res, next) => {
     const token = req.cookies.refresh_token;
     if (token) {
       await prisma.refreshToken.delete({ where: { token } }).catch(() => {});
+
+      logger.info("User logout successful", {
+        ip: req.ip,
+      });
     }
 
     res.clearCookie("refresh_token", { path: "/api/auth" });
 
-    logger.info("User logout successful", {
-      userId: req.user?.id,
-      ip: req.ip,
-    });
-
     return res.status(200).json({ message: "Logout successful" });
   } catch (error) {
     logger.error("Logout failed with error", {
-      userId: req.user?.id,
       ip: req.ip,
       errorMessage: error.message,
     });
     return next(new CustomError("Logout failed", 500));
+  }
+};
+
+exports.logoutAll = async (req, res, next) => {
+  try {
+    const token = req.cookies.refresh_token;
+    if (token) {
+      const tokenRecord = await prisma.refreshToken.findUnique({
+        where: { token },
+      });
+      if (tokenRecord) {
+        await prisma.refreshToken
+          .deleteMany({ where: { userId: tokenRecord.userId } })
+          .catch(() => {});
+
+        logger.info("User logout-all successful", {
+          userId: tokenRecord?.userId,
+          ip: req.ip,
+        });
+      }
+    }
+
+    res.clearCookie("refresh_token", { path: "/api/auth" });
+
+    return res.status(200).json({ message: "Logout all successful" });
+  } catch (error) {
+    logger.error("Logout-all failed with error", {
+      ip: req.ip,
+      errorMessage: error.message,
+    });
+    return next(new CustomError("Logout-all failed", 500));
   }
 };

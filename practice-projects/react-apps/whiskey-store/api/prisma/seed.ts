@@ -1,4 +1,4 @@
-import { prisma } from "../lib/prisma";
+const { prisma } = require("../lib/prisma");
 const usersData = require("../data/usersData");
 const productsData = require("../data/productsData");
 const ordersData = require("../data/ordersData");
