@@ -1,93 +1,105 @@
-const productsData = require("../data/productsData");
 const productSchema = require("../validators/productValidator");
 const CustomError = require("../utils/customError");
+const { prisma } = require("../lib/prisma");
 
-exports.getProducts = (req, res) => {
-  let filteredProducts = productsData;
+exports.getProducts = async (req, res, next) => {
+  try {
+    const ALLOWED_FILTERS = ["region", "type", "country", "inStock", "rating"];
 
-  const ALLOWED_FILTERS = ["region", "type", "country", "inStock"];
+    const where = ALLOWED_FILTERS.reduce((acc, key) => {
+      if (req.query[key]) {
+        if (req.query[key] === "true") {
+          acc[key] = true;
+        } else if (req.query[key] === "false") {
+          acc[key] = false;
+        } else if (key === "rating") {
+          acc[key] = parseFloat(req.query[key]);
+        } else {
+          acc[key] = req.query[key];
+        }
+      }
+      return acc;
+    }, {});
 
-  ALLOWED_FILTERS.forEach((key) => {
-    if (req.query[key]) {
-      filteredProducts = filteredProducts.filter(
-        (p) => String(p[key]).toLowerCase() === req.query[key].toLowerCase(),
-      );
+    if (req.query.minPrice) {
+      where.price = { ...where.price, gte: parseFloat(req.query.minPrice) };
     }
-  });
+    if (req.query.maxPrice) {
+      where.price = { ...where.price, lte: parseFloat(req.query.maxPrice) };
+    }
 
-  if (req.query.minPrice) {
-    filteredProducts = filteredProducts.filter(
-      (p) => p.price > Number(req.query.minPrice),
-    );
-  }
-  if (req.query.maxPrice) {
-    filteredProducts = filteredProducts.filter(
-      (p) => p.price <= Number(req.query.maxPrice),
-    );
-  }
+    if (req.query.search) {
+      where.OR = [
+        { name: { contains: req.query.search, mode: "insensitive" } },
+        { distillery: { contains: req.query.search, mode: "insensitive" } },
+      ];
+    }
 
-  if (req.query.search) {
-    filteredProducts = filteredProducts.filter(
-      (p) =>
-        p.name.toLowerCase().includes(req.query.search.toLowerCase()) ||
-        p.distillery.toLowerCase().includes(req.query.search.toLowerCase()),
-    );
-  }
+    const ALLOWED_SORT_ORDER = ["asc", "desc"];
+    const ALLOWED_SORT_BY = ["price", "age"];
 
-  if (req.query.sortBy) {
-    const sortField = req.query.sortBy;
-    const sortOrder = req.query.sortOrder === "desc" ? "desc" : "asc";
-
-    filteredProducts.sort((a, b) => {
+    if (req.query.sortBy) {
       if (
-        typeof a[sortField] === "number" &&
-        typeof b[sortField] === "number"
+        !ALLOWED_SORT_BY.includes(req.query.sortBy) ||
+        (req.query.sortOrder &&
+          !ALLOWED_SORT_ORDER.includes(req.query.sortOrder))
       ) {
-        return sortOrder === "desc"
-          ? b[sortField] - a[sortField]
-          : a[sortField] - b[sortField];
+        return next(new CustomError("Invalid sort params", 400));
       }
+    }
 
-      if (
-        typeof a[sortField] === "string" &&
-        typeof b[sortField] === "string"
-      ) {
-        return sortOrder === "desc"
-          ? b[sortField].localeCompare(a[sortField])
-          : a[sortField].localeCompare(b[sortField]);
-      }
+    const orderBy = req.query.sortBy
+      ? [
+          {
+            [req.query.sortBy]: req.query.sortOrder === "desc" ? "desc" : "asc",
+          },
+        ]
+      : undefined;
 
-      return 0;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const skip = (page - 1) * limit;
+
+    const products = prisma.product.findMany({
+      where,
+      orderBy,
+      skip,
+      take: limit,
     });
+
+    const count = prisma.product.count({ where });
+
+    const [productsResult, countResult] = await Promise.all([products, count]);
+
+    const response = {
+      data: productsResult,
+      total: countResult,
+      page,
+      limit,
+      totalPages: Math.ceil(countResult / limit),
+    };
+
+    res.json(response);
+  } catch (err) {
+    logger.warn("Get products failed", {
+      ip: req.ip,
+    });
+    return next(new CustomError("Get products failed", 500));
   }
-
-  const page = req.query.page || 1;
-  const limit = req.query.limit || 20;
-  const startIndex = (page - 1) * limit;
-  const paginated = filteredProducts.slice(startIndex, startIndex + limit);
-
-  const response = {
-    data: paginated,
-    total: filteredProducts.length,
-    page,
-    limit,
-    totalPages: Math.ceil(total / limit),
-  };
-
-  res.json(response);
 };
 
 exports.getFilters = (req, res) => {
   const regions = [...new Set(products.map((p) => p.region))];
   const types = [...new Set(products.map((p) => p.type))];
   const countries = [...new Set(products.map((p) => p.country))];
+  const ratings = [...new Set(products.map((p) => p.rating))];
 
   const products = productsData;
   const minPrice = Math.min(...products.map((p) => p.price));
   const maxPrice = Math.max(...products.map((p) => p.price));
   const priceRange = { min: minPrice, max: maxPrice };
 
-  const response = { regions, types, countries, priceRange };
+  const response = { regions, types, countries, priceRange, ratings };
 
   res.json(response);
 };
