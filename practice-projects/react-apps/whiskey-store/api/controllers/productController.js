@@ -88,79 +88,104 @@ exports.getProducts = async (req, res, next) => {
   }
 };
 
-exports.getFilters = (req, res) => {
-  const regions = [...new Set(products.map((p) => p.region))];
-  const types = [...new Set(products.map((p) => p.type))];
-  const countries = [...new Set(products.map((p) => p.country))];
-  const ratings = [...new Set(products.map((p) => p.rating))];
+exports.getFilters = async (req, res, next) => {
+  try {
+    const regions = prisma.product.findMany({
+      distinct: ["region"],
+      select: { region: true },
+    });
 
-  const products = productsData;
-  const minPrice = Math.min(...products.map((p) => p.price));
-  const maxPrice = Math.max(...products.map((p) => p.price));
-  const priceRange = { min: minPrice, max: maxPrice };
+    const types = prisma.product.findMany({
+      distinct: ["type"],
+      select: { type: true },
+    });
 
-  const response = { regions, types, countries, priceRange, ratings };
+    const countries = prisma.product.findMany({
+      distinct: ["country"],
+      select: { country: true },
+    });
 
-  res.json(response);
+    const [regionsResult, typesResult, countriesResult] = await Promise.all([
+      regions,
+      types,
+      countries,
+    ]);
+
+    const flatRegions = regionsResult.map((r) => r.region);
+    const flatTypes = typesResult.map((r) => r.type);
+    const flatCountries = countriesResult.map((r) => r.country);
+
+    const response = { flatRegions, flatTypes, flatCountries };
+
+    res.json(response);
+  } catch (err) {
+    return next(new CustomError("Get filters failed", 500));
+  }
 };
 
-exports.getProductById = (req, res, next) => {
-  const product = productsData.find((p) => p.id === parseInt(req.params.id));
-  if (product) {
+exports.getProductById = async (req, res, next) => {
+  try {
+    const product = await prisma.product.findUnique({
+      where: { id: parseInt(req.params.id) },
+    });
+    if (!product) {
+      return next(new CustomError("Product not found", 404));
+    }
     res.json(product);
-  } else {
-    return next(new CustomError("Product not found", 404));
+  } catch (err) {
+    return next(new CustomError("Get Product by id failed", 500));
   }
 };
 
-exports.createProduct = (req, res, next) => {
-  const newProductData = req.body;
-  const { error, value } = productSchema.validate(newProductData);
+exports.createProduct = async (req, res, next) => {
+  try {
+    const { error, value } = productSchema.validate(req.body);
 
-  if (error) {
-    return next(new CustomError("Invalid fields", 400));
+    if (error) {
+      return next(new CustomError("Invalid fields", 400));
+    }
+
+    const product = await prisma.product.create({
+      data: value,
+    });
+    res.status(201).json(product);
+  } catch (err) {
+    return next(new CustomError("Create product failed", 500));
   }
-
-  const newProduct = {
-    id: Math.max(...productsData.map((p) => p.id)) + 1, // Simple way to generate an ID
-    ...req.body,
-  };
-  productsData.push(newProduct);
-  res.status(201).json(newProduct);
 };
 
-exports.putProduct = (req, res, next) => {
-  const productId = parseInt(req.params.id);
-  const newProductData = req.body;
-  const { error, value } = productSchema.validate(newProductData);
+exports.putProduct = async (req, res, next) => {
+  try {
+    const { error, value } = productSchema.validate(req.body);
 
-  if (error) {
-    return next(new CustomError("Invalid fields", 400));
+    if (error) {
+      return next(new CustomError("Invalid fields", 400));
+    }
+
+    const product = await prisma.product.update({
+      where: { id: parseInt(req.params.id) },
+      data: value,
+    });
+
+    res.status(200).json({
+      message: "Product updated successfully",
+      product,
+    });
+  } catch (err) {
+    return next(new CustomError("Update product failed", 500));
   }
-
-  const index = productsData.findIndex((p) => p.id === productId);
-
-  if (index === -1) {
-    return next(new CustomError("Product not found", 404));
-  }
-
-  productsData[index] = { id: productId, ...newProductData };
-
-  res.status(200).json({
-    message: "Product updated successfully",
-    product: productsData[index],
-  });
 };
 
-exports.deleteProduct = (req, res, next) => {
-  const productId = parseInt(req.params.id);
-  const index = productsData.findIndex((p) => p.id === productId);
+exports.deleteProduct = async (req, res, next) => {
+  try {
+    const deleteProduct = await prisma.product.delete({
+      where: {
+        id: parseInt(req.params.id),
+      },
+    });
 
-  if (index === -1) {
-    return next(new CustomError("Product not found", 404));
+    res.status(200).json({ message: "Product deleted successfully" });
+  } catch (err) {
+    return next(new CustomError("Delete product failed", 500));
   }
-
-  productsData.splice(index, 1);
-
-  res.status(200).json({ message: "Product deleted successfully" });
 };
