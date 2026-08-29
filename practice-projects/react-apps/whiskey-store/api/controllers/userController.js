@@ -1,77 +1,60 @@
-const users = require("../data/usersData");
+const bcrypt = require("bcrypt");
 const userSchema = require("../validators/userValidator");
-const jwt = require("jsonwebtoken");
-const SECRET_KEY = "your_secret_key";
-const REFRESH_SECRET = "your_refresh_secret";
 const CustomError = require("../utils/customError");
+const { prisma } = require("../lib/prisma");
 
-exports.getProfile = (req, res, next) => {
-  const userId = req.user.id;
-  const user = users.find((u) => u.id === userId);
-
-  if (!user) {
-    return next(new CustomError("User not found", 404));
-  }
-
-  res.json(user);
-};
-
-exports.getAllUsers = (req, res) => {
-  res.json(users);
-};
-
-exports.getUserById = (req, res, next) => {
-  const userId = parseInt(req.params.id);
-  const user = users.find((u) => u.id === userId);
-
-  if (user) {
+exports.getProfile = async (req, res, next) => {
+  try {
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+    if (!user) {
+      return next(new CustomError("User not found", 404));
+    }
     res.json(user);
-  } else {
-    return next(new CustomError("User not found", 404));
+  } catch (err) {
+    return next(new CustomError("Get profile failed", 500));
   }
 };
 
-exports.editUser = (req, res, next) => {
-  const userIdParam = parseInt(req.params.id);
-  const authenticatedUser = req.user;
-  const newUserData = req.body;
-  const { error, value } = userSchema.validate(newUserData);
+exports.editUser = async (req, res, next) => {
+  try {
+    const userIdParam = parseInt(req.params.id);
 
-  if (userIdParam !== authenticatedUser.id) {
-    return next(new CustomError("Operation not permitted", 403));
+    if (userIdParam !== req.user.id) {
+      return next(new CustomError("Operation not permitted", 403));
+    }
+
+    const { error, value } = userSchema.validate(req.body);
+    if (error) {
+      return next(new CustomError("Invalid fields", 400));
+    }
+
+    if (value.password) {
+      value.password = await bcrypt.hash(value.password, 10);
+    }
+
+    const user = await prisma.user.update({
+      where: { id: userIdParam },
+      data: value,
+    });
+
+    res.status(200).json({ message: "User updated successfully", user });
+  } catch (err) {
+    return next(new CustomError("Update user failed", 500));
   }
-
-  if (error) {
-    return next(new CustomError("Invalid fields", 400));
-  }
-
-  const index = users.findIndex((u) => u.id === userIdParam);
-
-  if (index === -1) {
-    return next(new CustomError("User not found", 404));
-  }
-
-  users[index] = {
-    id: userIdParam,
-    ...newUserData,
-  };
-
-  res.status(200).json({
-    message: "User updated successfully",
-    user: users[index],
-  });
 };
 
-exports.deleteUser = (req, res, next) => {
-  const userId = parseInt(req.params.id);
+exports.deleteUser = async (req, res, next) => {
+  try {
+    const userId = parseInt(req.params.id);
 
-  const index = users.findIndex((u) => u.id === userId);
+    if (req.user.role !== "admin" && req.query.userId !== req.user.id) {
+      return next(new CustomError("Operation not permitted", 403));
+    }
+    
+    await prisma.user.delete({ where: { id: userId } });
 
-  if (index === -1) {
-    return next(new CustomError("User not found", 404));
+    res.status(200).json({ message: "User deleted successfully" });
+  } catch (err) {
+    return next(new CustomError("Delete user failed", 500));
   }
-
-  users.splice(index, 1);
-
-  res.status(200).json("User deleted successfully");
 };

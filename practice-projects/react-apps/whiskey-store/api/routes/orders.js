@@ -1,11 +1,11 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const orderController = require('../controllers/orderController');
+const orderController = require("../controllers/orderController");
+const verifyToken = require("../middleware/verifyToken");
 
-router.get('/', orderController.getAllOrders);
-router.get('/:id', orderController.getOrderById);
-router.post('/', orderController.createOrder);
-router.put('/:id', orderController.editOrder);
-router.delete('/:id', orderController.deleteOrder);
+router.get("/", verifyToken, orderController.getAllOrders);
+router.get("/:id", verifyToken, orderController.getOrderById);
+router.post("/", verifyToken, orderController.createOrder);
+router.patch("/:id", verifyToken, orderController.cancelOrder);
 
 module.exports = router;
