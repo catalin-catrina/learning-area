@@ -127,6 +127,7 @@ exports.getProductById = async (req, res, next) => {
   try {
     const product = await prisma.product.findUnique({
       where: { id: parseInt(req.params.id) },
+      include: { reviews: true },
     });
     if (!product) {
       return next(new CustomError("Product not found", 404));
