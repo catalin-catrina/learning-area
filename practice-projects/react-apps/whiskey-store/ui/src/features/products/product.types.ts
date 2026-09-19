@@ -13,6 +13,8 @@ export type WhiskeyProduct = {
   rating: number;
 };
 
+export type ProductPayload = Omit<WhiskeyProduct, "id">;
+
 export type ProductsFilters = {
   region?: string;
   type?: ProductType;
@@ -24,6 +26,12 @@ export type ProductsFilters = {
   search?: string;
   sortOrder?: SortOrder;
   sortBy?: SortBy;
+};
+
+export type FiltersResponse = {
+  flatRegions: Array<string>;
+  flatCountries: Array<string>;
+  flatTypes: Array<string>;
 };
 
 export type ProductType =

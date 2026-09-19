@@ -1,5 +1,2 @@
-const ProductDetail = () => {
-  return <div>ProductDetail</div>;
-};
-
+const ProductDetail = () => {};
 export default ProductDetail;
