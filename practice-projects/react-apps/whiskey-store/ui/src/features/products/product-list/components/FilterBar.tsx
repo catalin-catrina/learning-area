@@ -1,4 +1,9 @@
-import type { FiltersResponse, ProductsFilters } from "../../product.types";
+import type {
+  FiltersResponse,
+  ProductsFilters,
+  SortBy,
+  SortOrder,
+} from "../../product.types";
 
 type FilterBarProps = {
   filters: ProductsFilters;
@@ -20,6 +25,16 @@ function FilterBar({ filters, filterOptions, onParamsChange }: FilterBarProps) {
     { optionsKey: "flatCountries", filterKey: "country", label: "Country" },
   ];
 
+  const sortByOptions: { value: SortBy; label: string }[] = [
+    { value: "price", label: "Price" },
+    { value: "age", label: "Age" },
+  ];
+
+  const sortOrderOptions: { value: SortOrder; label: string }[] = [
+    { value: "asc", label: "Ascending" },
+    { value: "desc", label: "Descending" },
+  ];
+
   return (
     <div className="filter-bar">
       <div className="filter">
@@ -37,7 +52,7 @@ function FilterBar({ filters, filterOptions, onParamsChange }: FilterBarProps) {
       </div>
 
       <div className="filter">
-        <label htmlFor="maxPrice">Min Price: </label>
+        <label htmlFor="maxPrice">Max Price: </label>
         <input
           type="range"
           name="maxPrice"
@@ -69,6 +84,42 @@ function FilterBar({ filters, filterOptions, onParamsChange }: FilterBarProps) {
           </select>
         </div>
       ))}
+
+      <div className="filter">
+        <label htmlFor="sortBy"></label>
+        <select
+          value={filters.sortBy ?? ""}
+          onChange={(e) =>
+            onParamsChange("sortBy", e.target.value || undefined)
+          }
+          name="sortBy"
+          id="sortBy"
+        >
+          {sortByOptions.map(({ value, label }) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="filter">
+        <label htmlFor="sortOrder"></label>
+        <select
+          value={filters.sortOrder ?? ""}
+          onChange={(e) =>
+            onParamsChange("sortOrder", e.target.value || undefined)
+          }
+          name="sortOrder"
+          id="sortOrder"
+        >
+          {sortOrderOptions.map(({ value, label }) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </select>
+      </div>
     </div>
   );
 }

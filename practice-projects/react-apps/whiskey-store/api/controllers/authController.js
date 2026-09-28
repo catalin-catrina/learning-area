@@ -17,7 +17,8 @@ exports.login = async (req, res, next) => {
     if (!user) return next(new CustomError("Invalid credentials", 401));
 
     const valid = await bcrypt.compare(password, user.password);
-    if (!valid) return next(new CustomError("Invalid credentials", 401));
+    if (!valid)
+      return next(new CustomError("Invalid credentials", 401));
 
     const payload = {
       id: user.id,

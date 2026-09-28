@@ -16,6 +16,8 @@ export type WhiskeyProduct = {
 export type ProductPayload = Omit<WhiskeyProduct, "id">;
 
 export type ProductsFilters = {
+  page?: number;
+  limit?: number;
   region?: string;
   type?: ProductType;
   country?: string;
