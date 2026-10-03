@@ -6,36 +6,19 @@ const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
   withCredentials: true,
 });
-let requestCount = 0;
+
 // Request interceptor — attach token
 api.interceptors.request.use((config) => {
-  requestCount++;
-  console.log(`requestCount ${requestCount}`);
   const token = getToken();
-  console.log(`token ${token}`);
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
-let responseCount = 0;
+
 // Response interceptor — handle 401 → refresh → retry
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    responseCount++;
-    console.log(`response count ${responseCount}`);
     const original = error.config;
-    console.log(` error.response?.status ${error.response?.status}`);
-    console.log(`original._retry ${original._retry}`);
-    console.log(`original.url, ${original.url}`);
-
-    console.log(
-      `error.response?.status === 401 ${error.response?.status === 401}`,
-    );
-    console.log(`!original._retry ${!original._retry}`);
-    console.log(
-      `  !original.url?.includes("/auth/refresh") ${!original.url?.includes("/auth/refresh")}`,
-    );
-
     if (
       error.response?.status === 401 &&
       !original._retry &&
@@ -46,8 +29,6 @@ api.interceptors.response.use(
         const { accessToken } = await refreshToken();
         setToken(accessToken);
         original.headers.Authorization = `Bearer ${accessToken}`;
-        console.log(accessToken);
-        console.log(original.headers.Authorization);
         return api(original); // retry
       } catch {
         setToken(null);

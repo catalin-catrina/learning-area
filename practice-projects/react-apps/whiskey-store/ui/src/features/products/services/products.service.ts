@@ -18,7 +18,6 @@ export async function getProductById(
   productId: number,
 ): Promise<WhiskeyProduct> {
   const response = await api.get(`/products/${productId}`);
-  console.log(response);
   return response.data;
 }
 

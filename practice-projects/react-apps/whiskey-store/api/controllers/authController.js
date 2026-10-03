@@ -188,7 +188,6 @@ exports.registerUser = async (req, res, next) => {
       refreshToken,
     });
   } catch (err) {
-    console.error(err);
     logger.warn("Register failed", {
       email: req.body?.email,
       ip: req.ip,

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAuthContext } from "../../../shared/context/auth/AuthContext";
 import type { LoginRequest } from "../auth.types";
-import { login } from "../services/auth.service";
+import { login, logout } from "../services/auth.service";
 import { setToken } from "../../../shared/services/tokenStore";
 import { useNavigate } from "react-router-dom";
 
@@ -17,8 +17,6 @@ export function useAuth() {
 
     try {
       const data = await login(loginReq);
-      console.log(`data ${data.payload}`);
-      console.log(`data ${data.accessToken}`);
       setAuth(data.accessToken, data.payload);
       setToken(data.accessToken);
       navigate("/products", { replace: true });
@@ -31,5 +29,22 @@ export function useAuth() {
     }
   }
 
-  return { token, user, handleLogin, loading, error };
+  async function handleLogout() {
+    setLoading(true);
+    setError(null);
+
+    try {
+      await logout();
+      clearAuth();
+      setToken(null);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (e: any) {
+      setError(e.error);
+      clearAuth();
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return { token, user, handleLogin, handleLogout, loading, error };
 }
