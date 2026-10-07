@@ -3,6 +3,7 @@ import type { WhiskeyProduct } from "../products/product.types";
 export type CartResponseDto = {
   id: number;
   userId: number;
+  total: number;
   items: CartItemDto[];
 };
 

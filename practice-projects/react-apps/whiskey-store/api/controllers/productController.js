@@ -1,6 +1,7 @@
 const productSchema = require("../validators/productValidator");
 const CustomError = require("../utils/customError");
 const { prisma } = require("../lib/prisma");
+const logger = require("../utils/logger");
 
 exports.getProducts = async (req, res, next) => {
   try {

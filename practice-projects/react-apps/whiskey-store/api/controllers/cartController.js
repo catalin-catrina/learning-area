@@ -4,31 +4,19 @@ const {
   updateQuantitySchema,
 } = require("../validators/cartValidator");
 const CustomError = require("../utils/customError");
+const logger = require("../utils/logger");
 
 const fetchFormattedCart = async (userId) => {
-  let cart = await prisma.cart.findUnique({
+  const cart = await prisma.cart.upsert({
     where: { userId },
-    include: {
-      items: {
-        include: { product: true },
-      },
-    },
+    create: { userId },
+    update: {},
+    include: { items: { include: { product: true } } },
   });
-
-  if (!cart) {
-    cart = await prisma.cart.create({
-      data: { userId },
-      include: {
-        items: {
-          include: { product: true },
-        },
-      },
-    });
-  }
 
   const total = cart.items.reduce(
     (sum, curr) => sum + curr.quantity * curr.product.price,
-    0
+    0,
   );
 
   return { ...cart, total };
@@ -37,7 +25,7 @@ const fetchFormattedCart = async (userId) => {
 exports.getCart = async (req, res, next) => {
   try {
     const cart = await fetchFormattedCart(req.user.id);
-    res.status(200).json({ cart });
+    res.status(200).json(cart);
   } catch (err) {
     logger.error("Get cart failed", err);
     return next(new CustomError("Failed to fetch cart", 500));
@@ -55,27 +43,25 @@ exports.addItem = async (req, res, next) => {
     const { productId, quantity } = value;
 
     const currentCart = await fetchFormattedCart(userId);
-    const existingItem = currentCart.items.find((item) => item.productId === productId);
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+    });
+    if (!product) return next(new CustomError("Product not found", 404));
+    if (!product.inStock) return next(new CustomError("Out of stock", 400));
 
-    if (existingItem) {
-      await prisma.cartItem.update({
-        where: { id: existingItem.id },
-        data: { quantity: existingItem.quantity + quantity },
-      });
-    } else {
-      await prisma.cartItem.create({
-        data: {
-          cartId: currentCart.id,
-          productId,
-          quantity,
-        },
-      });
-    }
+    await prisma.cartItem.upsert({
+      where: { cartId_productId: { cartId: currentCart.id, productId } },
+      create: { cartId: currentCart.id, productId, quantity },
+      update: { quantity: { increment: quantity } },
+    });
 
     const updatedCart = await fetchFormattedCart(userId);
-    res.status(200).json({ cart: updatedCart });
+    res.status(200).json(updatedCart);
   } catch (err) {
-    logger.warn("Add to cart failed", { ip: req.ip, errorMessage: err.message });
+    logger.warn("Add to cart failed", {
+      ip: req.ip,
+      errorMessage: err.message,
+    });
     return next(new CustomError("Add to cart failed", 500));
   }
 };
@@ -99,7 +85,7 @@ exports.updateItemQuantity = async (req, res, next) => {
     });
 
     const updatedCart = await fetchFormattedCart(userId);
-    res.status(200).json({ cart: updatedCart });
+    res.status(200).json(updatedCart);
   } catch (err) {
     logger.error("Update quantity failed", err);
     next(new CustomError("Failed to update item", 500));
@@ -120,7 +106,7 @@ exports.removeItem = async (req, res, next) => {
     });
 
     const updatedCart = await fetchFormattedCart(userId);
-    res.status(200).json({ cart: updatedCart });
+    res.status(200).json(updatedCart);
   } catch (err) {
     logger.error("Remove item failed", err);
     return next(new CustomError("Removing from cart failed", 500));

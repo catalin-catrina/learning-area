@@ -1,37 +1,69 @@
-import { useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
-import { getProductById } from "../../services/products.service";
-import { useAuth } from "../../../auth/hooks/useAuth";
-import { getCart } from "../../../cart/services/cart.service";
-import { useEffect } from "react";
+import AddIcon from "@mui/icons-material/Add";
+import RemoveIcon from "@mui/icons-material/Remove";
+import { useCart, useCartMutations } from "../../../cart/hooks/useCart";
+import { useProduct } from "../../hooks/useProduct";
+import { IconButton } from "@mui/material";
 
 function ProductDetail() {
-  const { id } = useParams(); // always a string, or undefined if truly absent
-  const { user } = useAuth();
+  const { id } = useParams(); // string | undefined
 
-  const { data: product, isLoading: isProductLoading } = useQuery({
-    queryKey: ["product", id],
-    queryFn: () => getProductById(Number(id)),
-    enabled: !!id, // don't fire the query before an id exists
-  });
+  const { data: product } = useProduct(Number(id));
+  const { data: cart, isPending: cartPending } = useCart();
+  const { add, update, remove } = useCartMutations();
 
-  const { data: cart, isLoading: isCartLoading } = useQuery({
-    queryKey: ["cart", user],
-    queryFn: () => getCart(),
-    enabled: !!user,
-  });
+  if (!product || cartPending) return <p>Loading...</p>;
 
-  let itemInCart;
-  const itemInCartEffect = useEffect(() => {
-    
-  }, [cart])
+  const item = cart?.items.find((i) => i.productId === product.id);
 
-  if (isProductLoading || isCartLoading) return <p>Loading...</p>;
   return (
     <div>
       <h1>{product?.name}</h1>
-      <div className="cart">
-        {cart ? cart.items.map((p) => `${p.product} - ${p.quantity}`) : ''}
+      {item ? (
+        <>
+          <IconButton
+            disabled={cartPending}
+            onClick={() =>
+              item.quantity === 1
+                ? remove.mutate(product.id)
+                : update.mutate({
+                    productId: product.id,
+                    quantity: item.quantity - 1,
+                  })
+            }
+          >
+            <RemoveIcon />
+          </IconButton>
+
+          <span>{item.quantity}</span>
+
+          <IconButton
+            disabled={cartPending}
+            onClick={() =>
+              update.mutate({
+                productId: product.id,
+                quantity: item.quantity + 1,
+              })
+            }
+          >
+            <AddIcon />
+          </IconButton>
+        </>
+      ) : (
+        <button
+          onClick={() => add.mutate({ productId: product.id, quantity: 1 })}
+        >
+          Add to cart
+        </button>
+      )}
+      <div className="cart flex flex-col">
+        {cart && cart.items
+          ? cart.items.map((p) => (
+              <div key={p.id}>
+                {p.product.name} - {p.quantity}
+              </div>
+            ))
+          : ""}
       </div>
     </div>
   );
