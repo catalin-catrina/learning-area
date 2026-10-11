@@ -11,7 +11,12 @@ const fetchFormattedCart = async (userId) => {
     where: { userId },
     create: { userId },
     update: {},
-    include: { items: { include: { product: true } } },
+    include: {
+      items: {
+        orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+        include: { product: true },
+      },
+    },
   });
 
   const total = cart.items.reduce(

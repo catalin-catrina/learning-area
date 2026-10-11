@@ -4,12 +4,14 @@ import type { LoginRequest } from "../auth.types";
 import { login, logout } from "../services/auth.service";
 import { setToken } from "../../../shared/services/tokenStore";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 
 export function useAuth() {
-  const { token, user, setAuth, clearAuth } = useAuthContext();
+  const { token, user, isInitializing, setAuth, clearAuth } = useAuthContext();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const qc = useQueryClient();
 
   async function handleLogin(loginReq: LoginRequest) {
     setLoading(true);
@@ -37,14 +39,25 @@ export function useAuth() {
       await logout();
       clearAuth();
       setToken(null);
+      qc.clear();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
-      setError(e.error);
+      setError(e.response?.data?.error);
       clearAuth();
+      setToken(null);
+      qc.clear();
     } finally {
       setLoading(false);
     }
   }
 
-  return { token, user, handleLogin, handleLogout, loading, error };
+  return {
+    token,
+    user,
+    isInitializing,
+    handleLogin,
+    handleLogout,
+    loading,
+    error,
+  };
 }

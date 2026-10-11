@@ -7,7 +7,7 @@ import { getToken, setToken } from "../../services/tokenStore";
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setTokenState] = useState<string | null>(null);
   const [user, setUserState] = useState<User | null>(null);
-  const [, setLoading] = useState(true);
+  const [isInitializing, setIsInitializing] = useState(true);
 
   useEffect(() => {
     me()
@@ -20,7 +20,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setToken(null);
       })
       .finally(() => {
-        setLoading(false);
+        setIsInitializing(false);
       });
   }, []);
 
@@ -35,7 +35,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext value={{ token, user, setAuth, clearAuth }}>
+    <AuthContext value={{ token, user, isInitializing, setAuth, clearAuth }}>
       {children}
     </AuthContext>
   );

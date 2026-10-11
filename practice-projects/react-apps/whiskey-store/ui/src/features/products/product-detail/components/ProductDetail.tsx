@@ -56,15 +56,6 @@ function ProductDetail() {
           Add to cart
         </button>
       )}
-      <div className="cart flex flex-col">
-        {cart && cart.items
-          ? cart.items.map((p) => (
-              <div key={p.id}>
-                {p.product.name} - {p.quantity}
-              </div>
-            ))
-          : ""}
-      </div>
     </div>
   );
 }

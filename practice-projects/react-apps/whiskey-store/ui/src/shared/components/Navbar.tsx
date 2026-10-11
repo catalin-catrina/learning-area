@@ -1,9 +1,48 @@
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import { useAuth } from "../../features/auth/hooks/useAuth";
 import { NavLink } from "react-router-dom";
+import { IconButton, Paper, Popper } from "@mui/material";
+import { useRef, useState } from "react";
+import CartPreview from "../../features/cart/components/CartPreview";
 
 function Navbar() {
   const { user, handleLogout } = useAuth();
+  const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
+  const closeTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const open = Boolean(anchorEl);
+  const id = open ? "simple-popover" : undefined;
+
+  const handleOpen = (
+    event:
+      | React.MouseEvent<HTMLButtonElement>
+      | React.FocusEvent<HTMLButtonElement>,
+  ) => {
+    if (closeTimeout.current) {
+      clearTimeout(closeTimeout.current);
+      closeTimeout.current = null;
+    }
+    setAnchorEl(event.currentTarget);
+  };
+
+  const keepOpen = () => {
+    if (closeTimeout.current) {
+      clearTimeout(closeTimeout.current);
+      closeTimeout.current = null;
+    }
+  };
+
+  const scheduleClose = () => {
+    closeTimeout.current = setTimeout(() => {
+      setAnchorEl(null);
+      closeTimeout.current = null;
+    }, 150);
+  };
+
+  const closePreview = () => {
+    keepOpen();
+    setAnchorEl(null);
+  };
 
   function onLogout() {
     handleLogout();
@@ -26,7 +65,29 @@ function Navbar() {
             </li>
           </ul>
           <div className="cart">
-            <ShoppingCartIcon></ShoppingCartIcon>
+            <IconButton
+              onMouseEnter={handleOpen}
+              onMouseLeave={scheduleClose}
+              onFocus={handleOpen}
+              onBlur={scheduleClose}
+              sx={{ color: "white" }}
+              aria-label="Open cart preview"
+              aria-haspopup="dialog"
+              aria-expanded={open}
+              aria-controls={id}
+            >
+              <ShoppingCartIcon />
+            </IconButton>
+            <Popper
+              id={id}
+              open={open}
+              anchorEl={anchorEl}
+              placement="bottom-end"
+            >
+              <Paper onMouseEnter={keepOpen} onMouseLeave={scheduleClose}>
+                <CartPreview onNavigate={closePreview} />
+              </Paper>
+            </Popper>
           </div>
         </div>
       ) : (
