@@ -1,6 +1,7 @@
 const orderSchema = require("../validators/orderValidator");
 const CustomError = require("../utils/customError");
 const { prisma } = require("../lib/prisma");
+const logger = require("../utils/logger");
 
 exports.getAllOrders = async (req, res, next) => {
   try {
@@ -14,6 +15,7 @@ exports.getAllOrders = async (req, res, next) => {
 
     res.json(orders);
   } catch (err) {
+    logger.error("Get orders failed", { errorMessage: err.message });
     return next(new CustomError("Get orders failed", 500));
   }
 };
@@ -35,6 +37,7 @@ exports.getOrderById = async (req, res, next) => {
 
     res.json(order);
   } catch (err) {
+    logger.error("Get order failed", { errorMessage: err.message });
     return next(new CustomError("Get order failed", 500));
   }
 };
@@ -73,6 +76,7 @@ exports.createOrder = async (req, res, next) => {
 
     res.status(201).json({ message: "Order created successfully", order });
   } catch (err) {
+    logger.error("Create order failed", { errorMessage: err.message });
     return next(new CustomError("Create order failed", 500));
   }
 };
@@ -99,6 +103,7 @@ exports.cancelOrder = async (req, res, next) => {
       .status(200)
       .json({ message: "Order cancelled successfully", order: cancelled });
   } catch (err) {
+    logger.error("Cancel order failed", { errorMessage: err.message });
     return next(new CustomError("Cancel order failed", 500));
   }
 };

@@ -16,6 +16,8 @@ function ProductDetail() {
   } = useProduct(Number(id));
 
   const { data: cart, isPending: cartPending, isError: cartError } = useCart();
+  const quantityUpdatePending =
+    add.isPending || update.isPending || remove.isPending;
 
   if (productPending || cartPending) return <p>Loading...</p>;
   if (productError || cartError) return <p>Could not load this page.</p>;
@@ -29,6 +31,7 @@ function ProductDetail() {
       {item ? (
         <>
           <IconButton
+            disabled={quantityUpdatePending}
             onClick={() =>
               item.quantity === 1
                 ? remove.mutate(product.id)
@@ -44,6 +47,7 @@ function ProductDetail() {
           <span>{item.quantity}</span>
 
           <IconButton
+            disabled={quantityUpdatePending}
             onClick={() =>
               update.mutate({
                 productId: product.id,
@@ -56,6 +60,7 @@ function ProductDetail() {
         </>
       ) : (
         <button
+          disabled={quantityUpdatePending}
           onClick={() => add.mutate({ productId: product.id, quantity: 1 })}
         >
           Add to cart

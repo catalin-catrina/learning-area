@@ -13,7 +13,7 @@ export const cartKey = (userId?: number) => ["cart", userId] as const;
 export function useCart() {
   const { user } = useAuth();
   return useQuery({
-    queryKey: cartKey(Number(user?.id)),
+    queryKey: cartKey(user?.id),
     queryFn: getCart,
     enabled: !!user, // don't fire the query before an user exists
     staleTime: 60_000,

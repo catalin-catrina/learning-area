@@ -6,6 +6,7 @@ import RemoveIcon from "@mui/icons-material/Remove";
 function Cart() {
   const { data: cart, isPending: cartPending } = useCart();
   const { update, remove } = useCartMutations();
+  const quantityUpdatePending = update.isPending || remove.isPending;
 
   const totalItems = cart?.items.reduce(
     (prev, curr) => prev + curr.quantity,
@@ -24,6 +25,7 @@ function Cart() {
                   <div>{cartItem.product.name}</div>
                   <div>
                     <IconButton
+                      disabled={quantityUpdatePending}
                       onClick={() =>
                         cartItem.quantity === 1
                           ? remove.mutate(cartItem.product.id)
@@ -39,6 +41,7 @@ function Cart() {
                     <span>{cartItem.quantity}</span>
 
                     <IconButton
+                      disabled={quantityUpdatePending}
                       onClick={() =>
                         update.mutate({
                           productId: cartItem.product.id,
