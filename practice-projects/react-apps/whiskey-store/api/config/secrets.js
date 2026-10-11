@@ -4,14 +4,17 @@
  * Never hardcode secrets in version control
  */
 
-const accessTokenSecret = process.env.JWT_ACCESS_SECRET || "your_secret_key";
-const refreshTokenSecret = process.env.JWT_REFRESH_SECRET || "your_refresh_secret";
+const { JWT_ACCESS_SECRET: accessTokenSecret, JWT_REFRESH_SECRET: refreshTokenSecret } =
+  process.env;
 
-// Validate that secrets are configured (fail fast on startup)
-if (accessTokenSecret === "your_secret_key" || refreshTokenSecret === "your_refresh_secret") {
-  console.warn(
-    "⚠️  WARNING: Using default JWT secrets. Set JWT_ACCESS_SECRET and JWT_REFRESH_SECRET environment variables in production!"
+if (!accessTokenSecret || !refreshTokenSecret) {
+  throw new Error(
+    "JWT_ACCESS_SECRET and JWT_REFRESH_SECRET must be configured before starting the API",
   );
+}
+
+if (accessTokenSecret.length < 32 || refreshTokenSecret.length < 32) {
+  throw new Error("JWT secrets must each be at least 32 characters long");
 }
 
 module.exports = {

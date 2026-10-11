@@ -24,7 +24,7 @@ export function useCartMutations() {
   const qc = useQueryClient();
   const { user } = useAuth();
   const onSuccess = (cart: CartResponseDto) =>
-    qc.setQueryData(cartKey(Number(user?.id)), cart);
+    qc.setQueryData(cartKey(user?.id), cart);
 
   return {
     add: useMutation({ mutationFn: addItem, onSuccess }),

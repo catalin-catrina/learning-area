@@ -32,7 +32,7 @@ exports.getCart = async (req, res, next) => {
     const cart = await fetchFormattedCart(req.user.id);
     res.status(200).json(cart);
   } catch (err) {
-    logger.error("Get cart failed", err);
+    logger.error("Get cart failed", { errorMessage: err.message });
     return next(new CustomError("Failed to fetch cart", 500));
   }
 };
@@ -92,7 +92,7 @@ exports.updateItemQuantity = async (req, res, next) => {
     const updatedCart = await fetchFormattedCart(userId);
     res.status(200).json(updatedCart);
   } catch (err) {
-    logger.error("Update quantity failed", err);
+    logger.error("Update quantity failed", { errorMessage: err.message });
     next(new CustomError("Failed to update item", 500));
   }
 };
@@ -113,7 +113,7 @@ exports.removeItem = async (req, res, next) => {
     const updatedCart = await fetchFormattedCart(userId);
     res.status(200).json(updatedCart);
   } catch (err) {
-    logger.error("Remove item failed", err);
+    logger.error("Remove item failed", { errorMessage: err.message });
     return next(new CustomError("Removing from cart failed", 500));
   }
 };

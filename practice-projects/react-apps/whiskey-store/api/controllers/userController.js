@@ -5,11 +5,15 @@ const { prisma } = require("../lib/prisma");
 
 exports.getProfile = async (req, res, next) => {
   try {
-    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.id },
+      select: { id: true, name: true, email: true, role: true, createdAt: true },
+    });
     if (!user) {
       return next(new CustomError("User not found", 404));
     }
-    res.json(user);
+    const { password, ...safeUser } = user;
+    res.json(safeUser);
   } catch (err) {
     return next(new CustomError("Get profile failed", 500));
   }
@@ -17,7 +21,10 @@ exports.getProfile = async (req, res, next) => {
 
 exports.editUser = async (req, res, next) => {
   try {
-    const userIdParam = parseInt(req.params.id);
+    const userIdParam = Number(req.params.id);
+    if (!Number.isSafeInteger(userIdParam) || userIdParam <= 0) {
+      return next(new CustomError("Invalid user ID", 400));
+    }
 
     if (userIdParam !== req.user.id) {
       return next(new CustomError("Operation not permitted", 403));
@@ -35,9 +42,14 @@ exports.editUser = async (req, res, next) => {
     const user = await prisma.user.update({
       where: { id: userIdParam },
       data: value,
+      select: { id: true, name: true, email: true, role: true, createdAt: true },
     });
 
-    res.status(200).json({ message: "User updated successfully", user });
+    const { password, ...safeUser } = user;
+    res.status(200).json({
+      message: "User updated successfully",
+      user: safeUser,
+    });
   } catch (err) {
     return next(new CustomError("Update user failed", 500));
   }
@@ -45,9 +57,12 @@ exports.editUser = async (req, res, next) => {
 
 exports.deleteUser = async (req, res, next) => {
   try {
-    const userId = parseInt(req.params.id);
+    const userId = Number(req.params.id);
+    if (!Number.isSafeInteger(userId) || userId <= 0) {
+      return next(new CustomError("Invalid user ID", 400));
+    }
 
-    if (req.user.role !== "admin" && req.query.userId !== req.user.id) {
+    if (req.user.role !== "admin" && userId !== req.user.id) {
       return next(new CustomError("Operation not permitted", 403));
     }
     

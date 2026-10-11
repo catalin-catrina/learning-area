@@ -140,18 +140,18 @@ exports.refreshToken = async (req, res, next) => {
 
 exports.registerUser = async (req, res, next) => {
   try {
-    const { error } = userSchema.validate(req.body);
+    const { error, value } = userSchema.validate(req.body);
     if (error) {
       return next(new CustomError("Invalid or missing fields", 400));
     }
 
-    const hashed = await bcrypt.hash(req.body.password, 10);
+    const hashed = await bcrypt.hash(value.password, 10);
 
     const newUser = {
-      name: req.body.name,
-      email: req.body.email,
+      name: value.name,
+      email: value.email,
       password: hashed,
-      role: req.body.role,
+      role: "user",
     };
 
     const userRecord = await prisma.user.create({

@@ -24,7 +24,7 @@ export function useAuth() {
       navigate("/products", { replace: true });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
-      setError(e.error);
+      setError(e.response?.data?.error);
       clearAuth();
     } finally {
       setLoading(false);

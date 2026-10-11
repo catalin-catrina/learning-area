@@ -13,6 +13,7 @@ function Cart() {
   );
 
   if (cartPending) return <p>Loading...</p>;
+
   return (
     <div>
       <div className="cart flex justify-between p-4 gap-4">
@@ -20,12 +21,9 @@ function Cart() {
           {cart && cart.items
             ? cart.items.map((cartItem) => (
                 <div key={cartItem.id} className="flex items-center">
-                  <div>
-                    {cartItem.product.name} 
-                  </div>
+                  <div>{cartItem.product.name}</div>
                   <div>
                     <IconButton
-                      disabled={cartPending}
                       onClick={() =>
                         cartItem.quantity === 1
                           ? remove.mutate(cartItem.product.id)
@@ -41,7 +39,6 @@ function Cart() {
                     <span>{cartItem.quantity}</span>
 
                     <IconButton
-                      disabled={cartPending}
                       onClick={() =>
                         update.mutate({
                           productId: cartItem.product.id,

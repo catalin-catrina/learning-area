@@ -8,11 +8,18 @@ import { IconButton } from "@mui/material";
 function ProductDetail() {
   const { id } = useParams(); // string | undefined
 
-  const { data: product } = useProduct(Number(id));
-  const { data: cart, isPending: cartPending } = useCart();
   const { add, update, remove } = useCartMutations();
+  const {
+    data: product,
+    isPending: productPending,
+    isError: productError,
+  } = useProduct(Number(id));
 
-  if (!product || cartPending) return <p>Loading...</p>;
+  const { data: cart, isPending: cartPending, isError: cartError } = useCart();
+
+  if (productPending || cartPending) return <p>Loading...</p>;
+  if (productError || cartError) return <p>Could not load this page.</p>;
+  if (!product) return <p>Product not found.</p>;
 
   const item = cart?.items.find((i) => i.productId === product.id);
 
@@ -22,7 +29,6 @@ function ProductDetail() {
       {item ? (
         <>
           <IconButton
-            disabled={cartPending}
             onClick={() =>
               item.quantity === 1
                 ? remove.mutate(product.id)
@@ -38,7 +44,6 @@ function ProductDetail() {
           <span>{item.quantity}</span>
 
           <IconButton
-            disabled={cartPending}
             onClick={() =>
               update.mutate({
                 productId: product.id,
