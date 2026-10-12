@@ -1,10 +1,52 @@
+import type { OrderStatus, ProductType } from "../generated/prisma/enums";
+
 const { prisma } = require("../lib/prisma");
-const bcrypt = require("bcrypt");
-const usersData = require("../data/usersData");
-const productsData = require("../data/productsData");
-const ordersData = require("../data/ordersData");
+import bcrypt from "bcrypt";
+import usersDataSource from "../data/usersData.js";
+import productsDataSource from "../data/productsData.js";
+import ordersDataSource from "../data/ordersData.js";
+
+type SeedUser = {
+  id: number;
+  email: string;
+  name: string;
+  role: string;
+  password: string;
+};
+
+type SeedProduct = {
+  id: number;
+  name: string;
+  distillery: string;
+  region: string;
+  country: string;
+  type: ProductType;
+  age: number | null;
+  abv: number;
+  price: number;
+  description: string;
+  inStock: boolean;
+  rating: number;
+  reviews: { userId: number; rating: number; comment: string | null }[];
+};
+
+type SeedOrder = {
+  id: number;
+  userId: number;
+  products: { productId: number; quantity: number }[];
+  status: OrderStatus;
+  createdAt: string;
+};
+
+const usersData = usersDataSource as SeedUser[];
+const productsData = productsDataSource as SeedProduct[];
+const ordersData = ordersDataSource as SeedOrder[];
 
 async function main() {
+  const productsById = new Map<number, SeedProduct>(
+    productsData.map((product): [number, SeedProduct] => [product.id, product]),
+  );
+
   // seed users loop
   for (const user of usersData) {
     const existingUser = await prisma.user.findUnique({
@@ -12,9 +54,7 @@ async function main() {
     });
     const passwordHash = await bcrypt.hash(user.password, 10);
     const seededPasswordHash =
-      existingUser?.password === user.password
-        ? passwordHash
-        : undefined;
+      existingUser?.password === user.password ? passwordHash : undefined;
 
     await prisma.user.upsert({
       where: { email: user.email },
@@ -37,7 +77,7 @@ async function main() {
       create: {
         ...productFields,
         reviews: {
-          create: reviews.map((r: any) => ({
+          create: reviews.map((r) => ({
             rating: r.rating,
             comment: r.comment,
             userId: r.userId,
@@ -49,27 +89,37 @@ async function main() {
   // seed orders loop
   for (const order of ordersData) {
     const { products, createdAt, ...orderFields } = order;
-    const status = {
-      pending: "PENDING",
-      shipped: "SHIPPED",
-      completed: "DELIVERED",
-    }[order.status];
-    if (!status) {
-      throw new Error(`Unsupported seed order status: ${order.status}`);
-    }
+
+    const items = products.map((item) => {
+      const product = productsById.get(item.productId);
+      if (!product) {
+        throw new Error(
+          `Seed order ${order.id} references missing product ${item.productId}`,
+        );
+      }
+
+      return {
+        productId: item.productId,
+        quantity: item.quantity,
+        productName: product.name,
+        unitPriceCents: Math.round(product.price * 100),
+      };
+    });
+    const totalCents = items.reduce(
+      (total, item) => total + item.unitPriceCents * item.quantity,
+      0,
+    );
 
     await prisma.order.upsert({
       where: { id: order.id },
       update: {},
       create: {
         ...orderFields,
-        status,
+        totalCents,
         createdAt: new Date(createdAt),
+        shippingAddress: {},
         items: {
-          create: products.map((p: any) => ({
-            quantity: p.quantity,
-            productId: p.productId,
-          })),
+          create: items,
         },
       },
     });

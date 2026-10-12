@@ -82,9 +82,12 @@ model Review {
 
 model Order {
   id        Int      @id @default(autoincrement())
-  total     Float
+  totalCents     Int
   status OrderStatus @default(PENDING)
   createdAt DateTime @default(now())
+
+  shippingAddress Json
+  paymentIntentId String? @unique
 
   userId Int
   user   User @relation(fields: [userId], references: [id])
@@ -95,6 +98,8 @@ model Order {
 model OrderItem {
   id       Int @id @default(autoincrement())
   quantity Int
+  unitPriceCents Int
+  productName String
 
   orderId   Int
   productId Int
@@ -126,5 +131,6 @@ enum OrderStatus {
   PENDING
   SHIPPED
   DELIVERED
+  PAID
   CANCELLED
 }
