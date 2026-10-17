@@ -6,6 +6,6 @@ const verifyToken = require("../middleware/verifyToken");
 router.get("/", verifyToken, orderController.getAllOrders);
 router.get("/:id", verifyToken, orderController.getOrderById);
 router.post("/checkout", verifyToken, orderController.checkout);
-router.patch("/:id", verifyToken, orderController.cancelOrder);
+router.patch("/:id/cancel", verifyToken, orderController.cancelOrder);
 
 module.exports = router;

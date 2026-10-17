@@ -50,6 +50,8 @@ exports.checkout = async (req, res, next) => {
       return next(new CustomError("Invalid fields", 400));
     }
 
+    const userId = req.user.id;
+
     const order = await prisma.$transaction(async (tx) => {
       // everything in here uses `tx`, never `prisma`
       const cart = await tx.cart.findUnique({
@@ -61,25 +63,67 @@ exports.checkout = async (req, res, next) => {
         },
       });
 
-      if (!cart || !cart.items) {
+      if (!cart || cart.items.length === 0) {
         throw new CustomError("No cart or no items", 400);
       }
 
       for (let i = 0; i < cart.items.length; i++) {
-        if (!cart.items.product.inStock) {
-                  throw new CustomError("No cart or no items", 400);
-
+        if (!cart.items[i].product.inStock) {
+          throw new CustomError(
+            `No stock for ${cart.items[i].product.name}`,
+            400,
+          );
         }
       }
 
-      const total = cart.items.reduce(
-        (sum, curr) => sum + curr.quantity * curr.product.price,
+      const itemIds = cart.items.map((item) => item.id);
+
+      const { count } = await tx.cartItem.deleteMany({
+        where: {
+          id: { in: itemIds },
+        },
+      });
+
+      if (count !== cart.items.length) {
+        throw new CustomError(
+          "Cart changed during checkout. Please retry.",
+          409,
+        );
+      }
+
+      const orderItems = cart.items.map((item) => ({
+        productId: item.productId,
+        productName: item.product.name,
+        unitPriceCents: Math.round(item.product.price * 100),
+        quantity: item.quantity,
+      }));
+
+      const totalCents = orderItems.reduce(
+        (sum, curr) => sum + curr.quantity * curr.unitPriceCents,
         0,
       );
+
+      const order = await tx.order.create({
+        data: {
+          userId,
+          status: "PENDING",
+          shippingAddress: value.shippingAddress,
+          totalCents,
+          items: {
+            create: orderItems,
+          },
+        },
+        include: { items: true },
+      });
+
+      return order;
     });
 
     res.status(201).json({ message: "Order created successfully", order });
   } catch (err) {
+    if (err instanceof CustomError) {
+      return next(err);
+    }
     logger.error("Create order failed", { errorMessage: err.message });
     return next(new CustomError("Create order failed", 500));
   }
