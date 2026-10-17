@@ -1,15 +1,14 @@
 const Joi = require("joi");
 
 const schema = Joi.object({
-  items: Joi.array()
-    .items(
-      Joi.object({
-        productId: Joi.number().integer().required(),
-        quantity: Joi.number().integer().min(1).required(),
-      }),
-    )
-    .min(1)
-    .required(),
+  shippingAddress: Joi.object({
+    name: Joi.string().trim().min(1).max(100).required(),
+    line1: Joi.string().trim().min(1).max(200).required(),
+    line2: Joi.string().trim().max(200),
+    city: Joi.string().trim().min(1).max(100).required(),
+    postalCode: Joi.string().trim().min(1).max(20).required(),
+    country: Joi.string().trim().min(1).max(100).required(),
+  }).required(),
 });
 
 module.exports = schema;
