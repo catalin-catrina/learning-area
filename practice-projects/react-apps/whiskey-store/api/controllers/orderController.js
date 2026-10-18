@@ -1,8 +1,10 @@
+const { prisma } = require("../lib/prisma");
+const { stripe } = require("../lib/stripe");
+
+const { canTransition } = require("../utils/orderStatus");
 const orderSchema = require("../validators/orderValidator");
 const CustomError = require("../utils/customError");
-const { prisma } = require("../lib/prisma");
 const logger = require("../utils/logger");
-const { canTransition } = require("../utils/orderStatus");
 
 exports.getAllOrders = async (req, res, next) => {
   try {
@@ -136,7 +138,10 @@ exports.createPaymentSession = async (req, res, next) => {
       return next(new CustomError("Invalid order id", 400));
     }
 
-    const order = await prisma.order.findUnique({ where: { id: orderId } });
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: { items: true },
+    });
     if (!order) {
       return next(new CustomError("Order not found", 404));
     }
@@ -144,6 +149,17 @@ exports.createPaymentSession = async (req, res, next) => {
     if (order.userId !== req.user.id) {
       return next(new CustomError("Operation not permitted", 403));
     }
+
+    if (order.status !== "PENDING") {
+      return next(
+        new CustomError(
+          `Payment cannot be started because this order is ${order.status}.`,
+          409,
+        ),
+      );
+    }
+
+    await stripe.checkout.sessions.create({})
   } catch (err) {
     logger.error("Failed to create payment session", {
       errorMessage: err.message,
