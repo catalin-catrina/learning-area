@@ -129,6 +129,29 @@ exports.checkout = async (req, res, next) => {
   }
 };
 
+exports.createPaymentSession = async (req, res, next) => {
+  try {
+    const orderId = Number(req.params.id);
+    if (!Number.isSafeInteger(orderId) || orderId <= 0) {
+      return next(new CustomError("Invalid order id", 400));
+    }
+
+    const order = await prisma.order.findUnique({ where: { id: orderId } });
+    if (!order) {
+      return next(new CustomError("Order not found", 404));
+    }
+
+    if (order.userId !== req.user.id) {
+      return next(new CustomError("Operation not permitted", 403));
+    }
+  } catch (err) {
+    logger.error("Failed to create payment session", {
+      errorMessage: err.message,
+    });
+    return next(new CustomError("Create payment session failed", 500));
+  }
+};
+
 exports.cancelOrder = async (req, res, next) => {
   try {
     const orderId = Number(req.params.id);
