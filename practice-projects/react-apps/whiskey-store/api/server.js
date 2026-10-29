@@ -8,6 +8,10 @@ const app = express();
 const PORT = 3000;
 const SPA_ORIGIN = "http://localhost:5173";
 
+// Webhook: preserve the body for signature verification by putting it before app.use(express.json());
+const stripeRoute = require("./routes/stripe");
+app.use("/api/stripe", stripeRoute);
+
 // Middleware
 app.use(express.json()); // to parse JSON bodies
 app.use(cookieParser());
@@ -23,7 +27,6 @@ const usersRoute = require("./routes/users");
 const ordersRoute = require("./routes/orders");
 const authRoute = require("./routes/auth");
 const cartRoute = require("./routes/cart");
-
 
 app.use("/api/products", productsRoute);
 app.use("/api/cart", cartRoute);

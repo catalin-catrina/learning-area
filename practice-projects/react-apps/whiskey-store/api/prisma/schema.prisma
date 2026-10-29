@@ -92,6 +92,9 @@ model Order {
   userId Int
   user   User @relation(fields: [userId], references: [id])
 
+  stripeCheckoutSessionId String? @unique
+  checkoutSessionCreationKey String @unique
+
   items OrderItem[]
 }
 

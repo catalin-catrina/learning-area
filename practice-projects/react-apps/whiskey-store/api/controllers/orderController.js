@@ -1,5 +1,6 @@
 const { prisma } = require("../lib/prisma");
 const { stripe } = require("../lib/stripe");
+const { v4 } = require("uuid");
 
 const { canTransition } = require("../utils/orderStatus");
 const orderSchema = require("../validators/orderValidator");
@@ -111,6 +112,7 @@ exports.checkout = async (req, res, next) => {
           status: "PENDING",
           shippingAddress: value.shippingAddress,
           totalCents,
+          checkoutSessionCreationKey: v4(),
           items: {
             create: orderItems,
           },
@@ -159,7 +161,57 @@ exports.createPaymentSession = async (req, res, next) => {
       );
     }
 
-    await stripe.checkout.sessions.create({})
+    let session;
+
+    if (order.stripeCheckoutSessionId) {
+      const retrievedSession = await stripe.checkout.sessions.retrieve(
+        order.stripeCheckoutSessionId,
+      );
+      if (retrievedSession.status === "open") {
+        session = retrievedSession;
+      } else if (retrievedSession.status === "complete") {
+        return next(
+          new CustomError(
+            `Checkout is already complete.`,
+            409,
+          ),
+        );
+      } else if (retrievedSession.status === "expired") {
+        return next(new CustomError(`Checkout session expired`, 409));
+      }
+    } else {
+      session = await stripe.checkout.sessions.create(
+        {
+          mode: "payment",
+          ui_mode: "elements",
+          line_items: order.items.map((item) => ({
+            quantity: item.quantity,
+            price_data: {
+              currency: "eur",
+              unit_amount: item.unitPriceCents,
+              product_data: {
+                name: item.productName,
+              },
+            },
+          })),
+          client_reference_id: String(order.id),
+          return_url:
+            "http://localhost:5173/payment/return?session_id={CHECKOUT_SESSION_ID}",
+        },
+        {
+          idempotencyKey: order.checkoutSessionCreationKey
+        },
+      );
+
+      await prisma.order.update({
+        where: { id: orderId },
+        data: {
+          stripeCheckoutSessionId: session.id,
+        },
+      });
+    }
+
+    return res.json({ clientSecret: session.client_secret });
   } catch (err) {
     logger.error("Failed to create payment session", {
       errorMessage: err.message,

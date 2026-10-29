@@ -6,7 +6,11 @@ const verifyToken = require("../middleware/verifyToken");
 router.get("/", verifyToken, orderController.getAllOrders);
 router.get("/:id", verifyToken, orderController.getOrderById);
 router.post("/checkout", verifyToken, orderController.checkout);
-router.post("/:id/payment-session", verifyToken, orderController.createPaymentSession);
+router.post(
+  "/:id/payment-session",
+  verifyToken,
+  orderController.createPaymentSession,
+);
 router.patch("/:id/cancel", verifyToken, orderController.cancelOrder);
 
 module.exports = router;
