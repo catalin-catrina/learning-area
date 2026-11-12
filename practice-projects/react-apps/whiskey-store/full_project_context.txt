@@ -1,0 +1,5546 @@
+=== FULL PROJECT STRUCTURE (WHISKEY STORE) ===
+whiskey-store/
+    api/
+        package.json
+        prisma.config.ts
+        server.js
+        config/
+            secrets.js
+        controllers/
+            authController.js
+            cartController.js
+            orderController.js
+            productController.js
+            stripeController.js
+            userController.js
+        data/
+            ordersData.js
+            productsData.js
+            usersData.js
+        lib/
+            prisma.js
+            stripe.js
+        middleware/
+            errorHandler.js
+            requireAdmin.js
+            verifyToken.js
+        prisma/
+            seed.ts
+            migrations/
+                20260606071210_init/
+                    migration.sql
+                20260606073748_init/
+                    migration.sql
+                20260808072314_add_order_status_enum/
+                    migration.sql
+                20260930060640_add_cart_models/
+                    migration.sql
+                20261001072255_add_cart_models/
+                    migration.sql
+                20261003161923_add_cart_item_unique_constraint/
+                    migration.sql
+                20261011152000_add_cart_item_created_at/
+                    migration.sql
+                20261012090352_add_fields/
+                    migration.sql
+                20261022150237_add_stripe_checkout_session_id/
+                    migration.sql
+                20261024081312_add_stripe_checkout_session_creation_key/
+                    migration.sql
+        routes/
+            auth.js
+            cart.js
+            orders.js
+            products.js
+            stripe.js
+            users.js
+        tests/
+            security.test.js
+        utils/
+            cookieOptions.js
+            customError.js
+            logger.js
+            orderStatus.js
+            tokenBlacklist.js
+        validators/
+            cartValidator.js
+            orderValidator.js
+            productValidator.js
+            userValidator.js
+    ui/
+        eslint.config.js
+        index.html
+        package.json
+        README.md
+        tsconfig.app.json
+        tsconfig.json
+        tsconfig.node.json
+        vite.config.ts
+        public/
+        src/
+            App.css
+            App.tsx
+            index.css
+            main.tsx
+            routes.tsx
+            config/
+                environment.ts
+            features/
+                auth/
+                    auth.types.ts
+                    components/
+                        Login.module.css
+                        Login.tsx
+                        Register.tsx
+                    hooks/
+                        useAuth.ts
+                    services/
+                        auth.service.ts
+                cart/
+                    cart.types.ts
+                    components/
+                        Cart.tsx
+                        CartPreview.tsx
+                    hooks/
+                        useCart.ts
+                    services/
+                        cart.service.ts
+                checkout/
+                    checkout.types.ts
+                    components/
+                        CheckoutForm.tsx
+                        CheckoutPage.tsx
+                        PaymentReturnPage.tsx
+                        ShippingPage.tsx
+                    hooks/
+                        useCheckout.ts
+                    services/
+                        checkout.service.ts
+                home/
+                    components/
+                        Home.tsx
+                layouts/
+                    MainLayout.tsx
+                    PublicLayout.tsx
+                orders/
+                    order.types.ts
+                    hooks/
+                        useOrders.ts
+                    services/
+                        orders.service.ts
+                products/
+                    product.types.ts
+                    hooks/
+                        useProduct.ts
+                    product-detail/
+                        components/
+                            ProductDetail.tsx
+                    product-list/
+                        components/
+                            FilterBar.tsx
+                            ProductList.tsx
+                    services/
+                        products.service.ts
+                profile/
+                    components/
+                        Profile.tsx
+                    services/
+                        profile.service.ts
+            shared/
+                components/
+                    Navbar.tsx
+                    ProtectedRoute.tsx
+                    PublicRoute.tsx
+                context/
+                    auth/
+                        AuthContext.ts
+                        AuthProvider.tsx
+                models/
+                    auth.types.ts
+                    paginated.types.ts
+                    user.types.ts
+                services/
+                    api.ts
+                    tokenStore.ts
+
+=== SOURCE CODE CONTENTS ===
+
+// ==========================================
+// PATH: api\package.json
+// ==========================================
+
+{
+  "name": "ecommerce-app",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "start": "tsx server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.8.0",
+    "@prisma/client": "^7.8.0",
+    "bcrypt": "^6.0.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^17.4.2",
+    "express": "^4.21.2",
+    "joi": "^17.13.3",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.21.0",
+    "stripe": "^23.0.0",
+    "uuid": "^14.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "jest": "^29.7.0",
+    "nodemon": "^3.1.9",
+    "prisma": "^7.8.0",
+    "supertest": "^7.0.0",
+    "tsx": "^4.23.1"
+  }
+}
+
+
+// ==========================================
+// PATH: api\server.js
+// ==========================================
+
+require("dotenv").config();
+const express = require("express");
+const cors = require("cors");
+const cookieParser = require("cookie-parser");
+const errorHandler = require("./middleware/errorHandler");
+const app = express();
+const PORT = 3000;
+const SPA_ORIGIN = "http://localhost:5173";
+// Webhook: preserve the body for signature verification by putting it before app.use(express.json());
+const stripeRoute = require("./routes/stripe");
+app.use("/api/stripe", stripeRoute);
+// Middleware
+app.use(express.json()); // to parse JSON bodies
+app.use(cookieParser());
+app.use(
+  cors({
+    origin: SPA_ORIGIN,
+    credentials: true,
+  }),
+); // for CORS so browser is allowed to send and receive cookies with our API
+const productsRoute = require("./routes/products");
+const usersRoute = require("./routes/users");
+const ordersRoute = require("./routes/orders");
+const authRoute = require("./routes/auth");
+const cartRoute = require("./routes/cart");
+app.use("/api/products", productsRoute);
+app.use("/api/cart", cartRoute);
+app.use("/api/users", usersRoute);
+app.use("/api/orders", ordersRoute);
+app.use("/api/auth", authRoute);
+app.use(errorHandler);
+// Simple health-check route
+app.get("/", (req, res) => {
+  res.send("Welcome to our e-commerce API!");
+});
+// Starting the server
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
+});
+
+
+// ==========================================
+// PATH: api\config\secrets.js
+// ==========================================
+
+
+const { JWT_ACCESS_SECRET: accessTokenSecret, JWT_REFRESH_SECRET: refreshTokenSecret } =
+  process.env;
+if (!accessTokenSecret || !refreshTokenSecret) {
+  throw new Error(
+    "JWT_ACCESS_SECRET and JWT_REFRESH_SECRET must be configured before starting the API",
+  );
+}
+if (accessTokenSecret.length < 32 || refreshTokenSecret.length < 32) {
+  throw new Error("JWT secrets must each be at least 32 characters long");
+}
+module.exports = {
+  accessTokenSecret,
+  refreshTokenSecret,
+};
+
+
+// ==========================================
+// PATH: api\controllers\authController.js
+// ==========================================
+
+const jwt = require("jsonwebtoken");
+const { accessTokenSecret, refreshTokenSecret } = require("../config/secrets");
+const CustomError = require("../utils/customError");
+const logger = require("../utils/logger");
+const bcrypt = require("bcrypt");
+const { prisma } = require("../lib/prisma");
+const userSchema = require("../validators/userValidator");
+const cookieOptions = require("../utils/cookieOptions");
+exports.login = async (req, res, next) => {
+  const { email, password } = req.body;
+  try {
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
+    if (!user) return next(new CustomError("Invalid credentials", 401));
+    const valid = await bcrypt.compare(password, user.password);
+    if (!valid)
+      return next(new CustomError("Invalid credentials", 401));
+    const payload = {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    };
+    const accessToken = jwt.sign(payload, accessTokenSecret, {
+      expiresIn: "1h",
+    });
+    const refreshToken = jwt.sign(payload, refreshTokenSecret, {
+      expiresIn: "7d",
+    });
+    await prisma.refreshToken.create({
+      data: {
+        token: refreshToken,
+        userId: user.id,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      },
+    });
+    res.cookie("refresh_token", refreshToken, {
+      ...cookieOptions,
+      path: "/api/auth",
+    });
+    logger.info("User login successful", {
+      userId: user.id,
+      email: user.email,
+      ip: req.ip,
+    });
+    res.status(200).json({
+      message: "Login successful",
+      payload,
+      accessToken,
+    });
+  } catch (err) {
+    logger.warn("Login failed", {
+      email,
+      ip: req.ip,
+    });
+    return next(new CustomError("Login failed", 500));
+  }
+};
+exports.refreshToken = async (req, res, next) => {
+  try {
+    const refreshToken = req.cookies.refresh_token;
+    if (!refreshToken) {
+      logger.warn("Token refresh attempted without refresh_token cookie", {
+        ip: req.ip,
+      });
+      return next(new CustomError("No refresh token provided", 401));
+    }
+    const refreshTokenRecord = await prisma.refreshToken.findUnique({
+      where: { token: refreshToken },
+    });
+    if (!refreshTokenRecord || refreshTokenRecord.expiresAt < new Date()) {
+      logger.warn(
+        "Token refresh attempted with expired or invalid refresh token",
+        {
+          ip: req.ip,
+        },
+      );
+      return next(new CustomError("Refresh token expired or is invalid", 401));
+    }
+    const payload = jwt.verify(refreshToken, refreshTokenSecret);
+    // Issue new tokens
+    const { iat, exp, ...userData } = payload;
+    const newAccessToken = jwt.sign(userData, accessTokenSecret, {
+      expiresIn: "1h",
+    });
+    const newRefreshToken = jwt.sign(userData, refreshTokenSecret, {
+      expiresIn: "7d",
+    });
+    // Update refresh token in database
+    await prisma.refreshToken.update({
+      where: { token: refreshToken },
+      data: {
+        token: newRefreshToken,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      },
+    });
+    // Update refresh token cookie
+    res.cookie("refresh_token", newRefreshToken, {
+      ...cookieOptions,
+      path: "/api/auth",
+    });
+    logger.info("Token refreshed successfully", {
+      userId: payload.id,
+      ip: req.ip,
+    });
+    res.json({ accessToken: newAccessToken });
+  } catch (error) {
+    // Clear invalid refresh token cookie
+    res.clearCookie("refresh_token", { path: "/api/auth" });
+    logger.warn("Refresh failed", {
+      ip: req.ip,
+      errorName: error.name,
+    });
+    return next(new CustomError("Refresh failed", 401));
+  }
+};
+exports.registerUser = async (req, res, next) => {
+  try {
+    const { error, value } = userSchema.validate(req.body);
+    if (error) {
+      return next(new CustomError("Invalid or missing fields", 400));
+    }
+    const hashed = await bcrypt.hash(value.password, 10);
+    const newUser = {
+      name: value.name,
+      email: value.email,
+      password: hashed,
+      role: "user",
+    };
+    const userRecord = await prisma.user.create({
+      data: newUser,
+    });
+    const payload = {
+      id: userRecord.id,
+      email: userRecord.email,
+      role: userRecord.role,
+    };
+    const accessToken = jwt.sign(payload, accessTokenSecret, {
+      expiresIn: "1h",
+    });
+    const refreshToken = jwt.sign(payload, refreshTokenSecret, {
+      expiresIn: "7d",
+    });
+    const refreshTokenRecord = await prisma.refreshToken.create({
+      data: {
+        token: refreshToken,
+        userId: userRecord.id,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      },
+    });
+    const { password, ...safeUser } = userRecord;
+    res.status(201).json({
+      message: "User created",
+      user: safeUser,
+      accessToken,
+      refreshToken,
+    });
+  } catch (err) {
+    logger.warn("Register failed", {
+      email: req.body?.email,
+      ip: req.ip,
+    });
+    return next(new CustomError("Register failed", 500));
+  }
+};
+exports.logout = async (req, res, next) => {
+  try {
+    const token = req.cookies.refresh_token;
+    if (token) {
+      await prisma.refreshToken.delete({ where: { token } }).catch(() => {});
+      logger.info("User logout successful", {
+        ip: req.ip,
+      });
+    }
+    res.clearCookie("refresh_token", { path: "/api/auth" });
+    return res.status(200).json({ message: "Logout successful" });
+  } catch (error) {
+    logger.error("Logout failed with error", {
+      ip: req.ip,
+      errorMessage: error.message,
+    });
+    return next(new CustomError("Logout failed", 500));
+  }
+};
+exports.logoutAll = async (req, res, next) => {
+  try {
+    const token = req.cookies.refresh_token;
+    if (token) {
+      const tokenRecord = await prisma.refreshToken.findUnique({
+        where: { token },
+      });
+      if (tokenRecord) {
+        await prisma.refreshToken
+          .deleteMany({ where: { userId: tokenRecord.userId } })
+          .catch(() => {});
+        logger.info("User logout-all successful", {
+          userId: tokenRecord?.userId,
+          ip: req.ip,
+        });
+      }
+    }
+    res.clearCookie("refresh_token", { path: "/api/auth" });
+    return res.status(200).json({ message: "Logout all successful" });
+  } catch (error) {
+    logger.error("Logout-all failed with error", {
+      ip: req.ip,
+      errorMessage: error.message,
+    });
+    return next(new CustomError("Logout-all failed", 500));
+  }
+};
+
+
+// ==========================================
+// PATH: api\controllers\cartController.js
+// ==========================================
+
+const { prisma } = require("../lib/prisma");
+const {
+  addItemSchema,
+  updateQuantitySchema,
+} = require("../validators/cartValidator");
+const CustomError = require("../utils/customError");
+const logger = require("../utils/logger");
+const fetchFormattedCart = async (userId) => {
+  const cart = await prisma.cart.upsert({
+    where: { userId },
+    create: { userId },
+    update: {},
+    include: {
+      items: {
+        orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+        include: { product: true },
+      },
+    },
+  });
+  const total = cart.items.reduce(
+    (sum, curr) => sum + curr.quantity * curr.product.price,
+    0,
+  );
+  return { ...cart, total };
+};
+exports.getCart = async (req, res, next) => {
+  try {
+    const cart = await fetchFormattedCart(req.user.id);
+    res.status(200).json(cart);
+  } catch (err) {
+    logger.error("Get cart failed", { errorMessage: err.message });
+    return next(new CustomError("Failed to fetch cart", 500));
+  }
+};
+exports.addItem = async (req, res, next) => {
+  try {
+    const { error, value } = addItemSchema.validate(req.body);
+    if (error) {
+      return next(new CustomError("Invalid or missing fields", 400));
+    }
+    const userId = req.user.id;
+    const { productId, quantity } = value;
+    const currentCart = await fetchFormattedCart(userId);
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+    });
+    if (!product) return next(new CustomError("Product not found", 404));
+    if (!product.inStock) return next(new CustomError("Out of stock", 400));
+    await prisma.cartItem.upsert({
+      where: { cartId_productId: { cartId: currentCart.id, productId } },
+      create: { cartId: currentCart.id, productId, quantity },
+      update: { quantity: { increment: quantity } },
+    });
+    const updatedCart = await fetchFormattedCart(userId);
+    res.status(200).json(updatedCart);
+  } catch (err) {
+    logger.warn("Add to cart failed", {
+      ip: req.ip,
+      errorMessage: err.message,
+    });
+    return next(new CustomError("Add to cart failed", 500));
+  }
+};
+exports.updateItemQuantity = async (req, res, next) => {
+  try {
+    const { error, value } = updateQuantitySchema.validate(req.body);
+    if (error) return next(new CustomError("Invalid quantity", 400));
+    const productId = parseInt(req.params.productId, 10);
+    const { quantity } = value;
+    const userId = req.user.id;
+    const currentCart = await fetchFormattedCart(userId);
+    const item = currentCart.items.find((i) => i.productId === productId);
+    if (!item) return next(new CustomError("Item not found in cart", 404));
+    await prisma.cartItem.update({
+      where: { id: item.id },
+      data: { quantity },
+    });
+    const updatedCart = await fetchFormattedCart(userId);
+    res.status(200).json(updatedCart);
+  } catch (err) {
+    logger.error("Update quantity failed", { errorMessage: err.message });
+    next(new CustomError("Failed to update item", 500));
+  }
+};
+exports.removeItem = async (req, res, next) => {
+  try {
+    const productId = parseInt(req.params.productId, 10);
+    const userId = req.user.id;
+    const currentCart = await fetchFormattedCart(userId);
+    const item = currentCart.items.find((i) => i.productId === productId);
+    if (!item) return next(new CustomError("Item not found in cart", 404));
+    await prisma.cartItem.delete({
+      where: { id: item.id },
+    });
+    const updatedCart = await fetchFormattedCart(userId);
+    res.status(200).json(updatedCart);
+  } catch (err) {
+    logger.error("Remove item failed", { errorMessage: err.message });
+    return next(new CustomError("Removing from cart failed", 500));
+  }
+};
+
+
+// ==========================================
+// PATH: api\controllers\orderController.js
+// ==========================================
+
+const { prisma } = require("../lib/prisma");
+const { stripe } = require("../lib/stripe");
+const { v4 } = require("uuid");
+const { canTransition } = require("../utils/orderStatus");
+const orderSchema = require("../validators/orderValidator");
+const CustomError = require("../utils/customError");
+const logger = require("../utils/logger");
+exports.getAllOrders = async (req, res, next) => {
+  try {
+    const orders =
+      req.user.role === "admin"
+        ? await prisma.order.findMany({ include: { items: true } })
+        : await prisma.order.findMany({
+            where: { userId: req.user.id },
+            include: { items: true },
+          });
+    res.json(orders);
+  } catch (err) {
+    logger.error("Get orders failed", { errorMessage: err.message });
+    return next(new CustomError("Get orders failed", 500));
+  }
+};
+exports.getOrderById = async (req, res, next) => {
+  try {
+    const order = await prisma.order.findUnique({
+      where: { id: parseInt(req.params.id) },
+      include: { items: true },
+    });
+    if (!order) {
+      return next(new CustomError("Order not found", 404));
+    }
+    if (req.user.role !== "admin" && order.userId !== req.user.id) {
+      return next(new CustomError("Operation not permitted", 403));
+    }
+    res.json(order);
+  } catch (err) {
+    logger.error("Get order failed", { errorMessage: err.message });
+    return next(new CustomError("Get order failed", 500));
+  }
+};
+exports.checkout = async (req, res, next) => {
+  try {
+    const { error, value } = orderSchema.validate(req.body);
+    if (error) {
+      return next(new CustomError("Invalid fields", 400));
+    }
+    const userId = req.user.id;
+    const order = await prisma.$transaction(async (tx) => {
+      // everything in here uses `tx`, never `prisma`
+      const cart = await tx.cart.findUnique({
+        where: { userId },
+        include: {
+          items: {
+            include: { product: true },
+          },
+        },
+      });
+      if (!cart || cart.items.length === 0) {
+        throw new CustomError("No cart or no items", 400);
+      }
+      for (let i = 0; i < cart.items.length; i++) {
+        if (!cart.items[i].product.inStock) {
+          throw new CustomError(
+            `No stock for ${cart.items[i].product.name}`,
+            400,
+          );
+        }
+      }
+      const itemIds = cart.items.map((item) => item.id);
+      const { count } = await tx.cartItem.deleteMany({
+        where: {
+          id: { in: itemIds },
+        },
+      });
+      if (count !== cart.items.length) {
+        throw new CustomError(
+          "Cart changed during checkout. Please retry.",
+          409,
+        );
+      }
+      const orderItems = cart.items.map((item) => ({
+        productId: item.productId,
+        productName: item.product.name,
+        unitPriceCents: Math.round(item.product.price * 100),
+        quantity: item.quantity,
+      }));
+      const totalCents = orderItems.reduce(
+        (sum, curr) => sum + curr.quantity * curr.unitPriceCents,
+        0,
+      );
+      const order = await tx.order.create({
+        data: {
+          userId,
+          status: "PENDING",
+          shippingAddress: value.shippingAddress,
+          totalCents,
+          checkoutSessionCreationKey: v4(),
+          items: {
+            create: orderItems,
+          },
+        },
+        include: { items: true },
+      });
+      return order;
+    });
+    res.status(201).json({ message: "Order created successfully", order });
+  } catch (err) {
+    if (err instanceof CustomError) {
+      return next(err);
+    }
+    logger.error("Create order failed", { errorMessage: err.message });
+    return next(new CustomError("Create order failed", 500));
+  }
+};
+exports.createPaymentSession = async (req, res, next) => {
+  try {
+    const orderId = Number(req.params.id);
+    if (!Number.isSafeInteger(orderId) || orderId <= 0) {
+      return next(new CustomError("Invalid order id", 400));
+    }
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: { items: true },
+    });
+    if (!order) {
+      return next(new CustomError("Order not found", 404));
+    }
+    if (order.userId !== req.user.id) {
+      return next(new CustomError("Operation not permitted", 403));
+    }
+    if (order.status !== "PENDING") {
+      return next(
+        new CustomError(
+          `Payment cannot be started because this order is ${order.status}.`,
+          409,
+        ),
+      );
+    }
+    let session;
+    let creationKey = order.checkoutSessionCreationKey;
+    if (order.stripeCheckoutSessionId) {
+      const retrievedSession = await stripe.checkout.sessions.retrieve(
+        order.stripeCheckoutSessionId,
+      );
+      switch (retrievedSession.status) {
+        case "open":
+          session = retrievedSession;
+          break;
+        case "complete":
+          return next(new CustomError("Checkout is already complete.", 409));
+        case "expired": {
+          creationKey = v4();
+          const { count } = await prisma.order.updateMany({
+            where: {
+              id: order.id,
+              status: "PENDING",
+              stripeCheckoutSessionId: retrievedSession.id,
+              checkoutSessionCreationKey: order.checkoutSessionCreationKey,
+            },
+            data: {
+              checkoutSessionCreationKey: creationKey,
+              stripeCheckoutSessionId: null,
+            },
+          });
+          if (count !== 1) {
+            return next(
+              new CustomError(
+                "The order was modified while processing and the user should reload",
+                409,
+              ),
+            );
+          }
+          break;
+        }
+      }
+    }
+    if (!session) {
+      session = await stripe.checkout.sessions.create(
+        {
+          mode: "payment",
+          ui_mode: "elements",
+          line_items: order.items.map((item) => ({
+            quantity: item.quantity,
+            price_data: {
+              currency: "eur",
+              unit_amount: item.unitPriceCents,
+              product_data: {
+                name: item.productName,
+              },
+            },
+          })),
+          client_reference_id: String(order.id),
+          return_url:
+            "http://localhost:5173/payment/return?order_id={order.id}&session_id={CHECKOUT_SESSION_ID}",
+        },
+        {
+          idempotencyKey: creationKey,
+        },
+      );
+      const { count } = await prisma.order.updateMany({
+        where: {
+          id: orderId,
+          status: "PENDING",
+          checkoutSessionCreationKey: creationKey,
+        },
+        data: {
+          stripeCheckoutSessionId: session.id,
+        },
+      });
+      if (count !== 1) {
+        return next(
+          new CustomError(
+            "The order was modified while processing and the user should reload",
+            409,
+          ),
+        );
+      }
+    }
+    return res.json({ clientSecret: session.client_secret });
+  } catch (err) {
+    logger.error("Failed to create payment session", {
+      errorMessage: err.message,
+    });
+    return next(new CustomError("Create payment session failed", 500));
+  }
+};
+exports.cancelOrder = async (req, res, next) => {
+  try {
+    const orderId = Number(req.params.id);
+    if (!Number.isSafeInteger(orderId) || orderId <= 0) {
+      return next(new CustomError("Invalid order id", 400));
+    }
+    const order = await prisma.order.findUnique({ where: { id: orderId } });
+    if (!order) {
+      return next(new CustomError("Order not found", 404));
+    }
+    if (req.user.role !== "admin" && order.userId !== req.user.id) {
+      return next(new CustomError("Operation not permitted", 403));
+    }
+    const isAllowed = canTransition(order.status, "CANCELLED");
+    if (!isAllowed) {
+      return next(
+        new CustomError(
+          `Order can't be cancelled because it's ${order.status}`,
+          409,
+        ),
+      );
+    }
+    const { count } = await prisma.order.updateMany({
+      where: { id: orderId, status: order.status },
+      data: { status: "CANCELLED" },
+    });
+    if (!count) {
+      return next(
+        new CustomError(
+          "The order was modified while processing and the user should reload",
+          409,
+        ),
+      );
+    }
+    const newOrder = await prisma.order.findUnique({ where: { id: orderId } });
+    res
+      .status(200)
+      .json({ message: "Order cancelled successfully", order: newOrder });
+  } catch (err) {
+    logger.error("Cancel order failed", { errorMessage: err.message });
+    return next(new CustomError("Cancel order failed", 500));
+  }
+};
+
+
+// ==========================================
+// PATH: api\controllers\productController.js
+// ==========================================
+
+const productSchema = require("../validators/productValidator");
+const CustomError = require("../utils/customError");
+const { prisma } = require("../lib/prisma");
+const logger = require("../utils/logger");
+exports.getProducts = async (req, res, next) => {
+  try {
+    const ALLOWED_FILTERS = ["region", "type", "country", "inStock", "rating"];
+    const where = ALLOWED_FILTERS.reduce((acc, key) => {
+      if (req.query[key]) {
+        if (req.query[key] === "true") {
+          acc[key] = true;
+        } else if (req.query[key] === "false") {
+          acc[key] = false;
+        } else if (key === "rating") {
+          acc[key] = parseFloat(req.query[key]);
+        } else {
+          acc[key] = req.query[key];
+        }
+      }
+      return acc;
+    }, {});
+    if (req.query.minPrice) {
+      where.price = { ...where.price, gte: parseFloat(req.query.minPrice) };
+    }
+    if (req.query.maxPrice) {
+      where.price = { ...where.price, lte: parseFloat(req.query.maxPrice) };
+    }
+    if (req.query.search) {
+      where.OR = [
+        { name: { contains: req.query.search, mode: "insensitive" } },
+        { distillery: { contains: req.query.search, mode: "insensitive" } },
+      ];
+    }
+    const ALLOWED_SORT_ORDER = ["asc", "desc"];
+    const ALLOWED_SORT_BY = ["price", "age"];
+    if (req.query.sortBy) {
+      if (
+        !ALLOWED_SORT_BY.includes(req.query.sortBy) ||
+        (req.query.sortOrder &&
+          !ALLOWED_SORT_ORDER.includes(req.query.sortOrder))
+      ) {
+        return next(new CustomError("Invalid sort params", 400));
+      }
+    }
+    const orderBy = req.query.sortBy
+      ? [
+          {
+            [req.query.sortBy]: req.query.sortOrder === "desc" ? "desc" : "asc",
+          },
+        ]
+      : undefined;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const skip = (page - 1) * limit;
+    const products = prisma.product.findMany({
+      where,
+      orderBy,
+      skip,
+      take: limit,
+    });
+    const count = prisma.product.count({ where });
+    const [productsResult, countResult] = await Promise.all([products, count]);
+    const response = {
+      data: productsResult,
+      total: countResult,
+      page,
+      limit,
+      totalPages: Math.ceil(countResult / limit),
+    };
+    res.json(response);
+  } catch (err) {
+    logger.warn("Get products failed", {
+      ip: req.ip,
+    });
+    return next(new CustomError("Get products failed", 500));
+  }
+};
+exports.getFilters = async (req, res, next) => {
+  try {
+    const regions = prisma.product.findMany({
+      distinct: ["region"],
+      select: { region: true },
+    });
+    const types = prisma.product.findMany({
+      distinct: ["type"],
+      select: { type: true },
+    });
+    const countries = prisma.product.findMany({
+      distinct: ["country"],
+      select: { country: true },
+    });
+    const [regionsResult, typesResult, countriesResult] = await Promise.all([
+      regions,
+      types,
+      countries,
+    ]);
+    const flatRegions = regionsResult.map((r) => r.region);
+    const flatTypes = typesResult.map((r) => r.type);
+    const flatCountries = countriesResult.map((r) => r.country);
+    const response = { flatRegions, flatTypes, flatCountries };
+    res.json(response);
+  } catch (err) {
+    return next(new CustomError("Get filters failed", 500));
+  }
+};
+exports.getProductById = async (req, res, next) => {
+  try {
+    const product = await prisma.product.findUnique({
+      where: { id: parseInt(req.params.id) },
+      include: { reviews: true },
+    });
+    if (!product) {
+      return next(new CustomError("Product not found", 404));
+    }
+    res.json(product);
+  } catch (err) {
+    return next(new CustomError("Get Product by id failed", 500));
+  }
+};
+exports.createProduct = async (req, res, next) => {
+  try {
+    const { error, value } = productSchema.validate(req.body);
+    if (error) {
+      return next(new CustomError("Invalid fields", 400));
+    }
+    const product = await prisma.product.create({
+      data: value,
+    });
+    res.status(201).json(product);
+  } catch (err) {
+    return next(new CustomError("Create product failed", 500));
+  }
+};
+exports.putProduct = async (req, res, next) => {
+  try {
+    const { error, value } = productSchema.validate(req.body);
+    if (error) {
+      return next(new CustomError("Invalid fields", 400));
+    }
+    const product = await prisma.product.update({
+      where: { id: parseInt(req.params.id) },
+      data: value,
+    });
+    res.status(200).json({
+      message: "Product updated successfully",
+      product,
+    });
+  } catch (err) {
+    return next(new CustomError("Update product failed", 500));
+  }
+};
+exports.deleteProduct = async (req, res, next) => {
+  try {
+    const deleteProduct = await prisma.product.delete({
+      where: {
+        id: parseInt(req.params.id),
+      },
+    });
+    res.status(200).json({ message: "Product deleted successfully" });
+  } catch (err) {
+    return next(new CustomError("Delete product failed", 500));
+  }
+};
+
+
+// ==========================================
+// PATH: api\controllers\stripeController.js
+// ==========================================
+
+const { stripe } = require("../lib/stripe");
+const { prisma } = require("../lib/prisma");
+const logger = require("../utils/logger");
+const CustomError = require("../utils/customError");
+exports.handleWebhook = async (req, res, next) => {
+  let event;
+  try {
+    try {
+      const signature = req.headers["stripe-signature"];
+      event = stripe.webhooks.constructEvent(
+        req.body,
+        signature,
+        process.env.STRIPE_WEBHOOK_SECRET,
+      );
+    } catch (err) {
+      logger.error("⚠️ Webhook signature verification failed.", {
+        errorMessage: err.message,
+      });
+      return next(
+        new CustomError("⚠️ Webhook signature verification failed.", 400),
+      );
+    }
+    const fail = (message, { session, paymentIntentId, currentOrder } = {}) => {
+      logger.error(message, {
+        eventId: event.id,
+        eventType: event.type,
+        orderReference: session?.client_reference_id,
+        sessionId: session?.id,
+        paymentIntentId,
+        receivedAmountCents: session?.amount_total,
+        receivedCurrency: session?.currency,
+        orderId: currentOrder?.id,
+        orderStatus: currentOrder?.status,
+        storedSessionId: currentOrder?.stripeCheckoutSessionId,
+        storedPaymentIntentId: currentOrder?.paymentIntentId,
+        expectedAmountCents: currentOrder?.totalCents,
+        expectedCurrency: "eur",
+      });
+      return next(new CustomError(message, 500));
+    };
+    // Handle the event
+    switch (event.type) {
+      case "checkout.session.completed":
+      case "checkout.session.async_payment_succeeded": {
+        const session = event.data.object;
+        const paymentIntentId =
+          typeof session.payment_intent === "string"
+            ? session.payment_intent
+            : session.payment_intent?.id;
+        const context = { session, paymentIntentId };
+        if (session.payment_status !== "paid") {
+          return res.json({ received: true });
+        }
+        if (
+          typeof paymentIntentId !== "string" ||
+          paymentIntentId.trim().length === 0
+        ) {
+          return fail("Missing or invalid payment intent ID", context);
+        }
+        const orderId = Number(session.client_reference_id);
+        if (!Number.isSafeInteger(orderId) || orderId <= 0) {
+          return fail("Invalid order id", context);
+        }
+        const order = await prisma.order.findUnique({
+          where: { id: orderId },
+        });
+        if (!order) {
+          return fail("Order not found", {
+            ...context,
+            currentOrder: order,
+          });
+        }
+        if (
+          session.id !== order.stripeCheckoutSessionId ||
+          (order.paymentIntentId !== null &&
+            order.paymentIntentId !== paymentIntentId) ||
+          session.amount_total !== order.totalCents ||
+          session.currency !== "eur"
+        ) {
+          return fail("Payment does not match order", {
+            ...context,
+            currentOrder: order,
+          });
+        }
+        const { count } = await prisma.order.updateMany({
+          where: {
+            id: orderId,
+            stripeCheckoutSessionId: session.id,
+            status: "PENDING",
+            OR: [{ paymentIntentId: null }, { paymentIntentId }],
+          },
+          data: { status: "PAID", paymentIntentId },
+        });
+        if (count === 1) {
+          return res.status(200).json({ received: true });
+        }
+        const newOrder = await prisma.order.findUnique({
+          where: { id: orderId },
+        });
+        if (!newOrder) {
+          return fail("Order missing after conditional payment update", {
+            ...context,
+          });
+        }
+        switch (newOrder.status) {
+          case "PAID":
+          case "SHIPPED":
+          case "DELIVERED": {
+            const samePayment =
+              newOrder.stripeCheckoutSessionId === session.id &&
+              newOrder.paymentIntentId === paymentIntentId;
+            if (!samePayment) {
+              return fail("Recorded payment identity does not match event", {
+                ...context,
+                currentOrder: newOrder,
+              });
+            }
+            return res.json({ received: true });
+          }
+          case "CANCELLED":
+            return fail("Payment received for cancelled order", {
+              ...context,
+              currentOrder: newOrder,
+            });
+          case "PENDING":
+            return fail("Conditional payment update matched no order", {
+              ...context,
+              currentOrder: newOrder,
+            });
+          default:
+            return fail("Unexpected order status during payment processing", {
+              ...context,
+              currentOrder: newOrder,
+            });
+        }
+      }
+      case "checkout.session.async_payment_failed": {
+        const session = event.data.object;
+        const paymentIntentId =
+          typeof session.payment_intent === "string"
+            ? session.payment_intent
+            : session.payment_intent?.id;
+        const context = { session, paymentIntentId };
+        if (
+          typeof paymentIntentId !== "string" ||
+          paymentIntentId.trim().length === 0
+        ) {
+          return fail("Missing or invalid payment intent ID", context);
+        }
+        const orderId = Number(session.client_reference_id);
+        if (!Number.isSafeInteger(orderId) || orderId <= 0) {
+          return fail("Invalid order id", context);
+        }
+        const order = await prisma.order.findUnique({
+          where: { id: orderId },
+        });
+        if (!order) {
+          return fail("Order not found", {
+            ...context,
+            currentOrder: order,
+          });
+        }
+        if (
+          session.id !== order.stripeCheckoutSessionId ||
+          (order.paymentIntentId !== null &&
+            order.paymentIntentId !== paymentIntentId) ||
+          session.amount_total !== order.totalCents ||
+          session.currency !== "eur"
+        ) {
+          return fail("Payment does not match order", {
+            ...context,
+            currentOrder: order,
+          });
+        }
+        switch (order.status) {
+          case "PENDING":
+          case "CANCELLED":
+            logger.warn("Delayed checkout payment failed", {
+              eventId: event.id,
+              orderId: order.id,
+              orderStatus: order.status,
+              sessionId: session.id,
+              paymentIntentId,
+            });
+            return res.json({ received: true });
+          case "PAID":
+          case "SHIPPED":
+          case "DELIVERED":
+            return fail(
+              "Payment failed. Did not expect PAID/SHIPPED/DELIVERED order status during payment processing",
+              {
+                ...context,
+                currentOrder: order,
+              },
+            );
+          default:
+            return fail("Unexpected order status during payment processing", {
+              ...context,
+              currentOrder: order,
+            });
+        }
+      }
+      case "checkout.session.expired": {
+        const session = event.data.object;
+        const context = { session };
+        const orderId = Number(session.client_reference_id);
+        if (!Number.isSafeInteger(orderId) || orderId <= 0) {
+          return fail("Invalid order id", context);
+        }
+        const order = await prisma.order.findUnique({
+          where: { id: orderId },
+        });
+        if (!order) {
+          return fail("Order not found", {
+            ...context,
+            currentOrder: order,
+          });
+        }
+        if (session.id !== order.stripeCheckoutSessionId) {
+          logger.warn(
+            "Expired session differs from the order’s saved session",
+            {
+              eventId: event.id,
+              orderId: order.id,
+              storedSessionId: order.stripeCheckoutSessionId,
+              receivedSessionId: session.id,
+            },
+          );
+          return res.json({ received: true });
+        }
+        switch (order.status) {
+          case "PENDING": {
+            logger.warn("Checkout session expired", {
+              eventId: event.id,
+              orderId: order.id,
+              orderStatus: order.status,
+              sessionId: session.id,
+            });
+            return res.status(200).json({ received: true });
+          }
+          case "CANCELLED":
+            return res.json({ received: true });
+          case "PAID":
+          case "SHIPPED":
+          case "DELIVERED": {
+            logger.warn("Unexpected status combination for a paid order.", {
+              eventId: event.id,
+              orderId: order.id,
+              orderStatus: order.status,
+              sessionId: session.id,
+            });
+            return res.json({ received: true });
+          }
+        }
+        break;
+      }
+      // ... handle other event types
+      default:
+        console.log(`Unhandled event type ${event.type}`);
+    }
+    // Return a response to acknowledge receipt of the event
+    res.json({ received: true });
+  } catch (err) {
+    logger.error("Webhook processing failed", {
+      errorMessage: err.message,
+      eventId: event?.id,
+      eventType: event?.type,
+    });
+    return next(new CustomError("Webhook processing failed", 500));
+  }
+};
+
+
+// ==========================================
+// PATH: api\controllers\userController.js
+// ==========================================
+
+const bcrypt = require("bcrypt");
+const userSchema = require("../validators/userValidator");
+const CustomError = require("../utils/customError");
+const { prisma } = require("../lib/prisma");
+exports.getProfile = async (req, res, next) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.id },
+      select: { id: true, name: true, email: true, role: true, createdAt: true },
+    });
+    if (!user) {
+      return next(new CustomError("User not found", 404));
+    }
+    const { password, ...safeUser } = user;
+    res.json(safeUser);
+  } catch (err) {
+    return next(new CustomError("Get profile failed", 500));
+  }
+};
+exports.editUser = async (req, res, next) => {
+  try {
+    const userIdParam = Number(req.params.id);
+    if (!Number.isSafeInteger(userIdParam) || userIdParam <= 0) {
+      return next(new CustomError("Invalid user ID", 400));
+    }
+    if (userIdParam !== req.user.id) {
+      return next(new CustomError("Operation not permitted", 403));
+    }
+    const { error, value } = userSchema.validate(req.body);
+    if (error) {
+      return next(new CustomError("Invalid fields", 400));
+    }
+    if (value.password) {
+      value.password = await bcrypt.hash(value.password, 10);
+    }
+    const user = await prisma.user.update({
+      where: { id: userIdParam },
+      data: value,
+      select: { id: true, name: true, email: true, role: true, createdAt: true },
+    });
+    const { password, ...safeUser } = user;
+    res.status(200).json({
+      message: "User updated successfully",
+      user: safeUser,
+    });
+  } catch (err) {
+    return next(new CustomError("Update user failed", 500));
+  }
+};
+exports.deleteUser = async (req, res, next) => {
+  try {
+    const userId = Number(req.params.id);
+    if (!Number.isSafeInteger(userId) || userId <= 0) {
+      return next(new CustomError("Invalid user ID", 400));
+    }
+    if (req.user.role !== "admin" && userId !== req.user.id) {
+      return next(new CustomError("Operation not permitted", 403));
+    }
+    await prisma.user.delete({ where: { id: userId } });
+    res.status(200).json({ message: "User deleted successfully" });
+  } catch (err) {
+    return next(new CustomError("Delete user failed", 500));
+  }
+};
+
+
+// ==========================================
+// PATH: api\data\ordersData.js
+// ==========================================
+
+module.exports = [
+  {
+    id: 1,
+    userId: 1,
+    products: [
+      { productId: 1, quantity: 2 },
+      { productId: 2, quantity: 1 },
+    ],
+    status: 'PENDING',
+    createdAt: '2023-01-01T12:00:00Z',
+  },
+  {
+    id: 2,
+    userId: 2,
+    products: [{ productId: 2, quantity: 1 }],
+    status: 'DELIVERED',
+    createdAt: '2023-01-02T14:00:00Z',
+  },
+  {
+    id: 3,
+    userId: 1,
+    products: [
+      { productId: 1, quantity: 1 },
+      { productId: 3, quantity: 2 },
+    ],
+    status: 'SHIPPED',
+    createdAt: '2023-01-03T09:30:00Z',
+  },
+];
+
+
+// ==========================================
+// PATH: api\data\productsData.js
+// ==========================================
+
+module.exports = [
+  // ─── Speyside Single Malts ────────────────────────────────────────────────
+  {
+    id: 1,
+    name: "Glenfiddich 12 Year Old",
+    distillery: "Glenfiddich",
+    region: "Speyside",
+    country: "Scotland",
+    type: "single_malt",
+    age: 12,
+    abv: 40.0,
+    price: 45,
+    description:
+      "Light and fresh with notes of pear, apple, and subtle oak. The world's best-selling single malt for good reason — approachable, consistent, and endlessly drinkable.",
+    inStock: true,
+    rating: 4.1,
+    reviews: [
+      { userId: 1, rating: 4, comment: "Great entry-level Speyside." },
+      { userId: 3, rating: 5, comment: "My go-to everyday dram." },
+    ],
+  },
+  {
+    id: 2,
+    name: "Glenfiddich 18 Year Old",
+    distillery: "Glenfiddich",
+    region: "Speyside",
+    country: "Scotland",
+    type: "single_malt",
+    age: 18,
+    abv: 40.0,
+    price: 90,
+    description:
+      "Rich and complex with dried fruit, butterscotch, and a long oaky finish. Matured in a combination of ex-bourbon and oloroso sherry casks.",
+    inStock: true,
+    rating: 4.4,
+    reviews: [
+      { userId: 2, rating: 4, comment: "Noticeable step up from the 12." },
+    ],
+  },
+  {
+    id: 3,
+    name: "Glenfiddich 21 Year Old Gran Reserva",
+    distillery: "Glenfiddich",
+    region: "Speyside",
+    country: "Scotland",
+    type: "single_malt",
+    age: 21,
+    abv: 40.0,
+    price: 185,
+    description:
+      "Finished in Caribbean rum casks, delivering notes of toffee, banana, and warming spice over a creamy, long finish.",
+    inStock: false,
+    rating: 4.6,
+    reviews: [],
+  },
+  {
+    id: 4,
+    name: "The Macallan 12 Double Cask",
+    distillery: "The Macallan",
+    region: "Speyside",
+    country: "Scotland",
+    type: "single_malt",
+    age: 12,
+    abv: 40.0,
+    price: 65,
+    description:
+      "Matured in American and European sherry oak casks. Honey, toffee, and warm spice dominate, with a hint of dried fruit on the finish.",
+    inStock: true,
+    rating: 4.3,
+    reviews: [
+      { userId: 1, rating: 4, comment: "Sherry influence is spot on." },
+    ],
+  },
+  {
+    id: 5,
+    name: "The Macallan 18 Sherry Oak",
+    distillery: "The Macallan",
+    region: "Speyside",
+    country: "Scotland",
+    type: "single_malt",
+    age: 18,
+    abv: 43.0,
+    price: 285,
+    description:
+      "The benchmark sherry-influenced Scotch. Rich Christmas cake, ginger, and orange peel, with an exceptionally long finish.",
+    inStock: true,
+    rating: 4.8,
+    reviews: [{ userId: 3, rating: 5, comment: "Worth every penny." }],
+  },
+  {
+    id: 6,
+    name: "The Glenlivet 12 Year Old",
+    distillery: "The Glenlivet",
+    region: "Speyside",
+    country: "Scotland",
+    type: "single_malt",
+    age: 12,
+    abv: 40.0,
+    price: 40,
+    description:
+      "Floral and fruity with pineapple, peach, and vanilla. One of the most recognisable Speyside styles — clean, light, and easy.",
+    inStock: true,
+    rating: 4.0,
+    reviews: [],
+  },
+  {
+    id: 7,
+    name: "The Glenlivet 18 Year Old",
+    distillery: "The Glenlivet",
+    region: "Speyside",
+    country: "Scotland",
+    type: "single_malt",
+    age: 18,
+    abv: 40.0,
+    price: 85,
+    description:
+      "Aged in a mix of American and French oak. Dried fruit, chocolate, and a nutty complexity that the 12 only hints at.",
+    inStock: true,
+    rating: 4.3,
+    reviews: [{ userId: 2, rating: 4, comment: "Solid upgrade from the 12." }],
+  },
+  {
+    id: 8,
+    name: "Balvenie 12 DoubleWood",
+    distillery: "The Balvenie",
+    region: "Speyside",
+    country: "Scotland",
+    type: "single_malt",
+    age: 12,
+    abv: 40.0,
+    price: 55,
+    description:
+      "Matured in traditional oak and finished in sherry casks. Honey, vanilla, and a gentle spice — the rare whisky that handcrafts every stage of production.",
+    inStock: true,
+    rating: 4.4,
+    reviews: [
+      { userId: 1, rating: 5, comment: "One of the best at this price point." },
+    ],
+  },
+  {
+    id: 9,
+    name: "Balvenie 14 Caribbean Cask",
+    distillery: "The Balvenie",
+    region: "Speyside",
+    country: "Scotland",
+    type: "single_malt",
+    age: 14,
+    abv: 43.0,
+    price: 75,
+    description:
+      "Finished in ex-rum casks. Tropical fruit, vanilla, and toffee make this one of the most dessert-like single malts on the market.",
+    inStock: true,
+    rating: 4.5,
+    reviews: [],
+  },
+  {
+    id: 10,
+    name: "Aberlour A'bunadh",
+    distillery: "Aberlour",
+    region: "Speyside",
+    country: "Scotland",
+    type: "single_malt",
+    age: null,
+    abv: 60.6,
+    price: 80,
+    description:
+      "Bottled at cask strength from oloroso sherry butts. An intense hit of dried fruit, dark chocolate, and baking spice — a cult classic for a reason.",
+    inStock: true,
+    rating: 4.7,
+    reviews: [
+      { userId: 3, rating: 5, comment: "Best NAS on the market, full stop." },
+    ],
+  },
+  {
+    id: 11,
+    name: "Craigellachie 13 Year Old",
+    distillery: "Craigellachie",
+    region: "Speyside",
+    country: "Scotland",
+    type: "single_malt",
+    age: 13,
+    abv: 46.0,
+    price: 65,
+    description:
+      "An unusual Speyside — meaty, sulphury, and funky. Not for everyone, but those who get it love it. Worm-tub condensed character in full effect.",
+    inStock: true,
+    rating: 4.2,
+    reviews: [],
+  },
+  {
+    id: 12,
+    name: "GlenDronach 12 Year Old",
+    distillery: "GlenDronach",
+    region: "Speyside",
+    country: "Scotland",
+    type: "single_malt",
+    age: 12,
+    abv: 43.0,
+    price: 55,
+    description:
+      "Matured exclusively in Pedro Ximénez and oloroso sherry casks. Rich fruit cake, orange marmalade, and warming spice.",
+    inStock: true,
+    rating: 4.5,
+    reviews: [
+      {
+        userId: 2,
+        rating: 5,
+        comment: "Incredible sherry bomb at this price.",
+      },
+    ],
+  },
+  {
+    id: 13,
+    name: "GlenDronach 18 Allardice",
+    distillery: "GlenDronach",
+    region: "Speyside",
+    country: "Scotland",
+    type: "single_malt",
+    age: 18,
+    abv: 46.0,
+    price: 115,
+    description:
+      "Aged entirely in oloroso sherry casks. A masterclass in sherry maturation — dark fruits, leather, and tobacco with a warming endless finish.",
+    inStock: false,
+    rating: 4.8,
+    reviews: [],
+  },
+  // ─── Islay Single Malts ───────────────────────────────────────────────────
+  {
+    id: 14,
+    name: "Laphroaig 10 Year Old",
+    distillery: "Laphroaig",
+    region: "Islay",
+    country: "Scotland",
+    type: "single_malt",
+    age: 10,
+    abv: 40.0,
+    price: 45,
+    description:
+      "The benchmark peated whisky. Medicinal, seaweed, and bonfire smoke up front, with sweetness underneath. You'll either love it immediately or wonder what's wrong with it.",
+    inStock: true,
+    rating: 4.3,
+    reviews: [{ userId: 1, rating: 4, comment: "Polarising but brilliant." }],
+  },
+  {
+    id: 15,
+    name: "Laphroaig Quarter Cask",
+    distillery: "Laphroaig",
+    region: "Islay",
+    country: "Scotland",
+    type: "single_malt",
+    age: null,
+    abv: 48.0,
+    price: 55,
+    description:
+      "Finished in smaller quarter casks for faster maturation. The smoke is still there but vanilla and coconut soften the edges — more balanced than the 10.",
+    inStock: true,
+    rating: 4.5,
+    reviews: [],
+  },
+  {
+    id: 16,
+    name: "Ardbeg 10 Year Old",
+    distillery: "Ardbeg",
+    region: "Islay",
+    country: "Scotland",
+    type: "single_malt",
+    age: 10,
+    abv: 46.0,
+    price: 50,
+    description:
+      "Intensely peaty with layers of chocolate, coffee, and lime cutting through the smoke. Non-chill filtered and full of character.",
+    inStock: true,
+    rating: 4.6,
+    reviews: [
+      { userId: 3, rating: 5, comment: "The king of Islay at this price." },
+    ],
+  },
+  {
+    id: 17,
+    name: "Ardbeg Uigeadail",
+    distillery: "Ardbeg",
+    region: "Islay",
+    country: "Scotland",
+    type: "single_malt",
+    age: null,
+    abv: 54.2,
+    price: 80,
+    description:
+      "A sherried Ardbeg — peat and raisin, smoke and chocolate, at cask strength. One of the most decorated whiskies of the modern era.",
+    inStock: true,
+    rating: 4.8,
+    reviews: [{ userId: 2, rating: 5, comment: "Liquid gold." }],
+  },
+  {
+    id: 18,
+    name: "Ardbeg An Oa",
+    distillery: "Ardbeg",
+    region: "Islay",
+    country: "Scotland",
+    type: "single_malt",
+    age: null,
+    abv: 46.6,
+    price: 55,
+    description:
+      "Finished in a combination of ex-bourbon, PX sherry, and virgin charred oak. Smoother and rounder than the 10, a good gateway Ardbeg.",
+    inStock: true,
+    rating: 4.3,
+    reviews: [],
+  },
+  {
+    id: 19,
+    name: "Lagavulin 16 Year Old",
+    distillery: "Lagavulin",
+    region: "Islay",
+    country: "Scotland",
+    type: "single_malt",
+    age: 16,
+    abv: 43.0,
+    price: 85,
+    description:
+      "Deep, complex peat smoke balanced with rich dried fruit and a long, dry finish. The gentleman's peated whisky — refined where others are raw.",
+    inStock: true,
+    rating: 4.7,
+    reviews: [{ userId: 1, rating: 5, comment: "Dry, smoky perfection." }],
+  },
+  {
+    id: 20,
+    name: "Lagavulin 8 Year Old",
+    distillery: "Lagavulin",
+    region: "Islay",
+    country: "Scotland",
+    type: "single_malt",
+    age: 8,
+    abv: 48.0,
+    price: 60,
+    description:
+      "Younger and more aggressive than the 16, with fierce peat and sea salt. Created for the distillery's 200th anniversary and kept due to demand.",
+    inStock: true,
+    rating: 4.4,
+    reviews: [],
+  },
+  {
+    id: 21,
+    name: "Bowmore 12 Year Old",
+    distillery: "Bowmore",
+    region: "Islay",
+    country: "Scotland",
+    type: "single_malt",
+    age: 12,
+    abv: 40.0,
+    price: 42,
+    description:
+      "A gentler Islay peat, balanced with dark chocolate and dried fruit. Matured partly in oloroso sherry casks for added richness.",
+    inStock: true,
+    rating: 4.1,
+    reviews: [{ userId: 3, rating: 4, comment: "Good introduction to Islay." }],
+  },
+  {
+    id: 22,
+    name: "Bruichladdich Classic Laddie",
+    distillery: "Bruichladdich",
+    region: "Islay",
+    country: "Scotland",
+    type: "single_malt",
+    age: null,
+    abv: 50.0,
+    price: 50,
+    description:
+      "Unpeated Islay — floral, citrus, and cereal-forward. Proof that Islay isn't just about peat. 100% Scottish barley, transparent provenance.",
+    inStock: true,
+    rating: 4.2,
+    reviews: [],
+  },
+  {
+    id: 23,
+    name: "Bruichladdich Port Charlotte 10",
+    distillery: "Bruichladdich",
+    region: "Islay",
+    country: "Scotland",
+    type: "single_malt",
+    age: 10,
+    abv: 50.0,
+    price: 65,
+    description:
+      "Heavily peated at 40 ppm but with a creamy, sweet core. Smoke, vanilla, and a coastal earthiness make this one of the most sophisticated peated expressions.",
+    inStock: true,
+    rating: 4.5,
+    reviews: [{ userId: 2, rating: 5, comment: "Peat done elegantly." }],
+  },
+  {
+    id: 24,
+    name: "Caol Ila 12 Year Old",
+    distillery: "Caol Ila",
+    region: "Islay",
+    country: "Scotland",
+    type: "single_malt",
+    age: 12,
+    abv: 43.0,
+    price: 52,
+    description:
+      "Lighter peat than its Islay neighbours, with green fruit, grassy notes, and a dry smoky finish. An underrated gem and Diageo's quiet workhorse.",
+    inStock: true,
+    rating: 4.2,
+    reviews: [],
+  },
+  {
+    id: 25,
+    name: "Kilchoman Machir Bay",
+    distillery: "Kilchoman",
+    region: "Islay",
+    country: "Scotland",
+    type: "single_malt",
+    age: null,
+    abv: 46.0,
+    price: 55,
+    description:
+      "From Islay's farm distillery. Young and vibrant peat with vanilla and citrus. Matured in ex-bourbon with an oloroso sherry finish.",
+    inStock: true,
+    rating: 4.3,
+    reviews: [],
+  },
+  // ─── Highland Single Malts ────────────────────────────────────────────────
+  {
+    id: 26,
+    name: "Glenmorangie Original 10 Year Old",
+    distillery: "Glenmorangie",
+    region: "Highland",
+    country: "Scotland",
+    type: "single_malt",
+    age: 10,
+    abv: 40.0,
+    price: 40,
+    description:
+      "Floral and delicate with peach, vanilla, and orange blossom. Matured in ex-bourbon casks in the tallest stills in Scotland.",
+    inStock: true,
+    rating: 4.1,
+    reviews: [
+      {
+        userId: 1,
+        rating: 4,
+        comment: "Light and beautiful. Great for beginners.",
+      },
+    ],
+  },
+  {
+    id: 27,
+    name: "Glenmorangie Nectar D'Or",
+    distillery: "Glenmorangie",
+    region: "Highland",
+    country: "Scotland",
+    type: "single_malt",
+    age: 12,
+    abv: 46.0,
+    price: 65,
+    description:
+      "Finished in Sauternes wine casks. Rich and exotic — mango, apricot, and honey with a distinctly French character. One of the best wine-finished malts.",
+    inStock: true,
+    rating: 4.4,
+    reviews: [],
+  },
+  {
+    id: 28,
+    name: "Oban 14 Year Old",
+    distillery: "Oban",
+    region: "Highland",
+    country: "Scotland",
+    type: "single_malt",
+    age: 14,
+    abv: 43.0,
+    price: 65,
+    description:
+      "A bridge between Highland sweetness and coastal character. Sea salt, dried fruit, and a hint of smoke. One of the most versatile Scotches around.",
+    inStock: true,
+    rating: 4.4,
+    reviews: [
+      { userId: 3, rating: 4, comment: "Unique style, nothing quite like it." },
+    ],
+  },
+  {
+    id: 29,
+    name: "Dalmore 12 Year Old",
+    distillery: "The Dalmore",
+    region: "Highland",
+    country: "Scotland",
+    type: "single_malt",
+    age: 12,
+    abv: 40.0,
+    price: 55,
+    description:
+      "Matured in American white oak and finished in González Byass oloroso sherry casks. Rich chocolate orange, spice, and Christmas cake.",
+    inStock: true,
+    rating: 4.2,
+    reviews: [],
+  },
+  {
+    id: 30,
+    name: "Dalmore 15 Year Old",
+    distillery: "The Dalmore",
+    region: "Highland",
+    country: "Scotland",
+    type: "single_malt",
+    age: 15,
+    abv: 40.0,
+    price: 95,
+    description:
+      "A more complex Dalmore with deeper sherry influence. Dark fruit, espresso, and warm spice. The extra age shows clearly.",
+    inStock: false,
+    rating: 4.5,
+    reviews: [
+      { userId: 2, rating: 5, comment: "Better than the 12 in every way." },
+    ],
+  },
+  {
+    id: 31,
+    name: "GlenGoyne 12 Year Old",
+    distillery: "GlenGoyne",
+    region: "Highland",
+    country: "Scotland",
+    type: "single_malt",
+    age: 12,
+    abv: 43.0,
+    price: 45,
+    description:
+      "Unpeated and slow-distilled. Toffee apple, marzipan, and a grassy sweetness. Distilled in the Highland, matured in the Lowland — a genuine curiosity.",
+    inStock: true,
+    rating: 4.0,
+    reviews: [],
+  },
+  {
+    id: 32,
+    name: "GlenGoyne 21 Year Old",
+    distillery: "GlenGoyne",
+    region: "Highland",
+    country: "Scotland",
+    type: "single_malt",
+    age: 21,
+    abv: 43.0,
+    price: 135,
+    description:
+      "Fully matured in sherry casks. Dark fruit, old leather, and a complexity that rewards sipping slowly. A hidden gem of the Highlands.",
+    inStock: true,
+    rating: 4.6,
+    reviews: [],
+  },
+  {
+    id: 33,
+    name: "Tomatin 12 Year Old",
+    distillery: "Tomatin",
+    region: "Highland",
+    country: "Scotland",
+    type: "single_malt",
+    age: 12,
+    abv: 43.0,
+    price: 35,
+    description:
+      "Honeyed and gentle — fruit cake, malt biscuit, and a touch of smoke. Consistently punches above its modest price tag.",
+    inStock: true,
+    rating: 3.9,
+    reviews: [{ userId: 1, rating: 4, comment: "Outstanding value." }],
+  },
+  {
+    id: 34,
+    name: "Old Pulteney 12 Year Old",
+    distillery: "Old Pulteney",
+    region: "Highland",
+    country: "Scotland",
+    type: "single_malt",
+    age: 12,
+    abv: 40.0,
+    price: 42,
+    description:
+      'From the most northerly mainland distillery. Brine, citrus, and a distinct maritime freshness. Called the "Maritime Malt" for good reason.',
+    inStock: true,
+    rating: 4.1,
+    reviews: [],
+  },
+  // ─── Scotch Blends ────────────────────────────────────────────────────────
+  {
+    id: 35,
+    name: "Johnnie Walker Black Label",
+    distillery: "Johnnie Walker",
+    region: "Speyside",
+    country: "Scotland",
+    type: "blended_scotch",
+    age: 12,
+    abv: 40.0,
+    price: 32,
+    description:
+      "The world's most iconic blended Scotch. Smoke, dried fruit, and vanilla — a consistent crowd-pleaser that anchors any whisky collection.",
+    inStock: true,
+    rating: 4.0,
+    reviews: [{ userId: 3, rating: 4, comment: "The definitive blend." }],
+  },
+  {
+    id: 36,
+    name: "Johnnie Walker Blue Label",
+    distillery: "Johnnie Walker",
+    region: "Speyside",
+    country: "Scotland",
+    type: "blended_scotch",
+    age: null,
+    abv: 40.0,
+    price: 210,
+    description:
+      "A blend of rare whiskies, some from silent distilleries. Silky, honeyed, and complex. A luxury statement bottle as much as a whisky.",
+    inStock: true,
+    rating: 4.4,
+    reviews: [],
+  },
+  {
+    id: 37,
+    name: "Chivas Regal 12 Year Old",
+    distillery: "Chivas Regal",
+    region: "Speyside",
+    country: "Scotland",
+    type: "blended_scotch",
+    age: 12,
+    abv: 40.0,
+    price: 28,
+    description:
+      "Rich, creamy, and sweet. Honey, apple, and hazelnut. One of the best entry-level blends for those who find smoke off-putting.",
+    inStock: true,
+    rating: 3.9,
+    reviews: [],
+  },
+  {
+    id: 38,
+    name: "Chivas Regal 18 Year Old",
+    distillery: "Chivas Regal",
+    region: "Speyside",
+    country: "Scotland",
+    type: "blended_scotch",
+    age: 18,
+    abv: 40.0,
+    price: 68,
+    description:
+      "Gold Award recipient year after year. Dark chocolate, dried fruit, and a velvety smoothness that sets it apart from most blends at any age.",
+    inStock: true,
+    rating: 4.3,
+    reviews: [{ userId: 2, rating: 4, comment: "Reliable and elegant." }],
+  },
+  {
+    id: 39,
+    name: "Monkey Shoulder",
+    distillery: "William Grant & Sons",
+    region: "Speyside",
+    country: "Scotland",
+    type: "blended_malt",
+    age: null,
+    abv: 40.0,
+    price: 30,
+    description:
+      "A blend of three Speyside single malts — Glenfiddich, Balvenie, and Kininvie. The go-to cocktail whisky. Malt, vanilla, and spiced orange peel.",
+    inStock: true,
+    rating: 4.0,
+    reviews: [{ userId: 1, rating: 4, comment: "Perfect for a Whisky Sour." }],
+  },
+  {
+    id: 40,
+    name: "Compass Box Great King Street Artist's Blend",
+    distillery: "Compass Box",
+    region: "Speyside",
+    country: "Scotland",
+    type: "blended_scotch",
+    age: null,
+    abv: 43.0,
+    price: 40,
+    description:
+      "A blender's blend, crafted by the rule-breakers of Scotch whisky. Vanilla, cereal, and honey — clean, elegant, and perfect for introducing sceptics to blends.",
+    inStock: true,
+    rating: 4.1,
+    reviews: [],
+  },
+  // ─── Bourbon ─────────────────────────────────────────────────────────────
+  {
+    id: 41,
+    name: "Buffalo Trace",
+    distillery: "Buffalo Trace",
+    region: "Kentucky",
+    country: "USA",
+    type: "bourbon",
+    age: null,
+    abv: 45.0,
+    price: 30,
+    description:
+      "The bread-and-butter of American whiskey. Caramel, vanilla, and a hint of mint and spice. Consistently excellent and genuinely hard to beat at this price.",
+    inStock: true,
+    rating: 4.4,
+    reviews: [
+      { userId: 3, rating: 5, comment: "The benchmark sub-$40 bourbon." },
+    ],
+  },
+  {
+    id: 42,
+    name: "Eagle Rare 10 Year Old",
+    distillery: "Buffalo Trace",
+    region: "Kentucky",
+    country: "USA",
+    type: "bourbon",
+    age: 10,
+    abv: 45.0,
+    price: 40,
+    description:
+      "Bold toffee, orange peel, and a long dry oak finish. A single barrel bourbon that consistently scores above its price point. Perpetually in short supply.",
+    inStock: false,
+    rating: 4.6,
+    reviews: [{ userId: 1, rating: 5, comment: "If you can find it, buy it." }],
+  },
+  {
+    id: 43,
+    name: "Blanton's Original Single Barrel",
+    distillery: "Buffalo Trace",
+    region: "Kentucky",
+    country: "USA",
+    type: "bourbon",
+    age: null,
+    abv: 46.5,
+    price: 65,
+    description:
+      "The original single barrel bourbon — rich, fruity, and spicy with a long finish. The iconic horse stopper on the bottle is as collectible as the whisky is drinkable.",
+    inStock: false,
+    rating: 4.7,
+    reviews: [],
+  },
+  {
+    id: 44,
+    name: "Maker's Mark",
+    distillery: "Maker's Mark",
+    region: "Kentucky",
+    country: "USA",
+    type: "bourbon",
+    age: null,
+    abv: 45.0,
+    price: 28,
+    description:
+      "Wheat replaces rye as the secondary grain, giving a softer, sweeter profile. Caramel, vanilla, and oak. Sealed with red wax and reliable as sunrise.",
+    inStock: true,
+    rating: 4.0,
+    reviews: [
+      { userId: 2, rating: 4, comment: "Great entry bourbon, always smooth." },
+    ],
+  },
+  {
+    id: 45,
+    name: "Knob Creek 9 Year Old",
+    distillery: "Jim Beam",
+    region: "Kentucky",
+    country: "USA",
+    type: "bourbon",
+    age: 9,
+    abv: 50.0,
+    price: 42,
+    description:
+      "A big, bold bourbon with heavy charred oak, caramel, and a long spicy finish. At 100 proof it has enough backbone to hold up in any cocktail.",
+    inStock: true,
+    rating: 4.3,
+    reviews: [],
+  },
+  {
+    id: 46,
+    name: "Woodford Reserve Distiller's Select",
+    distillery: "Woodford Reserve",
+    region: "Kentucky",
+    country: "USA",
+    type: "bourbon",
+    age: null,
+    abv: 43.2,
+    price: 36,
+    description:
+      "Spice, dried fruit, and chocolate from triple copper pot distillation. The official bourbon of the Kentucky Derby, and thoroughly deserving of its status.",
+    inStock: true,
+    rating: 4.2,
+    reviews: [
+      { userId: 1, rating: 4, comment: "Smooth, complex, great for sipping." },
+    ],
+  },
+  {
+    id: 47,
+    name: "Four Roses Single Barrel",
+    distillery: "Four Roses",
+    region: "Kentucky",
+    country: "USA",
+    type: "bourbon",
+    age: null,
+    abv: 50.0,
+    price: 58,
+    description:
+      "Fruity, floral, and full-bodied — Four Roses uses 10 distinct bourbon recipes and this is the best of them bottled individually. Every barrel is different.",
+    inStock: true,
+    rating: 4.6,
+    reviews: [
+      {
+        userId: 3,
+        rating: 5,
+        comment: "Exceptional complexity for a single barrel.",
+      },
+    ],
+  },
+  {
+    id: 48,
+    name: "Wild Turkey 101",
+    distillery: "Wild Turkey",
+    region: "Kentucky",
+    country: "USA",
+    type: "bourbon",
+    age: null,
+    abv: 50.5,
+    price: 26,
+    description:
+      "Classic big Kentucky bourbon. Rye-forward spice, caramel, and a bold punch at 101 proof. Jimmy Russell has been making this for 60+ years. It shows.",
+    inStock: true,
+    rating: 4.1,
+    reviews: [],
+  },
+  {
+    id: 49,
+    name: "Elijah Craig Small Batch",
+    distillery: "Heaven Hill",
+    region: "Kentucky",
+    country: "USA",
+    type: "bourbon",
+    age: null,
+    abv: 47.0,
+    price: 32,
+    description:
+      "Named after the inventor of charred barrel ageing. Rich vanilla, baking spice, and caramel from extended ageing. Overachieves at its price point.",
+    inStock: true,
+    rating: 4.4,
+    reviews: [{ userId: 2, rating: 5, comment: "The best bourbon under $35." }],
+  },
+  {
+    id: 50,
+    name: "Old Forester 86",
+    distillery: "Brown-Forman",
+    region: "Kentucky",
+    country: "USA",
+    type: "bourbon",
+    age: null,
+    abv: 43.0,
+    price: 22,
+    description:
+      "The first commercially bottled bourbon in America. Light and sweet with baked apple, mint, and a short clean finish. An honest, no-nonsense pour.",
+    inStock: true,
+    rating: 3.8,
+    reviews: [],
+  },
+  {
+    id: 51,
+    name: "Michter's US*1 Small Batch Bourbon",
+    distillery: "Michter's",
+    region: "Kentucky",
+    country: "USA",
+    type: "bourbon",
+    age: null,
+    abv: 45.7,
+    price: 48,
+    description:
+      "Heat-cycled barrels and careful selection deliver a rich, rounded bourbon. Caramel corn, toasted oak, and dried cherry. Consistently above expectations.",
+    inStock: true,
+    rating: 4.4,
+    reviews: [],
+  },
+  // ─── Rye Whiskey ─────────────────────────────────────────────────────────
+  {
+    id: 52,
+    name: "Bulleit Rye",
+    distillery: "Bulleit",
+    region: "Kentucky",
+    country: "USA",
+    type: "rye",
+    age: null,
+    abv: 45.0,
+    price: 30,
+    description:
+      "High-rye mash bill at 95% rye. Spicy, bold, and dry with herbal and pepper notes. The cocktail world's rye of choice — especially in a Manhattan.",
+    inStock: true,
+    rating: 4.1,
+    reviews: [{ userId: 1, rating: 4, comment: "Great cocktail rye." }],
+  },
+  {
+    id: 53,
+    name: "WhistlePig 10 Year Old",
+    distillery: "WhistlePig",
+    region: "Vermont",
+    country: "USA",
+    type: "rye",
+    age: 10,
+    abv: 50.0,
+    price: 68,
+    description:
+      "100% rye from Canadian distillers finished and bottled in Vermont. Oak, dried fruit, and an intense spice wave on the finish. The rye that elevated the category.",
+    inStock: true,
+    rating: 4.6,
+    reviews: [
+      { userId: 3, rating: 5, comment: "The best rye I've had, period." },
+    ],
+  },
+  {
+    id: 54,
+    name: "Michter's US*1 Straight Rye",
+    distillery: "Michter's",
+    region: "Kentucky",
+    country: "USA",
+    type: "rye",
+    age: null,
+    abv: 42.4,
+    price: 45,
+    description:
+      "Softer than most ryes but with all the classic spice. Mint, herbal notes, and a velvety texture. A gateway rye for bourbon drinkers.",
+    inStock: true,
+    rating: 4.3,
+    reviews: [],
+  },
+  {
+    id: 55,
+    name: "Sazerac Rye 6 Year Old",
+    distillery: "Buffalo Trace",
+    region: "Kentucky",
+    country: "USA",
+    type: "rye",
+    age: 6,
+    abv: 45.0,
+    price: 28,
+    description:
+      "The rye behind the classic Sazerac cocktail. Clove, anise, and pepper with a clean, dry finish. Young but punchy and full of character.",
+    inStock: true,
+    rating: 4.2,
+    reviews: [],
+  },
+  // ─── Irish Whiskey ────────────────────────────────────────────────────────
+  {
+    id: 56,
+    name: "Redbreast 12 Year Old",
+    distillery: "Irish Distillers",
+    region: "Irish",
+    country: "Ireland",
+    type: "irish",
+    age: 12,
+    abv: 40.0,
+    price: 62,
+    description:
+      "The benchmark single pot still Irish whiskey. Plum, spice, and sherry sweetness from ex-bourbon and ex-sherry casks. Creamy, rich, and utterly distinctive.",
+    inStock: true,
+    rating: 4.7,
+    reviews: [
+      { userId: 2, rating: 5, comment: "The finest Irish whiskey made." },
+    ],
+  },
+  {
+    id: 57,
+    name: "Redbreast 15 Year Old",
+    distillery: "Irish Distillers",
+    region: "Irish",
+    country: "Ireland",
+    type: "irish",
+    age: 15,
+    abv: 46.0,
+    price: 95,
+    description:
+      "Deeper and more complex than the 12 — toasted wood, dark chocolate, and an almost Cognac-like elegance. Non-chill filtered and worth every cent.",
+    inStock: true,
+    rating: 4.8,
+    reviews: [],
+  },
+  {
+    id: 58,
+    name: "Green Spot",
+    distillery: "Irish Distillers",
+    region: "Irish",
+    country: "Ireland",
+    type: "irish",
+    age: null,
+    abv: 40.0,
+    price: 55,
+    description:
+      "The original spot label whiskey, historically bonded by wine merchants. Apple, barley, and a grassy, herbaceous pot still character. Charming and approachable.",
+    inStock: true,
+    rating: 4.4,
+    reviews: [
+      {
+        userId: 1,
+        rating: 4,
+        comment: "Unique Irish style, highly recommended.",
+      },
+    ],
+  },
+  {
+    id: 59,
+    name: "Jameson Black Barrel",
+    distillery: "Irish Distillers",
+    region: "Irish",
+    country: "Ireland",
+    type: "irish",
+    age: null,
+    abv: 40.0,
+    price: 36,
+    description:
+      "Finished in double-charred bourbon barrels. Vanilla, caramel, and toasted wood with the signature Jameson smoothness. A significant step up from the original.",
+    inStock: true,
+    rating: 4.2,
+    reviews: [],
+  },
+  {
+    id: 60,
+    name: "Teeling Small Batch",
+    distillery: "Teeling Whiskey",
+    region: "Irish",
+    country: "Ireland",
+    type: "irish",
+    age: null,
+    abv: 46.0,
+    price: 36,
+    description:
+      "Finished in Central American rum casks — a rum-tinged take on Irish whiskey. Tropical fruit, vanilla, and a subtle spice. Teeling is redefining Irish whiskey.",
+    inStock: true,
+    rating: 4.1,
+    reviews: [
+      { userId: 3, rating: 4, comment: "Rum finish works brilliantly here." },
+    ],
+  },
+  {
+    id: 61,
+    name: "Bushmills 10 Year Old",
+    distillery: "Old Bushmills Distillery",
+    region: "Irish",
+    country: "Ireland",
+    type: "irish",
+    age: 10,
+    abv: 40.0,
+    price: 38,
+    description:
+      "The world's oldest licensed distillery delivers a triple-distilled single malt. Honey, vanilla, and apple — light and approachable with a long clean finish.",
+    inStock: true,
+    rating: 4.0,
+    reviews: [],
+  },
+  {
+    id: 62,
+    name: "Tullamore D.E.W. 12 Year Old",
+    distillery: "Tullamore Dew",
+    region: "Irish",
+    country: "Ireland",
+    type: "irish",
+    age: 12,
+    abv: 40.0,
+    price: 36,
+    description:
+      "A blend of malt, grain, and pot still whiskies aged in ex-bourbon and oloroso sherry casks. Honeyed sweetness with a gentle spice. Classic Irish character.",
+    inStock: true,
+    rating: 4.0,
+    reviews: [{ userId: 2, rating: 4, comment: "Reliable and well-priced." }],
+  },
+  // ─── Japanese Whisky ──────────────────────────────────────────────────────
+  {
+    id: 63,
+    name: "Nikka Coffey Grain",
+    distillery: "Nikka",
+    region: "Japanese",
+    country: "Japan",
+    type: "japanese",
+    age: null,
+    abv: 45.0,
+    price: 68,
+    description:
+      "Made in a rare Coffey (continuous) still. Sweet and tropical — mango, coconut, and vanilla. A gateway Japanese whisky that surprises with its richness.",
+    inStock: true,
+    rating: 4.4,
+    reviews: [
+      { userId: 1, rating: 5, comment: "Unlike anything else. Stunning." },
+    ],
+  },
+  {
+    id: 64,
+    name: "Nikka From the Barrel",
+    distillery: "Nikka",
+    region: "Japanese",
+    country: "Japan",
+    type: "japanese",
+    age: null,
+    abv: 51.4,
+    price: 72,
+    description:
+      "Married malt and grain whiskies from both Nikka distilleries. Incredibly complex for a blended whisky — dark fruit, spice, and smoke at near cask strength.",
+    inStock: true,
+    rating: 4.7,
+    reviews: [
+      {
+        userId: 3,
+        rating: 5,
+        comment: "The best blended Japanese whisky available.",
+      },
+    ],
+  },
+  {
+    id: 65,
+    name: "Suntory Toki",
+    distillery: "Suntory",
+    region: "Japanese",
+    country: "Japan",
+    type: "japanese",
+    age: null,
+    abv: 43.0,
+    price: 42,
+    description:
+      "A blend of Hakushu, Yamazaki, and Chita whiskies. Delicate and approachable — honey, green apple, and a hint of smoke. Designed for the Highball.",
+    inStock: true,
+    rating: 4.1,
+    reviews: [],
+  },
+  {
+    id: 66,
+    name: "Hibiki Harmony",
+    distillery: "Suntory",
+    region: "Japanese",
+    country: "Japan",
+    type: "japanese",
+    age: null,
+    abv: 43.0,
+    price: 90,
+    description:
+      "A blend of 10+ Suntory whiskies. Floral, honeyed, and silky — rose petal, lychee, and sandalwood. The 24-facet bottle mirrors the Japanese calendar. Exquisite.",
+    inStock: true,
+    rating: 4.6,
+    reviews: [
+      {
+        userId: 2,
+        rating: 5,
+        comment: "As beautiful to drink as it is to look at.",
+      },
+    ],
+  },
+  {
+    id: 67,
+    name: "Yamazaki 12 Year Old",
+    distillery: "Suntory",
+    region: "Japanese",
+    country: "Japan",
+    type: "japanese",
+    age: 12,
+    abv: 43.0,
+    price: 155,
+    description:
+      "Japan's first single malt, from its first distillery. Mizunara oak, plum, and a delicate smokiness. When it won World's Best in 2015, stocks vanished overnight.",
+    inStock: false,
+    rating: 4.8,
+    reviews: [
+      {
+        userId: 1,
+        rating: 5,
+        comment: "World's best for a reason. Get it if you can.",
+      },
+    ],
+  },
+  {
+    id: 68,
+    name: "Hakushu 12 Year Old",
+    distillery: "Suntory",
+    region: "Japanese",
+    country: "Japan",
+    type: "japanese",
+    age: 12,
+    abv: 43.5,
+    price: 145,
+    description:
+      "Forest-distilled in the Japanese Alps. Green apple, peppermint, and a distinctive fresh peat smoke. Lighter and more ethereal than Yamazaki. Equally coveted.",
+    inStock: false,
+    rating: 4.7,
+    reviews: [],
+  },
+  {
+    id: 69,
+    name: "Nikka Yoichi Single Malt",
+    distillery: "Nikka",
+    region: "Japanese",
+    country: "Japan",
+    type: "japanese",
+    age: null,
+    abv: 45.0,
+    price: 85,
+    description:
+      "From Hokkaido, the most Scottish of Japanese distilleries. Peaty, oily, and robust. Sea salt, smoked fruit, and a long dry finish. Scotland's child grown up.",
+    inStock: true,
+    rating: 4.5,
+    reviews: [
+      { userId: 3, rating: 5, comment: "Japanese peat done perfectly." },
+    ],
+  },
+  {
+    id: 70,
+    name: "Mars Iwai Tradition",
+    distillery: "Mars Shinshu",
+    region: "Japanese",
+    country: "Japan",
+    type: "japanese",
+    age: null,
+    abv: 40.0,
+    price: 42,
+    description:
+      "From the highest altitude distillery in Japan. Finished in ex-wine casks. Gentle and elegant — apple blossom, caramel, and vanilla. An affordable Japanese gem.",
+    inStock: true,
+    rating: 4.0,
+    reviews: [],
+  },
+];
+
+
+// ==========================================
+// PATH: api\data\usersData.js
+// ==========================================
+
+module.exports = [
+  {
+    id: 1,
+    name: "Alice Smith",
+    email: "alice@example.com",
+    password: "password123", // NOTE: In a real app, passwords would be hashed.
+    role: "admin",
+  },
+  {
+    id: 2,
+    name: "Bob Johnson",
+    email: "bob@example.com",
+    password: "password123",
+    role: "user",
+  },
+  {
+    id: 3,
+    name: "Charlie Davis",
+    email: "charlie@example.com",
+    password: "password123",
+    role: "user",
+  },
+];
+
+
+// ==========================================
+// PATH: api\lib\prisma.js
+// ==========================================
+
+import { PrismaPg } from "@prisma/adapter-pg";
+import { PrismaClient } from "../generated/prisma/client";
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+const prisma = new PrismaClient({ adapter });
+module.exports = { prisma };
+
+
+// ==========================================
+// PATH: api\lib\stripe.js
+// ==========================================
+
+const Stripe = require("stripe");
+if (!process.env.STRIPE_SECRET_KEY) {
+  throw new Error("STRIPE_SECRET_KEY is missing");
+}
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+module.exports = { stripe };
+
+
+// ==========================================
+// PATH: api\middleware\errorHandler.js
+// ==========================================
+
+function errorHandler(err, req, res, next) {
+  console.error(err.stack);
+  const statusCode = err.statusCode || 500;
+  const message = err.message;
+  res.status(statusCode).json({ error: message });
+}
+module.exports = errorHandler;
+
+
+// ==========================================
+// PATH: api\middleware\requireAdmin.js
+// ==========================================
+
+const CustomError = require("../utils/customError");
+function requireAdmin(req, res, next) {
+  if (req.user?.role !== "admin") {
+    return next(new CustomError("Admin access required", 403));
+  }
+  next();
+}
+module.exports = requireAdmin;
+
+
+// ==========================================
+// PATH: api\middleware\verifyToken.js
+// ==========================================
+
+const jwt = require("jsonwebtoken");
+const CustomError = require("../utils/customError");
+const logger = require("../utils/logger");
+const { isTokenBlacklisted } = require("../utils/tokenBlacklist");
+const { accessTokenSecret } = require("../config/secrets");
+function extractTokenFromHeader(authHeader) {
+  if (!authHeader) {
+    return null;
+  }
+  const parts = authHeader.split(" ");
+  // Must have exactly 2 parts: "Bearer" and "<token>"
+  if (parts.length !== 2) {
+    return null;
+  }
+  const [scheme, token] = parts;
+  // Case-insensitive Bearer check (standard practice)
+  if (scheme.toLowerCase() !== "bearer") {
+    return null;
+  }
+  return token;
+}
+function verifyToken(req, res, next) {
+  try {
+    // Generate unique request ID for tracing through logs
+    const requestId =
+      req.id || `req-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    req.requestId = requestId;
+    const authHeader = req.headers.authorization;
+    // ===== STEP 1: Check if Authorization header exists =====
+    if (!authHeader) {
+      logger.warn("Authentication attempted without Authorization header", {
+        requestId,
+        ip: req.ip,
+        endpoint: req.path,
+      });
+      // 401 Unauthorized: Authentication credentials are missing or invalid
+      return next(
+        new CustomError(
+          "Authorization header is required. Use format: 'Bearer <token>'",
+          401
+        )
+      );
+    }
+    // ===== STEP 2: Extract and validate token format =====
+    const token = extractTokenFromHeader(authHeader);
+    if (!token) {
+      logger.warn("Malformed Authorization header", {
+        requestId,
+        ip: req.ip,
+        endpoint: req.path,
+        authHeader: authHeader.substring(0, 20) + "...", // Log first 20 chars for debugging
+      });
+      // 401 Unauthorized: Malformed token format
+      return next(
+        new CustomError(
+          "Invalid Authorization header format. Use: 'Bearer <token>'",
+          401
+        )
+      );
+    }
+    // ===== STEP 3: Check if token is blacklisted (logged out) =====
+    if (isTokenBlacklisted(token)) {
+      logger.warn("Attempt to use blacklisted token", {
+        requestId,
+        ip: req.ip,
+        endpoint: req.path,
+      });
+      // 401 Unauthorized: Token has been revoked (e.g., user logged out)
+      return next(
+        new CustomError("Token has been revoked. Please log in again.", 401)
+      );
+    }
+    // ===== STEP 4: Verify JWT signature and expiration =====
+    const payload = jwt.verify(token, accessTokenSecret);
+    // ===== STEP 5: Attach decoded payload to request =====
+    // This allows controllers to access user info via req.user
+    req.user = payload;
+    req.token = token; // Sometimes needed for logout (blacklisting)
+    logger.debug("Token verified successfully", {
+      requestId,
+      userId: payload.id,
+      endpoint: req.path,
+      expiresAt: new Date(payload.exp * 1000).toISOString(),
+    });
+    next();
+  } catch (error) {
+    const requestId = req.requestId || `req-${Date.now()}`;
+    // ===== ERROR HANDLING: Distinguish between error types =====
+    let statusCode = 403;
+    let message = "Authentication failed";
+    if (error.name === "TokenExpiredError") {
+      // 401 Unauthorized: Token is expired (user should refresh)
+      statusCode = 401;
+      message = `Token has expired. Expired at: ${error.expiredAt.toISOString()}`;
+      logger.warn("Token verification failed: token expired", {
+        requestId,
+        ip: req.ip,
+        endpoint: req.path,
+        expiredAt: error.expiredAt,
+      });
+    } else if (error.name === "JsonWebTokenError") {
+      // 403 Forbidden: Token signature is invalid (potential tampering)
+      statusCode = 403;
+      message = "Invalid token signature. Token may have been tampered with.";
+      logger.error("Token verification failed: invalid signature", {
+        requestId,
+        ip: req.ip,
+        endpoint: req.path,
+        errorMessage: error.message,
+      });
+    } else if (error.name === "NotBeforeError") {
+      // 403 Forbidden: Token used before its valid time (nbf claim)
+      statusCode = 403;
+      message = "Token is not yet valid";
+      logger.warn("Token verification failed: not yet valid", {
+        requestId,
+        ip: req.ip,
+        endpoint: req.path,
+      });
+    } else {
+      // 403 Forbidden: Unknown JWT verification error
+      statusCode = 403;
+      message = "Token verification failed";
+      logger.error("Token verification failed: unknown error", {
+        requestId,
+        ip: req.ip,
+        endpoint: req.path,
+        errorName: error.name,
+        errorMessage: error.message,
+      });
+    }
+    next(new CustomError(message, statusCode));
+  }
+}
+module.exports = verifyToken;
+
+
+// ==========================================
+// PATH: api\prisma\migrations\20260606071210_init\migration.sql
+// ==========================================
+
+-- CreateTable
+CREATE TABLE "User" (
+    "id" SERIAL NOT NULL,
+    "name" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "password" TEXT NOT NULL,
+    "role" TEXT NOT NULL DEFAULT 'user',
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "User_pkey" PRIMARY KEY ("id")
+);
+-- CreateTable
+CREATE TABLE "Product" (
+    "id" SERIAL NOT NULL,
+    "name" TEXT NOT NULL,
+    "distillery" TEXT NOT NULL,
+    "region" TEXT NOT NULL,
+    "country" TEXT NOT NULL,
+    "type" TEXT NOT NULL,
+    "age" INTEGER,
+    "abv" DOUBLE PRECISION NOT NULL,
+    "price" DOUBLE PRECISION NOT NULL,
+    "description" TEXT NOT NULL,
+    "inStock" BOOLEAN NOT NULL DEFAULT true,
+    "rating" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    CONSTRAINT "Product_pkey" PRIMARY KEY ("id")
+);
+-- CreateTable
+CREATE TABLE "Review" (
+    "id" SERIAL NOT NULL,
+    "rating" INTEGER NOT NULL,
+    "comment" TEXT,
+    "userId" INTEGER NOT NULL,
+    "productId" INTEGER NOT NULL,
+    CONSTRAINT "Review_pkey" PRIMARY KEY ("id")
+);
+-- CreateTable
+CREATE TABLE "Order" (
+    "id" SERIAL NOT NULL,
+    "total" DOUBLE PRECISION NOT NULL,
+    "status" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "userId" INTEGER NOT NULL,
+    CONSTRAINT "Order_pkey" PRIMARY KEY ("id")
+);
+-- CreateTable
+CREATE TABLE "OrderItem" (
+    "id" SERIAL NOT NULL,
+    "quantity" INTEGER NOT NULL,
+    "orderId" INTEGER NOT NULL,
+    "productId" INTEGER NOT NULL,
+    CONSTRAINT "OrderItem_pkey" PRIMARY KEY ("id")
+);
+-- CreateTable
+CREATE TABLE "RefreshToken" (
+    "id" SERIAL NOT NULL,
+    "token" TEXT NOT NULL,
+    "expiresAt" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "userId" INTEGER NOT NULL,
+    CONSTRAINT "RefreshToken_pkey" PRIMARY KEY ("id")
+);
+-- CreateIndex
+CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+-- CreateIndex
+CREATE UNIQUE INDEX "RefreshToken_token_key" ON "RefreshToken"("token");
+-- AddForeignKey
+ALTER TABLE "Review" ADD CONSTRAINT "Review_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+-- AddForeignKey
+ALTER TABLE "Review" ADD CONSTRAINT "Review_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+-- AddForeignKey
+ALTER TABLE "Order" ADD CONSTRAINT "Order_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+-- AddForeignKey
+ALTER TABLE "OrderItem" ADD CONSTRAINT "OrderItem_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+-- AddForeignKey
+ALTER TABLE "OrderItem" ADD CONSTRAINT "OrderItem_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+-- AddForeignKey
+ALTER TABLE "RefreshToken" ADD CONSTRAINT "RefreshToken_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+
+// ==========================================
+// PATH: api\prisma\migrations\20260606073748_init\migration.sql
+// ==========================================
+
+/*
+  Warnings:
+  - Changed the type of `type` on the `Product` table. No cast exists, the column would be dropped and recreated, which cannot be done if there is data, since the column is required.
+*/
+-- CreateEnum
+CREATE TYPE "ProductType" AS ENUM ('single_malt', 'blended_scotch', 'blended_malt', 'bourbon', 'rye', 'irish', 'japanese');
+-- AlterTable
+ALTER TABLE "Product" DROP COLUMN "type",
+ADD COLUMN     "type" "ProductType" NOT NULL;
+
+
+// ==========================================
+// PATH: api\prisma\migrations\20260808072314_add_order_status_enum\migration.sql
+// ==========================================
+
+/*
+  Warnings:
+  - The `status` column on the `Order` table would be dropped and recreated. This will lead to data loss if there is data in the column.
+*/
+-- CreateEnum
+CREATE TYPE "OrderStatus" AS ENUM ('PENDING', 'SHIPPED', 'DELIVERED', 'CANCELLED');
+-- AlterTable
+ALTER TABLE "Order" DROP COLUMN "status",
+ADD COLUMN     "status" "OrderStatus" NOT NULL DEFAULT 'PENDING';
+
+
+// ==========================================
+// PATH: api\prisma\migrations\20260930060640_add_cart_models\migration.sql
+// ==========================================
+
+-- CreateTable
+CREATE TABLE "Cart" (
+    "id" SERIAL NOT NULL,
+    "total" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "userId" INTEGER NOT NULL,
+    CONSTRAINT "Cart_pkey" PRIMARY KEY ("id")
+);
+-- CreateTable
+CREATE TABLE "CartItem" (
+    "id" SERIAL NOT NULL,
+    "quantity" INTEGER NOT NULL,
+    "productId" INTEGER NOT NULL,
+    "cartId" INTEGER NOT NULL,
+    CONSTRAINT "CartItem_pkey" PRIMARY KEY ("id")
+);
+-- CreateIndex
+CREATE UNIQUE INDEX "Cart_userId_key" ON "Cart"("userId");
+-- AddForeignKey
+ALTER TABLE "Cart" ADD CONSTRAINT "Cart_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+-- AddForeignKey
+ALTER TABLE "CartItem" ADD CONSTRAINT "CartItem_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+-- AddForeignKey
+ALTER TABLE "CartItem" ADD CONSTRAINT "CartItem_cartId_fkey" FOREIGN KEY ("cartId") REFERENCES "Cart"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+
+// ==========================================
+// PATH: api\prisma\migrations\20261001072255_add_cart_models\migration.sql
+// ==========================================
+
+/*
+  Warnings:
+  - You are about to drop the column `total` on the `Cart` table. All the data in the column will be lost.
+*/
+-- AlterTable
+ALTER TABLE "Cart" DROP COLUMN "total";
+
+
+// ==========================================
+// PATH: api\prisma\migrations\20261003161923_add_cart_item_unique_constraint\migration.sql
+// ==========================================
+
+/*
+  Warnings:
+  - A unique constraint covering the columns `[cartId,productId]` on the table `CartItem` will be added. If there are existing duplicate values, this will fail.
+*/
+-- CreateIndex
+CREATE UNIQUE INDEX "CartItem_cartId_productId_key" ON "CartItem"("cartId", "productId");
+
+
+// ==========================================
+// PATH: api\prisma\migrations\20261011152000_add_cart_item_created_at\migration.sql
+// ==========================================
+
+ALTER TABLE "CartItem"
+ADD COLUMN "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
+
+
+// ==========================================
+// PATH: api\prisma\migrations\20261012090352_add_fields\migration.sql
+// ==========================================
+
+/*
+  Warnings:
+  - You are about to drop the column `total` on the `Order` table. All the data in the column will be lost.
+  - A unique constraint covering the columns `[paymentIntentId]` on the table `Order` will be added. If there are existing duplicate values, this will fail.
+  - Added the required column `shippingAddress` to the `Order` table without a default value. This is not possible if the table is not empty.
+  - Added the required column `totalCents` to the `Order` table without a default value. This is not possible if the table is not empty.
+  - Added the required column `productName` to the `OrderItem` table without a default value. This is not possible if the table is not empty.
+  - Added the required column `unitPriceCents` to the `OrderItem` table without a default value. This is not possible if the table is not empty.
+*/
+-- AlterEnum
+ALTER TYPE "OrderStatus" ADD VALUE 'PAID';
+-- AlterTable
+ALTER TABLE "Order" DROP COLUMN "total",
+ADD COLUMN     "paymentIntentId" TEXT,
+ADD COLUMN     "shippingAddress" JSONB NOT NULL,
+ADD COLUMN     "totalCents" INTEGER NOT NULL;
+-- AlterTable
+ALTER TABLE "OrderItem" ADD COLUMN     "productName" TEXT NOT NULL,
+ADD COLUMN     "unitPriceCents" INTEGER NOT NULL;
+-- CreateIndex
+CREATE UNIQUE INDEX "Order_paymentIntentId_key" ON "Order"("paymentIntentId");
+
+
+// ==========================================
+// PATH: api\prisma\migrations\20261022150237_add_stripe_checkout_session_id\migration.sql
+// ==========================================
+
+/*
+  Warnings:
+  - A unique constraint covering the columns `[stripeCheckoutSessionId]` on the table `Order` will be added. If there are existing duplicate values, this will fail.
+*/
+-- AlterTable
+ALTER TABLE "Order" ADD COLUMN     "stripeCheckoutSessionId" TEXT;
+-- CreateIndex
+CREATE UNIQUE INDEX "Order_stripeCheckoutSessionId_key" ON "Order"("stripeCheckoutSessionId");
+
+
+// ==========================================
+// PATH: api\prisma\migrations\20261024081312_add_stripe_checkout_session_creation_key\migration.sql
+// ==========================================
+
+/*
+  Warnings:
+  - A unique constraint covering the columns `[checkoutSessionCreationKey]` on the table `Order` will be added. If there are existing duplicate values, this will fail.
+  - Added the required column `checkoutSessionCreationKey` to the `Order` table without a default value. This is not possible if the table is not empty.
+*/
+-- AlterTable
+ALTER TABLE "Order" ADD COLUMN     "checkoutSessionCreationKey" TEXT NOT NULL;
+-- CreateIndex
+CREATE UNIQUE INDEX "Order_checkoutSessionCreationKey_key" ON "Order"("checkoutSessionCreationKey");
+
+
+// ==========================================
+// PATH: api\routes\auth.js
+// ==========================================
+
+const express = require("express");
+const router = express.Router();
+const authController = require("../controllers/authController");
+router.post("/login", authController.login);
+router.post("/refresh", authController.refreshToken);
+router.post("/register", authController.registerUser);
+router.post("/logout", authController.logout);
+router.post("/logout-all", authController.logoutAll);
+module.exports = router;
+
+
+// ==========================================
+// PATH: api\routes\cart.js
+// ==========================================
+
+const express = require("express");
+const router = express.Router();
+const cartController = require("../controllers/cartController");
+const verifyToken = require("../middleware/verifyToken");
+router.get("/", verifyToken, cartController.getCart);
+router.post("/items", verifyToken, cartController.addItem);
+router.patch(
+  "/items/:productId",
+  verifyToken,
+  cartController.updateItemQuantity,
+);
+router.delete("/items/:productId", verifyToken, cartController.removeItem);
+module.exports = router;
+
+
+// ==========================================
+// PATH: api\routes\orders.js
+// ==========================================
+
+const express = require("express");
+const router = express.Router();
+const orderController = require("../controllers/orderController");
+const verifyToken = require("../middleware/verifyToken");
+router.get("/", verifyToken, orderController.getAllOrders);
+router.get("/:id", verifyToken, orderController.getOrderById);
+router.post("/checkout", verifyToken, orderController.checkout);
+router.post(
+  "/:id/payment-session",
+  verifyToken,
+  orderController.createPaymentSession,
+);
+router.patch("/:id/cancel", verifyToken, orderController.cancelOrder);
+module.exports = router;
+
+
+// ==========================================
+// PATH: api\routes\products.js
+// ==========================================
+
+const express = require('express');
+const router = express.Router();
+const productController = require('../controllers/productController');
+const verifyToken = require('../middleware/verifyToken');
+const requireAdmin = require('../middleware/requireAdmin');
+router.get('/', productController.getProducts);
+router.get('/filters', productController.getFilters);
+router.get('/:id', productController.getProductById);
+router.post('/', verifyToken, requireAdmin, productController.createProduct);
+router.put('/:id', verifyToken, requireAdmin, productController.putProduct);
+router.delete('/:id', verifyToken, requireAdmin, productController.deleteProduct);
+module.exports = router;
+
+
+// ==========================================
+// PATH: api\routes\stripe.js
+// ==========================================
+
+const express = require("express");
+const router = express.Router();
+const stripeController = require("../controllers/stripeController");
+router.post(
+  "/webhook",
+  express.raw({ type: "application/json" }),
+  stripeController.handleWebhook,
+);
+module.exports = router;
+
+
+// ==========================================
+// PATH: api\routes\users.js
+// ==========================================
+
+const express = require("express");
+const router = express.Router();
+const userController = require("../controllers/userController");
+const verifyToken = require("../middleware/verifyToken");
+router.get("/profile", verifyToken, userController.getProfile);
+router.put("/:id", verifyToken, userController.editUser);
+router.delete("/:id", verifyToken, userController.deleteUser);
+module.exports = router;
+
+
+// ==========================================
+// PATH: api\tests\security.test.js
+// ==========================================
+
+process.env.JWT_ACCESS_SECRET = "test-access-secret-that-is-at-least-32-characters";
+process.env.JWT_REFRESH_SECRET = "test-refresh-secret-that-is-at-least-32-characters";
+jest.mock("../lib/prisma", () => ({
+  prisma: {
+    user: {
+      create: jest.fn(),
+      delete: jest.fn(),
+      findUnique: jest.fn(),
+      update: jest.fn(),
+    },
+    refreshToken: { create: jest.fn() },
+  },
+}));
+jest.mock("../controllers/productController", () => ({
+  createProduct: jest.fn((req, res) => res.sendStatus(201)),
+  deleteProduct: jest.fn((req, res) => res.sendStatus(204)),
+  getFilters: jest.fn(),
+  getProductById: jest.fn(),
+  getProducts: jest.fn(),
+  putProduct: jest.fn((req, res) => res.sendStatus(200)),
+}));
+const express = require("express");
+const jwt = require("jsonwebtoken");
+const request = require("supertest");
+const CustomError = require("../utils/customError");
+const { prisma } = require("../lib/prisma");
+const userController = require("../controllers/userController");
+const userSchema = require("../validators/userValidator");
+const productsRoute = require("../routes/products");
+const errorHandler = require("../middleware/errorHandler");
+describe("security controls", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+  it("rejects role assignment through the user validator", () => {
+    const { error } = userSchema.validate({
+      name: "New User",
+      email: "new@example.com",
+      password: "password123",
+      role: "admin",
+    });
+    expect(error).toBeDefined();
+  });
+  it("never returns a password hash from getProfile", async () => {
+    prisma.user.findUnique.mockResolvedValue({
+      id: 1,
+      name: "User",
+      email: "user@example.com",
+      role: "user",
+      password: "hash",
+    });
+    const res = { json: jest.fn() };
+    await userController.getProfile({ user: { id: 1 } }, res, jest.fn());
+    expect(res.json).toHaveBeenCalledWith(
+      expect.not.objectContaining({ password: expect.anything() }),
+    );
+  });
+  it("never returns a password hash from editUser", async () => {
+    prisma.user.update.mockResolvedValue({
+      id: 1,
+      name: "Updated User",
+      email: "user@example.com",
+      role: "user",
+      password: "hash",
+    });
+    const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+    await userController.editUser(
+      {
+        params: { id: "1" },
+        user: { id: 1, role: "user" },
+        body: { name: "Updated User" },
+      },
+      res,
+      jest.fn(),
+    );
+    expect(res.json).toHaveBeenCalledWith({
+      message: "User updated successfully",
+      user: expect.not.objectContaining({ password: expect.anything() }),
+    });
+  });
+  it("rejects role changes when editing a profile", async () => {
+    const next = jest.fn();
+    await userController.editUser(
+      {
+        params: { id: "1" },
+        user: { id: 1, role: "user" },
+        body: { role: "admin" },
+      },
+      { status: jest.fn().mockReturnThis(), json: jest.fn() },
+      next,
+    );
+    expect(next).toHaveBeenCalledWith(expect.any(CustomError));
+    expect(next.mock.calls[0][0].statusCode).toBe(400);
+    expect(prisma.user.update).not.toHaveBeenCalled();
+  });
+  it("allows a user to delete their own account without trusting query identity", async () => {
+    prisma.user.delete.mockResolvedValue({});
+    await userController.deleteUser(
+      {
+        params: { id: "1" },
+        query: { userId: "999" },
+        user: { id: 1, role: "user" },
+      },
+      { status: jest.fn().mockReturnThis(), json: jest.fn() },
+      jest.fn(),
+    );
+    expect(prisma.user.delete).toHaveBeenCalledWith({ where: { id: 1 } });
+  });
+  it("requires authentication and admin role for every product write", async () => {
+    const app = express();
+    app.use(express.json(), productsRoute, errorHandler);
+    const userToken = jwt.sign(
+      { id: 1, role: "user" },
+      process.env.JWT_ACCESS_SECRET,
+      { expiresIn: "1h" },
+    );
+    const adminToken = jwt.sign(
+      { id: 2, role: "admin" },
+      process.env.JWT_ACCESS_SECRET,
+      { expiresIn: "1h" },
+    );
+    for (const [method, path, adminStatus] of [
+      ["post", "/", 201],
+      ["put", "/1", 200],
+      ["delete", "/1", 204],
+    ]) {
+      const unauthenticated = await request(app)[method](path).send({});
+      const nonAdmin = await request(app)
+        [method](path)
+        .set("Authorization", `Bearer ${userToken}`)
+        .send({});
+      const admin = await request(app)
+        [method](path)
+        .set("Authorization", `Bearer ${adminToken}`)
+        .send({});
+      expect(unauthenticated.statusCode).toBe(401);
+      expect(nonAdmin.statusCode).toBe(403);
+      expect(admin.statusCode).toBe(adminStatus);
+    }
+  });
+});
+
+
+// ==========================================
+// PATH: api\utils\cookieOptions.js
+// ==========================================
+
+const cookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+};
+module.exports = cookieOptions;
+
+// ==========================================
+// PATH: api\utils\customError.js
+// ==========================================
+
+class CustomError extends Error {
+  constructor(message, statusCode) {
+    super(message);
+    this.statusCode = statusCode;
+  }
+}
+module.exports = CustomError;
+
+
+// ==========================================
+// PATH: api\utils\logger.js
+// ==========================================
+
+
+const logLevels = {
+  DEBUG: "DEBUG",
+  INFO: "INFO",
+  WARN: "WARN",
+  ERROR: "ERROR",
+};
+function formatTimestamp() {
+  return new Date().toISOString();
+}
+function log(level, message, context = {}) {
+  const logEntry = {
+    timestamp: formatTimestamp(),
+    level,
+    message,
+    ...context,
+  };
+  console.log(JSON.stringify(logEntry, null, 2));
+}
+module.exports = {
+  debug: (message, context) => log(logLevels.DEBUG, message, context),
+  info: (message, context) => log(logLevels.INFO, message, context),
+  warn: (message, context) => log(logLevels.WARN, message, context),
+  error: (message, context) => log(logLevels.ERROR, message, context),
+};
+
+
+// ==========================================
+// PATH: api\utils\orderStatus.js
+// ==========================================
+
+const TRANSITIONS = {
+  PENDING: ["PAID", "CANCELLED"],
+  PAID: ["SHIPPED"],
+  SHIPPED: ["DELIVERED"],
+  DELIVERED: [],
+  CANCELLED: [],
+};
+function canTransition(from, to) {
+ return TRANSITIONS[from]?.includes(to) ?? false;
+}
+module.exports = { TRANSITIONS, canTransition };
+
+// ==========================================
+// PATH: api\utils\tokenBlacklist.js
+// ==========================================
+
+
+const blacklistedTokens = new Set();
+function blacklistToken(token, expiresIn = 3600) {
+  blacklistedTokens.add(token);
+  // Auto-cleanup: remove token from set after it naturally expires
+  // In production with Redis, TTL handles this automatically
+  setTimeout(() => {
+    blacklistedTokens.delete(token);
+  }, expiresIn * 1000);
+}
+function isTokenBlacklisted(token) {
+  return blacklistedTokens.has(token);
+}
+function clearBlacklist() {
+  blacklistedTokens.clear();
+}
+module.exports = {
+  blacklistToken,
+  isTokenBlacklisted,
+  clearBlacklist,
+};
+
+
+// ==========================================
+// PATH: api\validators\cartValidator.js
+// ==========================================
+
+const Joi = require("joi");
+const addItemSchema = Joi.object({
+  productId: Joi.number().integer().required(),
+  quantity: Joi.number().integer().min(1).required(),
+});
+const updateQuantitySchema = Joi.object({
+  quantity: Joi.number().integer().min(1).required(),
+});
+module.exports = { addItemSchema, updateQuantitySchema };
+
+
+// ==========================================
+// PATH: api\validators\orderValidator.js
+// ==========================================
+
+const Joi = require("joi");
+const schema = Joi.object({
+  shippingAddress: Joi.object({
+    name: Joi.string().trim().min(1).max(100).required(),
+    line1: Joi.string().trim().min(1).max(200).required(),
+    line2: Joi.string().trim().max(200).allow(""),
+    city: Joi.string().trim().min(1).max(100).required(),
+    postalCode: Joi.string().trim().min(1).max(20).required(),
+    country: Joi.string().trim().min(1).max(100).required(),
+  }).required(),
+});
+module.exports = schema;
+
+
+// ==========================================
+// PATH: api\validators\productValidator.js
+// ==========================================
+
+const Joi = require("joi");
+const schema = Joi.object({
+  name: Joi.string().min(3).max(30).required(),
+  price: Joi.number().min(0).required(),
+  type: Joi.valid(
+    "single_malt",
+    "blended_scotch",
+    "blended_malt",
+    "bourbon",
+    "rye",
+    "irish",
+    "japanese",
+  ).required(),
+  inStock: Joi.boolean().required(),
+  distillery: Joi.string().min(3).max(30),
+  region: Joi.string().min(3).max(30),
+  country: Joi.string().min(3).max(30),
+  age: Joi.number().min(0),
+  abv: Joi.number().min(0),
+  description: Joi.string().min(5).max(500),
+  rating: Joi.number().min(0).max(5),
+});
+module.exports = schema;
+
+
+// ==========================================
+// PATH: api\validators\userValidator.js
+// ==========================================
+
+const Joi = require("joi");
+const schema = Joi.object({
+  name: Joi.string().min(3).max(30),
+  email: Joi.string().email(),
+  password: Joi.string().min(3),
+});
+module.exports = schema;
+
+
+// ==========================================
+// PATH: ui\eslint.config.js
+// ==========================================
+
+import js from '@eslint/js'
+import globals from 'globals'
+import reactHooks from 'eslint-plugin-react-hooks'
+import reactRefresh from 'eslint-plugin-react-refresh'
+import tseslint from 'typescript-eslint'
+import { defineConfig, globalIgnores } from 'eslint/config'
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      js.configs.recommended,
+      tseslint.configs.recommended,
+      reactHooks.configs.flat.recommended,
+      reactRefresh.configs.vite,
+    ],
+    languageOptions: {
+      globals: globals.browser,
+    },
+  },
+])
+
+
+// ==========================================
+// PATH: ui\index.html
+// ==========================================
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>whiskey-store</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+
+
+// ==========================================
+// PATH: ui\package.json
+// ==========================================
+
+{
+  "name": "whiskey-store",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^9.4.0",
+    "@mui/material": "^9.4.0",
+    "@stripe/react-stripe-js": "^7.0.1",
+    "@stripe/stripe-js": "^10.2.0",
+    "@tailwindcss/vite": "^4.3.3",
+    "@tanstack/react-query": "^5.100.14",
+    "axios": "^1.16.0",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "react-router-dom": "^7.15.0",
+    "tailwindcss": "^4.3.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^24.12.2",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "eslint": "^10.2.1",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.2",
+    "globals": "^17.5.0",
+    "typescript": "~6.0.2",
+    "typescript-eslint": "^8.58.2",
+    "vite": "^8.0.10"
+  }
+}
+
+
+// ==========================================
+// PATH: ui\README.md
+// ==========================================
+
+# React + TypeScript + Vite
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Currently, two official plugins are available:
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## React Compiler
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Expanding the ESLint configuration
+If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+```js
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+      // Remove tseslint.configs.recommended and replace with this
+      tseslint.configs.recommendedTypeChecked,
+      // Alternatively, use this for stricter rules
+      tseslint.configs.strictTypeChecked,
+      // Optionally, add this for stylistic rules
+      tseslint.configs.stylisticTypeChecked,
+      // Other configs...
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
+```
+You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+```js
+// eslint.config.js
+import reactX from 'eslint-plugin-react-x'
+import reactDom from 'eslint-plugin-react-dom'
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+      // Enable lint rules for React
+      reactX.configs['recommended-typescript'],
+      // Enable lint rules for React DOM
+      reactDom.configs.recommended,
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
+```
+
+
+// ==========================================
+// PATH: ui\tsconfig.app.json
+// ==========================================
+
+{
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    "target": "es2023",
+    "lib": ["ES2023", "DOM"],
+    "module": "esnext",
+    "types": ["vite/client"],
+    "skipLibCheck": true,
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+    /* Linting */
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["src"]
+}
+
+
+// ==========================================
+// PATH: ui\tsconfig.json
+// ==========================================
+
+{
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" }
+  ]
+}
+
+
+// ==========================================
+// PATH: ui\tsconfig.node.json
+// ==========================================
+
+{
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
+    "target": "es2023",
+    "lib": ["ES2023"],
+    "module": "esnext",
+    "types": ["node"],
+    "skipLibCheck": true,
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    /* Linting */
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["vite.config.ts"]
+}
+
+
+// ==========================================
+// PATH: ui\vite.config.ts
+// ==========================================
+
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [react(), tailwindcss()],
+});
+
+
+// ==========================================
+// PATH: ui\src\App.css
+// ==========================================
+
+
+
+// ==========================================
+// PATH: ui\src\App.tsx
+// ==========================================
+
+import { BrowserRouter } from "react-router-dom";
+import AppRoutes from "./routes";
+import { AuthProvider } from "./shared/context/auth/AuthProvider";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+const queryClient = new QueryClient();
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <BrowserRouter>
+          <AppRoutes />
+        </BrowserRouter>
+      </AuthProvider>
+    </QueryClientProvider>
+  );
+}
+export default App;
+
+
+// ==========================================
+// PATH: ui\src\index.css
+// ==========================================
+
+/* Imports */
+@import "tailwindcss";
+@layer base {
+  /* === Variables === */
+  :root {
+    /* --color-primary: #863bff;
+  --color-text: #1a1a1a;
+  --color-bg: #ffffff;
+  --font-sans: system-ui, -apple-system, sans-serif; */
+    /* --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px; */
+  }
+  /* === Reset === */
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  html {
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    font-family: var(--font-sans);
+    color: var(--color-text);
+    background-color: var(--color-bg);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  img,
+  video,
+  svg {
+    display: block;
+    max-width: 100%;
+  }
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+  button {
+    cursor: pointer;
+    border: none;
+    background: none;
+    font: inherit;
+  }
+  ul,
+  ol {
+    list-style: none;
+  }
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
+}
+
+
+// ==========================================
+// PATH: ui\src\main.tsx
+// ==========================================
+
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import './index.css'
+import App from './App.tsx'
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <App />
+  </StrictMode>,
+)
+
+
+// ==========================================
+// PATH: ui\src\routes.tsx
+// ==========================================
+
+import { Route, Routes } from "react-router-dom";
+import PublicRoute from "./shared/components/PublicRoute";
+import ProtectedRoute from "./shared/components/ProtectedRoute";
+import Login from "./features/auth/components/Login";
+import Register from "./features/auth/components/Register";
+import MainLayout from "./features/layouts/MainLayout";
+import Home from "./features/home/components/Home";
+import ProductList from "./features/products/product-list/components/ProductList";
+import ProductDetail from "./features/products/product-detail/components/ProductDetail";
+import Cart from "./features/cart/components/Cart";
+import Profile from "./features/profile/components/Profile";
+import PublicLayout from "./features/layouts/PublicLayout";
+import CheckoutPage from "./features/checkout/components/CheckoutPage";
+import ShippingPage from "./features/checkout/components/ShippingPage";
+import PaymentReturnPage from "./features/checkout/components/PaymentReturnPage";
+function AppRoutes() {
+  return (
+    <Routes>
+      {/* Public routes — no layout */}
+      <Route element={<PublicRoute />}>
+        <Route element={<PublicLayout />}>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+        </Route>
+      </Route>
+      {/* Protected routes — shared layout */}
+      <Route element={<ProtectedRoute />}>
+        <Route element={<MainLayout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/products" element={<ProductList />} />
+          <Route path="/products/:id" element={<ProductDetail />} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/profile/" element={<Profile />} />
+          <Route path="/checkout/" element={<ShippingPage />} />
+          <Route path="/checkout/:orderId" element={<CheckoutPage />} />
+          <Route path="/payment/return" element={<PaymentReturnPage />} />
+        </Route>
+      </Route>
+    </Routes>
+  );
+}
+export default AppRoutes;
+
+
+// ==========================================
+// PATH: ui\src\config\environment.ts
+// ==========================================
+
+export const environment = {
+  apiUrl: import.meta.env.VITE_API_URL,
+  stripePublishableKey: import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY,
+};
+
+
+// ==========================================
+// PATH: ui\src\features\auth\auth.types.ts
+// ==========================================
+
+import type { User } from "../../shared/models/user.types";
+export type LoginRequest = { email: string; password: string };
+export type LoginResponseDto = {
+  message: string;
+  accessToken: string;
+  payload: User;
+};
+export type AccessTokenDto = {
+  accessToken: string;
+};
+
+
+// ==========================================
+// PATH: ui\src\features\auth\components\Login.module.css
+// ==========================================
+
+
+
+// ==========================================
+// PATH: ui\src\features\auth\components\Login.tsx
+// ==========================================
+
+import { useState } from "react";
+import styles from "./Login.module.css";
+import { useAuth } from "../hooks/useAuth";
+const Login = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const { handleLogin } = useAuth();
+  const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    handleLogin({ email, password });
+  };
+  return (
+    <form onSubmit={handleSubmit}>
+      <div className="p-4 flex flex-col gap-4">
+        <div className="flex flex-col gap-4 ">
+          <div className={styles.formFieldsUser}>
+            <label htmlFor="email">Email:</label>
+            <input
+              type="email"
+              id="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="border"
+            />
+          </div>
+          <div className={styles.formFieldsPass}>
+            <label htmlFor="password">Password:</label>
+            <input
+              type="text"
+              id="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="border"
+            />
+          </div>
+        </div>
+        <div className={styles.formButton}>
+          <button
+            type="submit"
+            className="px-6 py-4 bg-violet-900 text-gray-100 text-lg text-center"
+          >
+            Login
+          </button>
+        </div>
+      </div>
+    </form>
+  );
+};
+export default Login;
+
+
+// ==========================================
+// PATH: ui\src\features\auth\components\Register.tsx
+// ==========================================
+
+const Register = () => {
+  return <div>Register</div>;
+};
+export default Register;
+
+
+// ==========================================
+// PATH: ui\src\features\auth\hooks\useAuth.ts
+// ==========================================
+
+import { useState } from "react";
+import { useAuthContext } from "../../../shared/context/auth/AuthContext";
+import type { LoginRequest } from "../auth.types";
+import { login, logout } from "../services/auth.service";
+import { setToken } from "../../../shared/services/tokenStore";
+import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
+export function useAuth() {
+  const { token, user, isInitializing, setAuth, clearAuth } = useAuthContext();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const qc = useQueryClient();
+  async function handleLogin(loginReq: LoginRequest) {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await login(loginReq);
+      setAuth(data.accessToken, data.payload);
+      setToken(data.accessToken);
+      navigate("/products", { replace: true });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (e: any) {
+      setError(e.response?.data?.error);
+      clearAuth();
+    } finally {
+      setLoading(false);
+    }
+  }
+  async function handleLogout() {
+    setLoading(true);
+    setError(null);
+    try {
+      await logout();
+      clearAuth();
+      setToken(null);
+      qc.clear();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (e: any) {
+      setError(e.response?.data?.error);
+      clearAuth();
+      setToken(null);
+      qc.clear();
+    } finally {
+      setLoading(false);
+    }
+  }
+  return {
+    token,
+    user,
+    isInitializing,
+    handleLogin,
+    handleLogout,
+    loading,
+    error,
+  };
+}
+
+
+// ==========================================
+// PATH: ui\src\features\auth\services\auth.service.ts
+// ==========================================
+
+import type {
+  AccessTokenDto,
+  LoginRequest,
+  LoginResponseDto,
+} from "../auth.types";
+import api from "../../../shared/services/api";
+export async function login(
+  loginRequest: LoginRequest,
+): Promise<LoginResponseDto> {
+  const response = await api.post("/auth/login", loginRequest);
+  return response.data;
+}
+export async function refreshToken(): Promise<AccessTokenDto> {
+  const response = await api.post("/auth/refresh", null);
+  return response.data;
+}
+export async function logout(): Promise<void> {
+  const response = await api.post("/auth/logout", null);
+  return response.data;
+}
+
+
+// ==========================================
+// PATH: ui\src\features\cart\cart.types.ts
+// ==========================================
+
+import type { WhiskeyProduct } from "../products/product.types";
+export type CartResponseDto = {
+  id: number;
+  userId: number;
+  total: number;
+  items: CartItemDto[];
+};
+export type CartItemDto = {
+  id: number;
+  quantity: number;
+  productId: number;
+  product: WhiskeyProduct;
+  cartId: number;
+};
+export type AddItemPayload = {
+  productId: number;
+  quantity: number;
+}
+
+// ==========================================
+// PATH: ui\src\features\cart\components\Cart.tsx
+// ==========================================
+
+import { Button, IconButton } from "@mui/material";
+import { useCart, useCartMutations } from "../hooks/useCart";
+import AddIcon from "@mui/icons-material/Add";
+import RemoveIcon from "@mui/icons-material/Remove";
+import { useNavigate } from "react-router-dom";
+function Cart() {
+  const navigate = useNavigate();
+  const { data: cart, isPending: cartPending } = useCart();
+  const { update, remove } = useCartMutations();
+  const quantityUpdatePending = update.isPending || remove.isPending;
+  const totalItems = cart?.items.reduce(
+    (prev, curr) => prev + curr.quantity,
+    0,
+  );
+  if (cartPending) return <p>Loading...</p>;
+  return (
+    <div>
+      <div className="cart flex justify-between p-4 gap-4">
+        <div className="cart-items">
+          {cart && cart.items
+            ? cart.items.map((cartItem) => (
+                <div key={cartItem.id} className="flex items-center">
+                  <div>{cartItem.product.name}</div>
+                  <div>
+                    <IconButton
+                      disabled={quantityUpdatePending}
+                      onClick={() =>
+                        cartItem.quantity === 1
+                          ? remove.mutate(cartItem.product.id)
+                          : update.mutate({
+                              productId: cartItem.product.id,
+                              quantity: cartItem.quantity - 1,
+                            })
+                      }
+                    >
+                      <RemoveIcon />
+                    </IconButton>
+                    <span>{cartItem.quantity}</span>
+                    <IconButton
+                      disabled={quantityUpdatePending}
+                      onClick={() =>
+                        update.mutate({
+                          productId: cartItem.product.id,
+                          quantity: cartItem.quantity + 1,
+                        })
+                      }
+                    >
+                      <AddIcon />
+                    </IconButton>
+                  </div>
+                </div>
+              ))
+            : ""}
+        </div>
+        <div className="cart-total">
+          TOTAL: {totalItems} products - {cart?.total}
+        </div>
+      </div>
+      <div className="btn-checkout-container">
+        <Button
+          onClick={() => navigate("/checkout")}
+          variant="contained"
+          sx={{
+            width: "100%",
+            backgroundColor: "#4c1d95",
+            color: "#fff",
+            textTransform: "none",
+            borderRadius: 2,
+            "&:hover": {
+              backgroundColor: "#3b0764",
+            },
+          }}
+        >
+          Go to Checkout
+        </Button>
+      </div>
+    </div>
+  );
+}
+export default Cart;
+
+
+// ==========================================
+// PATH: ui\src\features\cart\components\CartPreview.tsx
+// ==========================================
+
+import { Button } from "@mui/material";
+import { useNavigate } from "react-router-dom";
+import { useCart } from "../hooks/useCart";
+type CartPreviewProps = {
+  onNavigate: () => void;
+};
+function CartPreview({ onNavigate }: CartPreviewProps) {
+  const navigate = useNavigate();
+  const { data: cart, isPending: cartPending } = useCart();
+  const totalItems = cart?.items.reduce(
+    (prev, curr) => prev + curr.quantity,
+    0,
+  );
+  if (cartPending) return <p>Loading...</p>;
+  return (
+    <div className="cart flex flex-col p-4 gap-4">
+      <div className="cart-items">
+        {cart && cart.items
+          ? cart.items.map((p) => (
+              <div key={p.id}>
+                {p.product.name} - {p.quantity} - {p.product.price * p.quantity}
+              </div>
+            ))
+          : ""}
+      </div>
+      <div className="cart-total border border-transparent border-t-gray-300 border-b-gray-300 pt-3 pb-3">
+        TOTAL: {totalItems} products - {cart?.total}
+      </div>
+      <div className="cart-button">
+        <Button
+          onClick={() => {
+            onNavigate();
+            navigate("/cart");
+          }}
+          variant="contained"
+          sx={{
+            width: "100%",
+            backgroundColor: "#4c1d95",
+            color: "#fff",
+            textTransform: "none",
+            borderRadius: 2,
+            "&:hover": {
+              backgroundColor: "#3b0764",
+            },
+          }}
+        >
+          Go to cart
+        </Button>
+      </div>
+    </div>
+  );
+}
+export default CartPreview;
+
+
+// ==========================================
+// PATH: ui\src\features\cart\hooks\useCart.ts
+// ==========================================
+
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "../../auth/hooks/useAuth";
+import {
+  addItem,
+  deleteItem,
+  getCart,
+  updateItemQuantity,
+} from "../services/cart.service";
+import type { CartResponseDto } from "../cart.types";
+export const cartKey = (userId?: number) => ["cart", userId] as const;
+export function useCart() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: cartKey(user?.id),
+    queryFn: getCart,
+    enabled: !!user, // don't fire the query before an user exists
+    staleTime: 60_000,
+  });
+}
+export function useCartMutations() {
+  const qc = useQueryClient();
+  const { user } = useAuth();
+  const onSuccess = (cart: CartResponseDto) =>
+    qc.setQueryData(cartKey(user?.id), cart);
+  return {
+    add: useMutation({ mutationFn: addItem, onSuccess }),
+    update: useMutation({ mutationFn: updateItemQuantity, onSuccess }),
+    remove: useMutation({ mutationFn: deleteItem, onSuccess }),
+  };
+}
+
+
+// ==========================================
+// PATH: ui\src\features\cart\services\cart.service.ts
+// ==========================================
+
+import api from "../../../shared/services/api";
+import type { AddItemPayload, CartResponseDto } from "../cart.types";
+export async function getCart(): Promise<CartResponseDto> {
+  const response = await api.get("/cart");
+  return response.data;
+}
+export async function addItem(item: AddItemPayload): Promise<CartResponseDto> {
+  const response = await api.post(`/cart/items`, item);
+  return response.data;
+}
+export async function updateItemQuantity(
+  item: AddItemPayload,
+): Promise<CartResponseDto> {
+  const { productId, quantity } = item;
+  const response = await api.patch(`/cart/items/${productId}`, { quantity });
+  return response.data;
+}
+export async function deleteItem(productId: number): Promise<CartResponseDto> {
+  const response = await api.delete(`/cart/items/${productId}`);
+  return response.data;
+}
+
+
+// ==========================================
+// PATH: ui\src\features\checkout\checkout.types.ts
+// ==========================================
+
+export type CreatePaymentSessionResponse = {
+  clientSecret: string;
+};
+
+
+// ==========================================
+// PATH: ui\src\features\checkout\components\CheckoutForm.tsx
+// ==========================================
+
+import {
+  useCheckoutElements,
+  PaymentElement,
+} from "@stripe/react-stripe-js/checkout";
+import { useState } from "react";
+function CheckoutForm() {
+  const checkoutState = useCheckoutElements();
+  // 1. Track the email in React state (optionally pre-filled from useAuth):
+  const [email, setEmail] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  if (checkoutState.type === "loading") {
+    return <p>Loading payment form...</p>;
+  }
+  if (checkoutState.type === "error") {
+    return <p>Error: {checkoutState.error.message}</p>;
+  }
+  // Once type === "success", checkoutState.checkout is available!
+  const { checkout } = checkoutState;
+  const handleSubmit = async (event: React.SubmitEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setErrorMessage(null);
+    setIsSubmitting(true);
+    const result = await checkout.confirm({email});
+    if (result.type === "error") {
+      setErrorMessage(result.error.message);
+      console.log("Payment confirmation error:", result.error);
+    }
+    setIsSubmitting(false);
+  };
+  return (
+    <form onSubmit={handleSubmit}>
+      <input
+        type="email"
+        placeholder="Email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring focus:ring-blue-200"
+      />
+      <PaymentElement />
+      {errorMessage && <div role="alert">{errorMessage}</div>}
+      <button
+        type="submit"
+        disabled={isSubmitting}
+        className="mt-4 rounded-md bg-blue-600 px-6 py-2 text-white disabled:opacity-40"
+      >
+        Pay
+      </button>
+    </form>
+  );
+}
+export default CheckoutForm;
+
+
+// ==========================================
+// PATH: ui\src\features\checkout\components\CheckoutPage.tsx
+// ==========================================
+
+import { loadStripe } from "@stripe/stripe-js";
+import { CheckoutElementsProvider } from "@stripe/react-stripe-js/checkout";
+import { environment } from "../../../config/environment";
+import { useParams } from "react-router-dom";
+import { usePaymentSession } from "../hooks/useCheckout";
+import CheckoutForm from "./CheckoutForm";
+const stripePromise = loadStripe(environment.stripePublishableKey);
+function CheckoutPage() {
+  const { orderId } = useParams();
+  const numericOrderId = Number(orderId);
+  const { data, isPending, isError, refetch } =
+    usePaymentSession(numericOrderId);
+  if (isPending) return <p>Loading...</p>;
+  if (isError) {
+    return (
+      <div role="alert">
+        <p>Could not start checkout. Please try again.</p>
+        <button onClick={() => refetch()}>Retry</button>
+      </div>
+    );
+  }
+  return (
+    <div>
+      <CheckoutElementsProvider  
+        stripe={stripePromise}
+        options={{ clientSecret: data?.clientSecret }}
+      >
+        <CheckoutForm />
+      </CheckoutElementsProvider>
+    </div>
+  );
+}
+export default CheckoutPage;
+
+
+// ==========================================
+// PATH: ui\src\features\checkout\components\PaymentReturnPage.tsx
+// ==========================================
+
+import { useSearchParams } from "react-router-dom";
+import { useOrder } from "../../orders/hooks/useOrders";
+function PaymentReturnPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const orderId = searchParams.get("order_id");
+  const numericOrderId = Number(orderId);
+  const sessionId = searchParams.get("session_id");
+  const numericSessionId = Number(sessionId);
+  const {
+    data: order,
+    isPending,
+    isError,
+  } = useOrder(numericOrderId, { refetchInterval: 2000 });
+  if (isPending) return <p>Loading...</p>;
+  if (isError) {
+    return (
+      <div role="alert">
+        <p>Could not fetch order details.</p>
+      </div>
+    );
+  }
+  return <div>PaymentReturn</div>;
+}
+export default PaymentReturnPage;
+
+
+// ==========================================
+// PATH: ui\src\features\checkout\components\ShippingPage.tsx
+// ==========================================
+
+import { useState } from "react";
+import type { ShippingAddress } from "../checkout.types";
+import { useCreateOrder } from "../hooks/useCheckout";
+const initialShippingAddress: ShippingAddress = {
+  name: "",
+  line1: "",
+  line2: "",
+  city: "",
+  postalCode: "",
+  country: "",
+};
+function ShippingPage() {
+  const { mutate: createOrder, isPending, isError } = useCreateOrder();
+  const [shippingAddress, setShippingAddress] = useState(
+    initialShippingAddress,
+  );
+  function onSubmitShippingAddress(address: ShippingAddress) {
+    createOrder(address);
+  }
+  if (isPending) return <p>Loading...</p>;
+  if (isError) {
+    return <p>Error occurred while submitting shipping address.</p>;
+  }
+  return (
+    <div>
+      <h1>Shipping Page</h1>
+      <form>
+        <div>
+          <label htmlFor="name">Name: </label>
+          <input
+            type="text"
+            name="name"
+            id="name"
+            value={shippingAddress.name}
+            onChange={(e) =>
+              setShippingAddress({ ...shippingAddress, name: e.target.value })
+            }
+            className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring focus:ring-blue-200"
+          />
+        </div>
+        <div>
+          <label htmlFor="line1">Line 1: </label>
+          <input
+            type="text"
+            name="line1"
+            id="line1"
+            value={shippingAddress.line1}
+            onChange={(e) =>
+              setShippingAddress({ ...shippingAddress, line1: e.target.value })
+            }
+            className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring focus:ring-blue-200"
+          />
+        </div>
+        <div>
+          <label htmlFor="line2">Line 2: </label>
+          <input
+            type="text"
+            name="line2"
+            id="line2"
+            value={shippingAddress.line2}
+            onChange={(e) =>
+              setShippingAddress({ ...shippingAddress, line2: e.target.value })
+            }
+            className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring focus:ring-blue-200"
+          />
+        </div>
+        <div>
+          <label htmlFor="city">City: </label>
+          <input
+            type="text"
+            name="city"
+            id="city"
+            value={shippingAddress.city}
+            onChange={(e) =>
+              setShippingAddress({ ...shippingAddress, city: e.target.value })
+            }
+            className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring focus:ring-blue-200"
+          />
+        </div>
+        <div>
+          <label htmlFor="postalCode">Postal Code: </label>
+          <input
+            type="text"
+            name="postalCode"
+            id="postalCode"
+            value={shippingAddress.postalCode}
+            onChange={(e) =>
+              setShippingAddress({
+                ...shippingAddress,
+                postalCode: e.target.value,
+              })
+            }
+            className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring focus:ring-blue-200"
+          />
+        </div>
+        <div>
+          <label htmlFor="country">Country: </label>
+          <input
+            type="text"
+            name="country"
+            id="country"
+            value={shippingAddress.country}
+            onChange={(e) =>
+              setShippingAddress({
+                ...shippingAddress,
+                country: e.target.value,
+              })
+            }
+            className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring focus:ring-blue-200"
+          />
+        </div>
+      </form>
+      <div className="mt-4">
+        <button
+          type="button"
+          onClick={() => onSubmitShippingAddress(shippingAddress)}
+          className="rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:outline-none focus:ring focus:ring-blue-200"
+        >
+          Go to payment
+        </button>
+      </div>
+    </div>
+  );
+}
+export default ShippingPage;
+
+
+// ==========================================
+// PATH: ui\src\features\checkout\hooks\useCheckout.ts
+// ==========================================
+
+import { useQuery } from "@tanstack/react-query";
+import { createPaymentSession } from "../services/checkout.service";
+export function usePaymentSession(orderId: number) {
+  return useQuery({
+    queryKey: ["payment-session", orderId],
+    queryFn: () => createPaymentSession(orderId),
+    enabled: Number.isSafeInteger(orderId) && orderId > 0,
+    staleTime: Infinity, // stops React Query from refetching on window focus (because data is never considered stale)
+    retry: false, // stops React Query from automatically firing the failed request 3 more times if the backend returns a 404 or 409 error.
+  });
+}
+
+
+// ==========================================
+// PATH: ui\src\features\checkout\services\checkout.service.ts
+// ==========================================
+
+import api from "../../../shared/services/api";
+import type { CreatePaymentSessionResponse } from "../checkout.types";
+export async function createPaymentSession(
+  orderId: number,
+): Promise<CreatePaymentSessionResponse> {
+  const response = await api.post(`/orders/${orderId}/payment-session`);
+  return response.data;
+}
+
+
+// ==========================================
+// PATH: ui\src\features\home\components\Home.tsx
+// ==========================================
+
+import { useAuthContext } from "../../../shared/context/auth/AuthContext";
+const Home = () => {
+  const { user } = useAuthContext();
+  return <div>Welcome {user?.name}</div>;
+};
+export default Home;
+
+
+// ==========================================
+// PATH: ui\src\features\layouts\MainLayout.tsx
+// ==========================================
+
+import { Outlet } from "react-router-dom";
+import Navbar from "../../shared/components/Navbar";
+const MainLayout = () => {
+  return (
+    <div>
+      <Navbar/>
+      <div className="w-full max-w-350 mx-auto">
+        <Outlet />
+      </div>
+    </div>
+  );
+};
+export default MainLayout;
+
+
+// ==========================================
+// PATH: ui\src\features\layouts\PublicLayout.tsx
+// ==========================================
+
+import { Outlet } from "react-router-dom";
+const PublicLayout = () => {
+  return (
+    <div className="w-full max-w-350 mx-auto">
+      <Outlet />
+    </div>
+  );
+};
+export default PublicLayout;
+
+
+// ==========================================
+// PATH: ui\src\features\orders\order.types.ts
+// ==========================================
+
+export type ShippingAddress = {
+  name: string;
+  line1: string;
+  line2?: string;
+  city: string;
+  postalCode: string;
+  country: string;
+};
+export type OrderResponse = {
+  message: string;
+  order: Order;
+};
+export type Order = {
+  id: number;
+  userId: string;
+  status: OrderStatus;
+  shippingAddress: ShippingAddress;
+  totalCents: number;
+  checkoutSessionCreationKey: string;
+  items: OrderItem[];
+};
+export type OrderItem = {
+  id: number;
+  quantity: number;
+  unitPriceCents: number;
+  productName: string;
+  orderId: number;
+  productId: number;
+};
+export type OrderStatus =
+  | "PENDING"
+  | "SHIPPED"
+  | "DELIVERED"
+  | "PAID"
+  | "CANCELLED";
+
+
+// ==========================================
+// PATH: ui\src\features\orders\hooks\useOrders.ts
+// ==========================================
+
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "../../auth/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
+import type { OrderResponse } from "../order.types";
+import { cartKey } from "../../cart/hooks/useCart";
+import { cancelOrder, createOrder, getOrder, getOrders } from "../services/orders.service";
+export function useCreateOrder() {
+  const qc = useQueryClient();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const onSuccess = (data: OrderResponse) => {
+    qc.invalidateQueries({ queryKey: cartKey(user?.id) });
+    navigate(`/checkout/${data.order.id}`);
+  };
+  return useMutation({ mutationFn: createOrder, onSuccess });
+}
+export function useOrder(
+  orderId: number,
+  { refetchInterval = false }: { refetchInterval?: number | false } = {},
+) {
+  return useQuery({
+    queryKey: ["order", orderId],
+    queryFn: () => getOrder(orderId),
+    refetchInterval,
+    enabled: !!orderId,
+  });
+}
+export function useOrders() {
+  return useQuery({
+    queryKey: ["orders"],
+    queryFn: getOrders,
+  });
+}
+export function useCancelOrder(orderId: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => cancelOrder(orderId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["orders"] });
+      qc.invalidateQueries({ queryKey: ["order", orderId] });
+    },
+  });
+}
+
+// ==========================================
+// PATH: ui\src\features\orders\services\orders.service.ts
+// ==========================================
+
+import api from "../../../shared/services/api";
+import type { Order, OrderResponse, ShippingAddress } from "../order.types";
+export async function getOrder(orderId: number): Promise<Order> {
+  const response = await api.get(`/orders/${orderId}`);
+  return response.data;
+}
+export async function getOrders(): Promise<Order[]> {
+  const response = await api.get("/orders");
+  return response.data;
+}
+export async function createOrder(
+  shippingAddress: ShippingAddress,
+): Promise<OrderResponse> {
+  const response = await api.post(`/orders/checkout`, { shippingAddress });
+  return response.data;
+}
+export async function cancelOrder(orderId: number): Promise<void> {
+  await api.post(`/orders/${orderId}/cancel`);
+}
+
+
+// ==========================================
+// PATH: ui\src\features\products\product.types.ts
+// ==========================================
+
+export type WhiskeyProduct = {
+  id: number;
+  name: string;
+  distillery: string;
+  region: string;
+  country: string;
+  type: ProductType;
+  age: number | null;
+  abv: number;
+  price: number;
+  description: string;
+  inStock: boolean;
+  rating: number;
+};
+export type ProductPayload = Omit<WhiskeyProduct, "id">;
+export type ProductsFilters = {
+  page?: number;
+  limit?: number;
+  region?: string;
+  type?: ProductType;
+  country?: string;
+  inStock?: boolean;
+  rating?: number;
+  minPrice?: number;
+  maxPrice?: number;
+  search?: string;
+  sortOrder?: SortOrder;
+  sortBy?: SortBy;
+};
+export type FiltersResponse = {
+  flatRegions: Array<string>;
+  flatCountries: Array<string>;
+  flatTypes: Array<string>;
+};
+export type ProductType =
+  | "single_malt"
+  | "blended_scotch"
+  | "blended_malt"
+  | "bourbon"
+  | "rye"
+  | "irish"
+  | "japanese";
+export type SortOrder = "asc" | "desc";
+export type SortBy = "price" | "age";
+
+
+// ==========================================
+// PATH: ui\src\features\products\hooks\useProduct.ts
+// ==========================================
+
+import { useQuery } from "@tanstack/react-query";
+import { getProductById } from "../services/products.service";
+export function useProduct(id: number) {
+  return useQuery({
+    queryKey: ["product", id],
+    queryFn: () => getProductById(Number(id)),
+    enabled: Number.isFinite(id)
+  });
+}
+
+// ==========================================
+// PATH: ui\src\features\products\product-detail\components\ProductDetail.tsx
+// ==========================================
+
+import { useParams } from "react-router-dom";
+import AddIcon from "@mui/icons-material/Add";
+import RemoveIcon from "@mui/icons-material/Remove";
+import { useCart, useCartMutations } from "../../../cart/hooks/useCart";
+import { useProduct } from "../../hooks/useProduct";
+import { IconButton } from "@mui/material";
+function ProductDetail() {
+  const { id } = useParams(); // string | undefined
+  const { add, update, remove } = useCartMutations();
+  const {
+    data: product,
+    isPending: productPending,
+    isError: productError,
+  } = useProduct(Number(id));
+  const { data: cart, isPending: cartPending, isError: cartError } = useCart();
+  const quantityUpdatePending =
+    add.isPending || update.isPending || remove.isPending;
+  if (productPending || cartPending) return <p>Loading...</p>;
+  if (productError || cartError) return <p>Could not load this page.</p>;
+  if (!product) return <p>Product not found.</p>;
+  const item = cart?.items.find((i) => i.productId === product.id);
+  return (
+    <div>
+      <h1>{product?.name}</h1>
+      {item ? (
+        <>
+          <IconButton
+            disabled={quantityUpdatePending}
+            onClick={() =>
+              item.quantity === 1
+                ? remove.mutate(product.id)
+                : update.mutate({
+                    productId: product.id,
+                    quantity: item.quantity - 1,
+                  })
+            }
+          >
+            <RemoveIcon />
+          </IconButton>
+          <span>{item.quantity}</span>
+          <IconButton
+            disabled={quantityUpdatePending}
+            onClick={() =>
+              update.mutate({
+                productId: product.id,
+                quantity: item.quantity + 1,
+              })
+            }
+          >
+            <AddIcon />
+          </IconButton>
+        </>
+      ) : (
+        <button
+          disabled={quantityUpdatePending}
+          onClick={() => add.mutate({ productId: product.id, quantity: 1 })}
+        >
+          Add to cart
+        </button>
+      )}
+    </div>
+  );
+}
+export default ProductDetail;
+
+
+// ==========================================
+// PATH: ui\src\features\products\product-list\components\FilterBar.tsx
+// ==========================================
+
+import type {
+  FiltersResponse,
+  ProductsFilters,
+  SortBy,
+  SortOrder,
+} from "../../product.types";
+type FilterBarProps = {
+  filters: ProductsFilters;
+  filterOptions: FiltersResponse;
+  onParamsChange: (
+    key: keyof ProductsFilters,
+    value: string | undefined,
+  ) => void;
+};
+function FilterBar({ filters, filterOptions, onParamsChange }: FilterBarProps) {
+  const filterFields: {
+    optionsKey: keyof FiltersResponse;
+    filterKey: keyof ProductsFilters;
+    label: string;
+  }[] = [
+    { optionsKey: "flatRegions", filterKey: "region", label: "Region" },
+    { optionsKey: "flatTypes", filterKey: "type", label: "Type" },
+    { optionsKey: "flatCountries", filterKey: "country", label: "Country" },
+  ];
+  const sortByOptions: { value: SortBy; label: string }[] = [
+    { value: "price", label: "Price" },
+    { value: "age", label: "Age" },
+  ];
+  const sortOrderOptions: { value: SortOrder; label: string }[] = [
+    { value: "asc", label: "Ascending" },
+    { value: "desc", label: "Descending" },
+  ];
+  return (
+    <div className="filter-bar">
+      <div className="filter">
+        <label htmlFor="minPrice">Min Price: </label>
+        <input
+          type="range"
+          name="minPrice"
+          id="minPrice"
+          min="0"
+          max="3000"
+          step="50"
+          value={filters.minPrice ?? 0}
+          onChange={(e) => onParamsChange("minPrice", e.target.value)}
+        />
+      </div>
+      <div className="filter">
+        <label htmlFor="maxPrice">Max Price: </label>
+        <input
+          type="range"
+          name="maxPrice"
+          id="maxPrice"
+          min="0"
+          max="3000"
+          step="50"
+          value={filters.maxPrice ?? 0}
+          onChange={(e) => onParamsChange("maxPrice", e.target.value)}
+        />
+      </div>
+      {filterFields.map(({ optionsKey, filterKey, label }) => (
+        <div className="filter" key={filterKey}>
+          <label htmlFor={filterKey}>{label}</label>
+          <select
+            id={filterKey}
+            value={String(filters[filterKey] ?? "")}
+            onChange={(e) =>
+              onParamsChange(filterKey, e.target.value || undefined)
+            }
+          >
+            <option value="">All</option>
+            {filterOptions[optionsKey].map((value) => (
+              <option key={value} value={value}>
+                {value}
+              </option>
+            ))}
+          </select>
+        </div>
+      ))}
+      <div className="filter">
+        <label htmlFor="sortBy"></label>
+        <select
+          value={filters.sortBy ?? ""}
+          onChange={(e) =>
+            onParamsChange("sortBy", e.target.value || undefined)
+          }
+          name="sortBy"
+          id="sortBy"
+        >
+          {sortByOptions.map(({ value, label }) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="filter">
+        <label htmlFor="sortOrder"></label>
+        <select
+          value={filters.sortOrder ?? ""}
+          onChange={(e) =>
+            onParamsChange("sortOrder", e.target.value || undefined)
+          }
+          name="sortOrder"
+          id="sortOrder"
+        >
+          {sortOrderOptions.map(({ value, label }) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </select>
+      </div>
+    </div>
+  );
+}
+export default FilterBar;
+
+
+// ==========================================
+// PATH: ui\src\features\products\product-list\components\ProductList.tsx
+// ==========================================
+
+import type {
+  ProductsFilters,
+  ProductType,
+  SortBy,
+  SortOrder,
+} from "../../product.types";
+import { NavLink, useSearchParams } from "react-router-dom";
+import FilterBar from "./FilterBar";
+import { useQuery } from "@tanstack/react-query";
+import { getFilters, getProducts } from "../../services/products.service";
+function parseFilters(params: URLSearchParams): ProductsFilters {
+  return {
+    page: params.get("page") ? Number(params.get("page")) : undefined,
+    limit: params.get("limit") ? Number(params.get("limit")) : undefined,
+    region: params.get("region") ?? undefined,
+    country: params.get("country") ?? undefined,
+    rating: params.get("rating") ? Number(params.get("rating")) : undefined,
+    type: (params.get("type") as ProductType) ?? undefined,
+    minPrice: params.get("minPrice")
+      ? Number(params.get("minPrice"))
+      : undefined,
+    maxPrice: params.get("maxPrice")
+      ? Number(params.get("maxPrice"))
+      : undefined,
+    inStock:
+      params.get("inStock") === "true"
+        ? true
+        : params.get("inStock") === "false"
+          ? false
+          : undefined,
+    search: params.get("search") ?? undefined,
+    sortBy: (params.get("sortBy") as SortBy) ?? undefined,
+    sortOrder: (params.get("sortOrder") as SortOrder) ?? undefined,
+  };
+}
+const ProductList = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const filters = parseFilters(searchParams);
+  const currentPage = filters.page ?? 1;
+  const {
+    data: products,
+    isLoading: isProductsLoading,
+    isError: isProductsError,
+  } = useQuery({
+    queryKey: ["products", filters],
+    queryFn: () => getProducts(filters),
+  });
+  const {
+    data: filterOptions,
+    isLoading: isFilterOptionsLoading,
+    isError: isFilterOptionsError,
+  } = useQuery({
+    queryKey: ["filters"],
+    queryFn: () => getFilters(),
+  });
+  function updateFilter(key: keyof ProductsFilters, value: string | undefined) {
+    const next = new URLSearchParams(searchParams);
+    if (value) {
+      next.set(key, value);
+    } else {
+      next.delete(key);
+    }
+    next.delete("page");
+    setSearchParams(next, { replace: true });
+  }
+  function goToPage(page: number) {
+    const next = new URLSearchParams(searchParams);
+    next.set("page", String(page));
+    setSearchParams(next);
+  }
+  if (isProductsLoading || isFilterOptionsLoading) return <p>Loading ...</p>;
+  if (isProductsError || isFilterOptionsError)
+    return <p>Something went wrong.</p>;
+  if (!products || !filterOptions) return null; // unreachable in practice, but useQuery's data is typed T | undefined
+  return (
+    <div>
+      <FilterBar
+        filters={filters}
+        filterOptions={filterOptions}
+        onParamsChange={updateFilter}
+      />
+      {products.data.map((p) => (
+        <div key={p.id}>
+          <NavLink to={`/products/${p.id}`}>{p.name}</NavLink>
+        </div>
+      ))}
+      <div className="pagination">
+        <div className="prev">
+          <button
+            className="prev-btn"
+            disabled={currentPage <= 1}
+            onClick={() => goToPage(currentPage - 1)}
+          >
+            &lt;
+          </button>
+        </div>
+        {Array.from({ length: products.totalPages }, (_, i) => i + 1).map(
+          (i) => (
+            <button
+              key={i}
+              className={i === currentPage ? "active" : ""}
+              onClick={() => goToPage(i)}
+            >
+              {i}
+            </button>
+          ),
+        )}
+        <div className="next">
+          <button
+            className="next-btn"
+            disabled={currentPage >= products.totalPages}
+            onClick={() => goToPage(currentPage + 1)}
+          >
+            &gt;
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+export default ProductList;
+
+
+// ==========================================
+// PATH: ui\src\features\products\services\products.service.ts
+// ==========================================
+
+import type { Paginated } from "../../../shared/models/paginated.types";
+import api from "../../../shared/services/api";
+import type {
+  FiltersResponse,
+  ProductPayload,
+  ProductsFilters,
+  WhiskeyProduct,
+} from "../product.types";
+export async function getProducts(
+  filters: ProductsFilters,
+): Promise<Paginated<WhiskeyProduct>> {
+  const response = await api.get("/products", { params: filters });
+  return response.data;
+}
+export async function getProductById(
+  productId: number,
+): Promise<WhiskeyProduct> {
+  const response = await api.get(`/products/${productId}`);
+  return response.data;
+}
+export async function getFilters(): Promise<FiltersResponse> {
+  const response = await api.get(`/products/filters`);
+  return response.data;
+}
+export async function createProduct(product: ProductPayload): Promise<void> {
+  const response = await api.post(`/products`, product);
+  return response.data;
+}
+export async function editProduct(
+  productId: number,
+  product: ProductPayload,
+): Promise<{ message: string; product: WhiskeyProduct }> {
+  const response = await api.put(`/products/${productId}`, product);
+  return response.data;
+}
+export async function deleteProduct(
+  productId: number,
+): Promise<{ message: string }> {
+  const response = await api.delete(`/products/${productId}`);
+  return response.data;
+}
+
+
+// ==========================================
+// PATH: ui\src\features\profile\components\Profile.tsx
+// ==========================================
+
+const Profile = () => {
+  return <div>Profile</div>;
+};
+export default Profile;
+
+
+// ==========================================
+// PATH: ui\src\features\profile\services\profile.service.ts
+// ==========================================
+
+import api from "../../../shared/services/api";
+import type { User } from "../../../shared/models/user.types";
+export async function me(): Promise<User> {
+  const response = await api.get("/users/profile");
+  return response.data;
+}
+
+
+// ==========================================
+// PATH: ui\src\shared\components\Navbar.tsx
+// ==========================================
+
+import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import { useAuth } from "../../features/auth/hooks/useAuth";
+import { NavLink } from "react-router-dom";
+import { IconButton, Paper, Popper } from "@mui/material";
+import { useRef, useState } from "react";
+import CartPreview from "../../features/cart/components/CartPreview";
+function Navbar() {
+  const { user, handleLogout } = useAuth();
+  const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
+  const closeTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const open = Boolean(anchorEl);
+  const id = open ? "simple-popover" : undefined;
+  const handleOpen = (
+    event:
+      | React.MouseEvent<HTMLButtonElement>
+      | React.FocusEvent<HTMLButtonElement>,
+  ) => {
+    if (closeTimeout.current) {
+      clearTimeout(closeTimeout.current);
+      closeTimeout.current = null;
+    }
+    setAnchorEl(event.currentTarget);
+  };
+  const keepOpen = () => {
+    if (closeTimeout.current) {
+      clearTimeout(closeTimeout.current);
+      closeTimeout.current = null;
+    }
+  };
+  const scheduleClose = () => {
+    closeTimeout.current = setTimeout(() => {
+      setAnchorEl(null);
+      closeTimeout.current = null;
+    }, 150);
+  };
+  const closePreview = () => {
+    keepOpen();
+    setAnchorEl(null);
+  };
+  function onLogout() {
+    handleLogout();
+  }
+  return (
+    <nav className="bg-gray-950 h-15 text-gray-100 p-2">
+      {user ? (
+        <div className="flex flex-row gap-3 justify-between">
+          <ul className="nav-list flex flex-row gap-3">
+            <li className="nav-item">
+              <NavLink to="/products" className="nav-link">
+                Home
+              </NavLink>
+            </li>
+            <li className="nav-item">
+              <button onClick={() => onLogout()} className="nav-link">
+                Logout
+              </button>
+            </li>
+          </ul>
+          <div className="cart">
+            <IconButton
+              onMouseEnter={handleOpen}
+              onMouseLeave={scheduleClose}
+              onFocus={handleOpen}
+              onBlur={scheduleClose}
+              sx={{ color: "white" }}
+              aria-label="Open cart preview"
+              aria-haspopup="dialog"
+              aria-expanded={open}
+              aria-controls={id}
+            >
+              <ShoppingCartIcon />
+            </IconButton>
+            <Popper
+              id={id}
+              open={open}
+              anchorEl={anchorEl}
+              placement="bottom-end"
+            >
+              <Paper onMouseEnter={keepOpen} onMouseLeave={scheduleClose}>
+                <CartPreview onNavigate={closePreview} />
+              </Paper>
+            </Popper>
+          </div>
+        </div>
+      ) : (
+        ""
+      )}
+      {!user ? (
+        <ul className="nav-list">
+          <li className="nav-item">
+            <NavLink to="/login" className="nav-link">
+              Login
+            </NavLink>
+          </li>
+        </ul>
+      ) : (
+        ""
+      )}
+    </nav>
+  );
+}
+export default Navbar;
+
+
+// ==========================================
+// PATH: ui\src\shared\components\ProtectedRoute.tsx
+// ==========================================
+
+import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { useAuth } from "../../features/auth/hooks/useAuth";
+const ProtectedRoute = () => {
+  const { user, isInitializing } = useAuth();
+  const location = useLocation();
+  if (isInitializing) return null;
+  if (!user) return <Navigate to="/login" replace state={{ from: location }} />;
+  return <Outlet />;
+};
+export default ProtectedRoute;
+
+
+// ==========================================
+// PATH: ui\src\shared\components\PublicRoute.tsx
+// ==========================================
+
+import { Navigate, Outlet } from "react-router-dom";
+import { useAuth } from "../../features/auth/hooks/useAuth";
+const PublicRoute = () => {
+  const { user, isInitializing } = useAuth();
+  if (isInitializing) return null;
+  if (user) return <Navigate to="/products" replace/>;
+  return <Outlet />;
+};
+export default PublicRoute;
+
+
+// ==========================================
+// PATH: ui\src\shared\context\auth\AuthContext.ts
+// ==========================================
+
+import { useContext, createContext } from "react";
+import type { AuthContextType } from "../../models/auth.types";
+export const AuthContext = createContext<AuthContextType | null>(null);
+export function useAuthContext() {
+  const context = useContext(AuthContext);
+  if (!context) throw new Error("useAuth must be used within AuthProvider");
+  return { ...context, isAuthenticated: !!context.token };
+}
+
+
+// ==========================================
+// PATH: ui\src\shared\context\auth\AuthProvider.tsx
+// ==========================================
+
+import { useEffect, useState } from "react";
+import type { User } from "../../models/user.types";
+import { AuthContext } from "./AuthContext";
+import { me } from "../../../features/profile/services/profile.service";
+import { getToken, setToken } from "../../services/tokenStore";
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [token, setTokenState] = useState<string | null>(null);
+  const [user, setUserState] = useState<User | null>(null);
+  const [isInitializing, setIsInitializing] = useState(true);
+  useEffect(() => {
+    me()
+      .then((user) => {
+        const token = getToken();
+        if (token) setTokenState(token);
+        setUserState(user);
+      })
+      .catch(() => {
+        setToken(null);
+      })
+      .finally(() => {
+        setIsInitializing(false);
+      });
+  }, []);
+  function setAuth(token: string, user: User) {
+    setTokenState(token);
+    setUserState(user);
+  }
+  function clearAuth() {
+    setTokenState(null);
+    setUserState(null);
+  }
+  return (
+    <AuthContext value={{ token, user, isInitializing, setAuth, clearAuth }}>
+      {children}
+    </AuthContext>
+  );
+}
+
+
+// ==========================================
+// PATH: ui\src\shared\models\auth.types.ts
+// ==========================================
+
+import type { User } from "./user.types";
+export interface AuthState {
+  token: string | null;
+  user: User | null;
+}
+export interface AuthContextType extends AuthState {
+  isInitializing: boolean;
+  setAuth: (token: string, user: User) => void;
+  clearAuth: () => void;
+}
+
+
+// ==========================================
+// PATH: ui\src\shared\models\paginated.types.ts
+// ==========================================
+
+export type Paginated<T> = {
+  data: T[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+};
+
+
+// ==========================================
+// PATH: ui\src\shared\models\user.types.ts
+// ==========================================
+
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+}
+
+
+// ==========================================
+// PATH: ui\src\shared\services\api.ts
+// ==========================================
+
+import axios from "axios";
+import { getToken, setToken } from "./tokenStore";
+import { refreshToken } from "../../features/auth/services/auth.service";
+// Stores the SINGLE active refresh promise (or null if idle)
+let refreshPromise: Promise<string> | null = null;
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL,
+  withCredentials: true,
+});
+// Request interceptor — attach token
+api.interceptors.request.use((config) => {
+  const token = getToken();
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+// Response interceptor — handle 401 → refresh → retry
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+    // STEP 1: Guard clause — Ignore errors that are NOT 401s,
+    // or requests that were already retried, or auth routes (login/refresh)
+    const is401 = error.response?.status === 401;
+    const isAuthRoute = originalRequest.url?.includes("/auth/");
+    if (!is401 || originalRequest._retry || isAuthRoute) {
+      return Promise.reject(error);
+    }
+    // Mark request so it won't re-enter this interceptor if it fails again
+    originalRequest._retry = true;
+    try {
+      // STEP 2: If NO refresh promise exists, start one and save it to the module variable
+      if (!refreshPromise) {
+        refreshPromise = refreshToken()
+          .then((res) => {
+            setToken(res.accessToken);
+            return res.accessToken; // Resolves the promise with the token string
+          })
+          .finally(() => {
+            // When finished (success or fail), reset to null so future 401s can refresh again
+            refreshPromise = null;
+          });
+      }
+      // STEP 3: Await the shared promise!
+      // Request A starts it and awaits it.
+      // Request B skips Step 2 and awaits the EXACT SAME promise here.
+      const newAccessToken = await refreshPromise;
+      // STEP 4: Attach the new token to original headers and retry the original call
+      originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+      return api(originalRequest);
+    } catch {
+      // If the refresh call itself failed (e.g. invalid refresh cookie), log out
+      setToken(null);
+      return Promise.reject(error);
+    }
+  },
+);
+export default api;
+
+
+// ==========================================
+// PATH: ui\src\shared\services\tokenStore.ts
+// ==========================================
+
+let token: string | null = null;
+export function getToken() {
+  return token;
+}
+export function setToken(t: string | null) {
+  token = t;
+}
+
+

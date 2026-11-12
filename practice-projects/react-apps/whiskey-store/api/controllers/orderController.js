@@ -162,24 +162,51 @@ exports.createPaymentSession = async (req, res, next) => {
     }
 
     let session;
+    let creationKey = order.checkoutSessionCreationKey;
 
     if (order.stripeCheckoutSessionId) {
       const retrievedSession = await stripe.checkout.sessions.retrieve(
         order.stripeCheckoutSessionId,
       );
-      if (retrievedSession.status === "open") {
-        session = retrievedSession;
-      } else if (retrievedSession.status === "complete") {
-        return next(
-          new CustomError(
-            `Checkout is already complete.`,
-            409,
-          ),
-        );
-      } else if (retrievedSession.status === "expired") {
-        return next(new CustomError(`Checkout session expired`, 409));
+
+      switch (retrievedSession.status) {
+        case "open":
+          session = retrievedSession;
+          break;
+
+        case "complete":
+          return next(new CustomError("Checkout is already complete.", 409));
+
+        case "expired": {
+          creationKey = v4();
+
+          const { count } = await prisma.order.updateMany({
+            where: {
+              id: order.id,
+              status: "PENDING",
+              stripeCheckoutSessionId: retrievedSession.id,
+              checkoutSessionCreationKey: order.checkoutSessionCreationKey,
+            },
+            data: {
+              checkoutSessionCreationKey: creationKey,
+              stripeCheckoutSessionId: null,
+            },
+          });
+
+          if (count !== 1) {
+            return next(
+              new CustomError(
+                "The order was modified while processing and the user should reload",
+                409,
+              ),
+            );
+          }
+          break;
+        }
       }
-    } else {
+    }
+
+    if (!session) {
       session = await stripe.checkout.sessions.create(
         {
           mode: "payment",
@@ -195,20 +222,32 @@ exports.createPaymentSession = async (req, res, next) => {
             },
           })),
           client_reference_id: String(order.id),
-          return_url:
-            "http://localhost:5173/payment/return?session_id={CHECKOUT_SESSION_ID}",
+          return_url: `http://localhost:5173/payment/return?order_id=${order.id}&session_id={CHECKOUT_SESSION_ID}`,
         },
         {
-          idempotencyKey: order.checkoutSessionCreationKey
+          idempotencyKey: creationKey,
         },
       );
 
-      await prisma.order.update({
-        where: { id: orderId },
+      const { count } = await prisma.order.updateMany({
+        where: {
+          id: orderId,
+          status: "PENDING",
+          checkoutSessionCreationKey: creationKey,
+        },
         data: {
           stripeCheckoutSessionId: session.id,
         },
       });
+
+      if (count !== 1) {
+        return next(
+          new CustomError(
+            "The order was modified while processing and the user should reload",
+            409,
+          ),
+        );
+      }
     }
 
     return res.json({ clientSecret: session.client_secret });
@@ -253,7 +292,7 @@ exports.cancelOrder = async (req, res, next) => {
     if (!count) {
       return next(
         new CustomError(
-          "the order was modified while processing and the user should reload",
+          "The order was modified while processing and the user should reload",
           409,
         ),
       );

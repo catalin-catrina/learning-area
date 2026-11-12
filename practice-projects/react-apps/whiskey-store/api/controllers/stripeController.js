@@ -27,11 +27,11 @@ exports.handleWebhook = async (req, res, next) => {
       logger.error(message, {
         eventId: event.id,
         eventType: event.type,
-        orderReference: session.client_reference_id,
-        sessionId: session.id,
+        orderReference: session?.client_reference_id,
+        sessionId: session?.id,
         paymentIntentId,
-        receivedAmountCents: session.amount_total,
-        receivedCurrency: session.currency,
+        receivedAmountCents: session?.amount_total,
+        receivedCurrency: session?.currency,
 
         orderId: currentOrder?.id,
         orderStatus: currentOrder?.status,
@@ -54,6 +54,8 @@ exports.handleWebhook = async (req, res, next) => {
             ? session.payment_intent
             : session.payment_intent?.id;
 
+        const context = { session, paymentIntentId };
+
         if (session.payment_status !== "paid") {
           return res.json({ received: true });
         }
@@ -62,13 +64,13 @@ exports.handleWebhook = async (req, res, next) => {
           typeof paymentIntentId !== "string" ||
           paymentIntentId.trim().length === 0
         ) {
-          return fail("Missing or invalid payment intent ID");
+          return fail("Missing or invalid payment intent ID", context);
         }
 
         const orderId = Number(session.client_reference_id);
 
         if (!Number.isSafeInteger(orderId) || orderId <= 0) {
-          return fail("Invalid order id");
+          return fail("Invalid order id", context);
         }
 
         const order = await prisma.order.findUnique({
@@ -76,8 +78,7 @@ exports.handleWebhook = async (req, res, next) => {
         });
         if (!order) {
           return fail("Order not found", {
-            session,
-            paymentIntentId,
+            ...context,
             currentOrder: order,
           });
         }
@@ -90,8 +91,7 @@ exports.handleWebhook = async (req, res, next) => {
           session.currency !== "eur"
         ) {
           return fail("Payment does not match order", {
-            session,
-            paymentIntentId,
+            ...context,
             currentOrder: order,
           });
         }
@@ -115,7 +115,9 @@ exports.handleWebhook = async (req, res, next) => {
         });
 
         if (!newOrder) {
-          return fail("Order missing after conditional payment update");
+          return fail("Order missing after conditional payment update", {
+            ...context,
+          });
         }
 
         switch (newOrder.status) {
@@ -128,8 +130,7 @@ exports.handleWebhook = async (req, res, next) => {
 
             if (!samePayment) {
               return fail("Recorded payment identity does not match event", {
-                session,
-                paymentIntentId,
+                ...context,
                 currentOrder: newOrder,
               });
             }
@@ -138,28 +139,25 @@ exports.handleWebhook = async (req, res, next) => {
           }
           case "CANCELLED":
             return fail("Payment received for cancelled order", {
-              session,
-              paymentIntentId,
+              ...context,
               currentOrder: newOrder,
             });
 
           case "PENDING":
             return fail("Conditional payment update matched no order", {
-              session,
-              paymentIntentId,
+              ...context,
               currentOrder: newOrder,
             });
 
           default:
             return fail("Unexpected order status during payment processing", {
-              session,
-              paymentIntentId,
+              ...context,
               currentOrder: newOrder,
             });
         }
       }
 
-      case "checkout.session.async_payment_failed":
+      case "checkout.session.async_payment_failed": {
         const session = event.data.object;
         const paymentIntentId =
           typeof session.payment_intent === "string"
@@ -172,7 +170,7 @@ exports.handleWebhook = async (req, res, next) => {
           typeof paymentIntentId !== "string" ||
           paymentIntentId.trim().length === 0
         ) {
-          return fail("Missing or invalid payment intent ID");
+          return fail("Missing or invalid payment intent ID", context);
         }
 
         const orderId = Number(session.client_reference_id);
@@ -186,6 +184,19 @@ exports.handleWebhook = async (req, res, next) => {
         });
         if (!order) {
           return fail("Order not found", {
+            ...context,
+            currentOrder: order,
+          });
+        }
+
+        if (
+          session.id !== order.stripeCheckoutSessionId ||
+          (order.paymentIntentId !== null &&
+            order.paymentIntentId !== paymentIntentId) ||
+          session.amount_total !== order.totalCents ||
+          session.currency !== "eur"
+        ) {
+          return fail("Payment does not match order", {
             ...context,
             currentOrder: order,
           });
@@ -207,19 +218,87 @@ exports.handleWebhook = async (req, res, next) => {
           case "PAID":
           case "SHIPPED":
           case "DELIVERED":
-            fail("Tried to pay an already paid order");
-            return res.json({ received: true });
+            return fail(
+              "Payment failed. Did not expect PAID/SHIPPED/DELIVERED order status during payment processing",
+              {
+                ...context,
+                currentOrder: order,
+              },
+            );
+
+          default:
+            return fail("Unexpected order status during payment processing", {
+              ...context,
+              currentOrder: order,
+            });
+        }
+      }
+
+      case "checkout.session.expired": {
+        const session = event.data.object;
+        const context = { session };
+
+        const orderId = Number(session.client_reference_id);
+
+        if (!Number.isSafeInteger(orderId) || orderId <= 0) {
+          return fail("Invalid order id", context);
         }
 
-        if (order.status === "CANCELLED") {
-          fail("Tried to pay a cancelled order");
+        const order = await prisma.order.findUnique({
+          where: { id: orderId },
+        });
+        if (!order) {
+          return fail("Order not found", {
+            ...context,
+            currentOrder: order,
+          });
+        }
+
+        if (session.id !== order.stripeCheckoutSessionId) {
+          logger.warn(
+            "Expired session differs from the order’s saved session",
+            {
+              eventId: event.id,
+              orderId: order.id,
+              storedSessionId: order.stripeCheckoutSessionId,
+              receivedSessionId: session.id,
+            },
+          );
+
           return res.json({ received: true });
         }
 
-        break;
+        switch (order.status) {
+          case "PENDING": {
+            logger.warn("Checkout session expired", {
+              eventId: event.id,
+              orderId: order.id,
+              orderStatus: order.status,
+              sessionId: session.id,
+            });
 
-      case "checkout.session.expired":
+            return res.status(200).json({ received: true });
+          }
+
+          case "CANCELLED":
+            return res.json({ received: true });
+
+          case "PAID":
+          case "SHIPPED":
+          case "DELIVERED": {
+            logger.warn("Unexpected status combination for a paid order.", {
+              eventId: event.id,
+              orderId: order.id,
+              orderStatus: order.status,
+              sessionId: session.id,
+            });
+
+            return res.json({ received: true });
+          }
+        }
+
         break;
+      }
 
       // ... handle other event types
       default:

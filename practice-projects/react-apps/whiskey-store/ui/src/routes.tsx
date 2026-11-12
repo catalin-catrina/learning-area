@@ -10,6 +10,9 @@ import ProductDetail from "./features/products/product-detail/components/Product
 import Cart from "./features/cart/components/Cart";
 import Profile from "./features/profile/components/Profile";
 import PublicLayout from "./features/layouts/PublicLayout";
+import CheckoutPage from "./features/checkout/components/CheckoutPage";
+import ShippingPage from "./features/checkout/components/ShippingPage";
+import PaymentReturnPage from "./features/checkout/components/PaymentReturnPage";
 
 function AppRoutes() {
   return (
@@ -30,6 +33,9 @@ function AppRoutes() {
           <Route path="/products/:id" element={<ProductDetail />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/profile/" element={<Profile />} />
+          <Route path="/checkout/" element={<ShippingPage />} />
+          <Route path="/checkout/:orderId" element={<CheckoutPage />} />
+          <Route path="/payment/return" element={<PaymentReturnPage />} />
         </Route>
       </Route>
     </Routes>

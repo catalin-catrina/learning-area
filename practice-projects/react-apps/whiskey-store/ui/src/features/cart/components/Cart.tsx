@@ -1,9 +1,11 @@
-import { IconButton } from "@mui/material";
+import { Button, IconButton } from "@mui/material";
 import { useCart, useCartMutations } from "../hooks/useCart";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
+import { useNavigate } from "react-router-dom";
 
 function Cart() {
+  const navigate = useNavigate();
   const { data: cart, isPending: cartPending } = useCart();
   const { update, remove } = useCartMutations();
   const quantityUpdatePending = update.isPending || remove.isPending;
@@ -59,6 +61,25 @@ function Cart() {
         <div className="cart-total">
           TOTAL: {totalItems} products - {cart?.total}
         </div>
+      </div>
+
+      <div className="btn-checkout-container">
+        <Button
+          onClick={() => navigate("/checkout")}
+          variant="contained"
+          sx={{
+            width: "100%",
+            backgroundColor: "#4c1d95",
+            color: "#fff",
+            textTransform: "none",
+            borderRadius: 2,
+            "&:hover": {
+              backgroundColor: "#3b0764",
+            },
+          }}
+        >
+          Go to Checkout
+        </Button>
       </div>
     </div>
   );
