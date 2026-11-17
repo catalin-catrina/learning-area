@@ -8,11 +8,15 @@ import Home from "./features/home/components/Home";
 import ProductList from "./features/products/product-list/components/ProductList";
 import ProductDetail from "./features/products/product-detail/components/ProductDetail";
 import Cart from "./features/cart/components/Cart";
-import Profile from "./features/profile/components/Profile";
 import PublicLayout from "./features/layouts/PublicLayout";
 import CheckoutPage from "./features/checkout/components/CheckoutPage";
 import ShippingPage from "./features/checkout/components/ShippingPage";
 import PaymentReturnPage from "./features/checkout/components/PaymentReturnPage";
+import OrdersPage from "./features/orders/components/OrdersPage";
+import FavoritesPage from "./features/favorites/components/FavoritesPage";
+import ProfileLayout from "./features/profile/components/ProfileLayout";
+import ProfileOverview from "./features/profile/components/ProfileOverview";
+import OrderDetailsPage from "./features/orders/components/OrderDetailsPage";
 
 function AppRoutes() {
   return (
@@ -32,11 +36,16 @@ function AppRoutes() {
           <Route path="/products" element={<ProductList />} />
           <Route path="/products/:id" element={<ProductDetail />} />
           <Route path="/cart" element={<Cart />} />
-          <Route path="/profile/" element={<Profile />} />
-          <Route path="/checkout/" element={<ShippingPage />} />
-          <Route path="/checkout/:orderId" element={<CheckoutPage />} />
-          <Route path="/payment/return" element={<PaymentReturnPage />} />
+          <Route path="/profile" element={<ProfileLayout />}>
+            <Route index element={<ProfileOverview />} />
+            <Route path="orders" element={<OrdersPage />} />
+            <Route path="favorites" element={<FavoritesPage />} />
+          </Route>
         </Route>
+        <Route path="/orders/:orderId" element={<OrderDetailsPage />} />
+        <Route path="/checkout/" element={<ShippingPage />} />
+        <Route path="/checkout/:orderId" element={<CheckoutPage />} />
+        <Route path="/payment/return" element={<PaymentReturnPage />} />
       </Route>
     </Routes>
   );

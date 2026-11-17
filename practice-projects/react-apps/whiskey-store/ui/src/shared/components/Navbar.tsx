@@ -1,12 +1,17 @@
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
-import { useAuth } from "../../features/auth/hooks/useAuth";
-import { NavLink } from "react-router-dom";
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import FavoriteIcon from '@mui/icons-material/Favorite';
 import { IconButton, Paper, Popper } from "@mui/material";
+
 import { useRef, useState } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
+
+import { useAuth } from "../../features/auth/hooks/useAuth";
 import CartPreview from "../../features/cart/components/CartPreview";
 
 function Navbar() {
   const { user, handleLogout } = useAuth();
+  const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
   const closeTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -64,30 +69,48 @@ function Navbar() {
               </button>
             </li>
           </ul>
-          <div className="cart">
-            <IconButton
-              onMouseEnter={handleOpen}
-              onMouseLeave={scheduleClose}
-              onFocus={handleOpen}
-              onBlur={scheduleClose}
-              sx={{ color: "white" }}
-              aria-label="Open cart preview"
-              aria-haspopup="dialog"
-              aria-expanded={open}
-              aria-controls={id}
-            >
-              <ShoppingCartIcon />
-            </IconButton>
-            <Popper
-              id={id}
-              open={open}
-              anchorEl={anchorEl}
-              placement="bottom-end"
-            >
-              <Paper onMouseEnter={keepOpen} onMouseLeave={scheduleClose}>
-                <CartPreview onNavigate={closePreview} />
-              </Paper>
-            </Popper>
+          <div className="menu flex gap-2">
+            <div className="menu-item">
+              <IconButton
+                onClick={() => navigate("/profile/favorites")}
+                sx={{ color: "white" }}
+              >
+                <FavoriteIcon />
+              </IconButton>
+            </div>
+            <div className="menu-item">
+              <IconButton
+                onClick={() => navigate("/profile")}
+                sx={{ color: "white" }}
+              >
+                <AccountCircleIcon />
+              </IconButton>
+            </div>
+            <div className="menu-item">
+              <IconButton
+                onMouseEnter={handleOpen}
+                onMouseLeave={scheduleClose}
+                onFocus={handleOpen}
+                onBlur={scheduleClose}
+                sx={{ color: "white" }}
+                aria-label="Open cart preview"
+                aria-haspopup="dialog"
+                aria-expanded={open}
+                aria-controls={id}
+              >
+                <ShoppingCartIcon />
+              </IconButton>
+              <Popper
+                id={id}
+                open={open}
+                anchorEl={anchorEl}
+                placement="bottom-end"
+              >
+                <Paper onMouseEnter={keepOpen} onMouseLeave={scheduleClose}>
+                  <CartPreview onNavigate={closePreview} />
+                </Paper>
+              </Popper>
+            </div>
           </div>
         </div>
       ) : (

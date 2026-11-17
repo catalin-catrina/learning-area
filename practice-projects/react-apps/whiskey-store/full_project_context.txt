@@ -9,6 +9,7 @@ whiskey-store/
         controllers/
             authController.js
             cartController.js
+            favoritesController.js
             orderController.js
             productController.js
             stripeController.js
@@ -47,9 +48,12 @@ whiskey-store/
                     migration.sql
                 20261024081312_add_stripe_checkout_session_creation_key/
                     migration.sql
+                20261116180707_add_favorite_model/
+                    migration.sql
         routes/
             auth.js
             cart.js
+            favorites.js
             orders.js
             products.js
             stripe.js
@@ -116,6 +120,14 @@ whiskey-store/
                         useCheckout.ts
                     services/
                         checkout.service.ts
+                favorites/
+                    favorites.types.ts
+                    components/
+                        FavoritesPage.tsx
+                    hooks/
+                        useFavorites.tsx
+                    services/
+                        favorites.service.ts
                 home/
                     components/
                         Home.tsx
@@ -124,6 +136,9 @@ whiskey-store/
                     PublicLayout.tsx
                 orders/
                     order.types.ts
+                    components/
+                        OrderDetailsPage.tsx
+                        OrdersPage.tsx
                     hooks/
                         useOrders.ts
                     services/
@@ -143,7 +158,8 @@ whiskey-store/
                         products.service.ts
                 profile/
                     components/
-                        Profile.tsx
+                        ProfileLayout.tsx
+                        ProfileOverview.tsx
                     services/
                         profile.service.ts
             shared/
@@ -235,8 +251,10 @@ const usersRoute = require("./routes/users");
 const ordersRoute = require("./routes/orders");
 const authRoute = require("./routes/auth");
 const cartRoute = require("./routes/cart");
+const favoritesRoute = require("./routes/favorites");
 app.use("/api/products", productsRoute);
 app.use("/api/cart", cartRoute);
+app.use("/api/favorites", favoritesRoute);
 app.use("/api/users", usersRoute);
 app.use("/api/orders", ordersRoute);
 app.use("/api/auth", authRoute);
@@ -598,6 +616,68 @@ exports.removeItem = async (req, res, next) => {
 
 
 // ==========================================
+// PATH: api\controllers\favoritesController.js
+// ==========================================
+
+const { prisma } = require("../lib/prisma");
+const CustomError = require("../utils/customError");
+const logger = require("../utils/logger");
+exports.getFavorites = async (req, res, next) => {
+  try {
+    const favorites = await prisma.favorite.findMany({
+      where: { userId: req.user.id },
+      include: { product: true },
+    });
+    res.status(200).json(favorites);
+  } catch (err) {
+    logger.error("Get favorites failed", { errorMessage: err.message });
+    return next(new CustomError("Get favorites failed", 500));
+  }
+};
+exports.addFavorite = async (req, res, next) => {
+  try {
+    const { productId } = req.body;
+    if (!productId) {
+      return next(new CustomError("Product ID is required", 400));
+    }
+    const favorite = await prisma.favorite.create({
+      data: {
+        userId: req.user.id,
+        productId: parseInt(productId, 10),
+      },
+      include: { product: true },
+    });
+    res.status(201).json(favorite);
+  } catch (err) {
+    if (err.code === "P2002") {
+      return next(new CustomError("Favorite already exists", 400));
+    }
+    logger.error("Add favorite failed", { errorMessage: err.message });
+    return next(new CustomError("Add favorite failed", 500));
+  }
+};
+exports.removeFavorite = async (req, res, next) => {
+  try {
+    const productId = parseInt(req.params.productId, 10);
+    // Use deleteMany to safely match both the product and the owner
+    const deleted = await prisma.favorite.deleteMany({
+      where: {
+        productId: productId,
+        userId: req.user.id,
+      },
+    });
+    if (deleted.count === 0) {
+      return next(new CustomError("Favorite not found", 404));
+    }
+    res.status(200).json({ message: "Favorite removed successfully" });
+  } catch (err) {
+    logger.error("Remove favorite failed", { errorMessage: err.message });
+    return next(new CustomError("Remove favorite failed", 500));
+  }
+};
+
+
+// ==========================================
 // PATH: api\controllers\orderController.js
 // ==========================================
 
@@ -793,8 +873,7 @@ exports.createPaymentSession = async (req, res, next) => {
             },
           })),
           client_reference_id: String(order.id),
-          return_url:
-            "http://localhost:5173/payment/return?order_id={order.id}&session_id={CHECKOUT_SESSION_ID}",
+          return_url: `http://localhost:5173/payment/return?order_id=${order.id}&session_id={CHECKOUT_SESSION_ID}`,
         },
         {
           idempotencyKey: creationKey,
@@ -3085,6 +3164,25 @@ CREATE UNIQUE INDEX "Order_checkoutSessionCreationKey_key" ON "Order"("checkoutS
 
 
 // ==========================================
+// PATH: api\prisma\migrations\20261116180707_add_favorite_model\migration.sql
+// ==========================================
+
+-- CreateTable
+CREATE TABLE "Favorite" (
+    "id" SERIAL NOT NULL,
+    "userId" INTEGER NOT NULL,
+    "productId" INTEGER NOT NULL,
+    CONSTRAINT "Favorite_pkey" PRIMARY KEY ("id")
+);
+-- CreateIndex
+CREATE UNIQUE INDEX "Favorite_userId_productId_key" ON "Favorite"("userId", "productId");
+-- AddForeignKey
+ALTER TABLE "Favorite" ADD CONSTRAINT "Favorite_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+-- AddForeignKey
+ALTER TABLE "Favorite" ADD CONSTRAINT "Favorite_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+
+// ==========================================
 // PATH: api\routes\auth.js
 // ==========================================
 
@@ -3115,6 +3213,19 @@ router.patch(
   cartController.updateItemQuantity,
 );
 router.delete("/items/:productId", verifyToken, cartController.removeItem);
+module.exports = router;
+
+
+// ==========================================
+// PATH: api\routes\favorites.js
+// ==========================================
+
+const express = require("express");
+const router = express.Router();
+const favoritesController = require("../controllers/favoritesController");
+router.get("/", verifyToken, favoritesController.getFavorites);
+router.post("/", verifyToken, favoritesController.addFavorite);
+router.delete("/:productId", verifyToken, favoritesController.removeFavorite);
 module.exports = router;
 
 
@@ -3869,11 +3980,15 @@ import Home from "./features/home/components/Home";
 import ProductList from "./features/products/product-list/components/ProductList";
 import ProductDetail from "./features/products/product-detail/components/ProductDetail";
 import Cart from "./features/cart/components/Cart";
-import Profile from "./features/profile/components/Profile";
 import PublicLayout from "./features/layouts/PublicLayout";
 import CheckoutPage from "./features/checkout/components/CheckoutPage";
 import ShippingPage from "./features/checkout/components/ShippingPage";
 import PaymentReturnPage from "./features/checkout/components/PaymentReturnPage";
+import OrdersPage from "./features/orders/components/OrdersPage";
+import FavoritesPage from "./features/favorites/components/FavoritesPage";
+import ProfileLayout from "./features/profile/components/ProfileLayout";
+import ProfileOverview from "./features/profile/components/ProfileOverview";
+import OrderDetailsPage from "./features/orders/components/OrderDetailsPage";
 function AppRoutes() {
   return (
     <Routes>
@@ -3891,11 +4006,16 @@ function AppRoutes() {
           <Route path="/products" element={<ProductList />} />
           <Route path="/products/:id" element={<ProductDetail />} />
           <Route path="/cart" element={<Cart />} />
-          <Route path="/profile/" element={<Profile />} />
-          <Route path="/checkout/" element={<ShippingPage />} />
-          <Route path="/checkout/:orderId" element={<CheckoutPage />} />
-          <Route path="/payment/return" element={<PaymentReturnPage />} />
+          <Route path="/profile" element={<ProfileLayout />}>
+            <Route index element={<ProfileOverview />} />
+            <Route path="orders" element={<OrdersPage />} />
+            <Route path="favorites" element={<FavoritesPage />} />
+          </Route>
         </Route>
+        <Route path="/orders/:orderId" element={<OrderDetailsPage />} />
+        <Route path="/checkout/" element={<ShippingPage />} />
+        <Route path="/checkout/:orderId" element={<CheckoutPage />} />
+        <Route path="/payment/return" element={<PaymentReturnPage />} />
       </Route>
     </Routes>
   );
@@ -4431,18 +4551,16 @@ export default CheckoutPage;
 // ==========================================
 
 import { useSearchParams } from "react-router-dom";
-import { useOrder } from "../../orders/hooks/useOrders";
+import { useGetOrder } from "../../orders/hooks/useOrders";
 function PaymentReturnPage() {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const orderId = searchParams.get("order_id");
   const numericOrderId = Number(orderId);
-  const sessionId = searchParams.get("session_id");
-  const numericSessionId = Number(sessionId);
   const {
     data: order,
     isPending,
     isError,
-  } = useOrder(numericOrderId, { refetchInterval: 2000 });
+  } = useGetOrder(numericOrderId, { refetchInterval: 2000 });
   if (isPending) return <p>Loading...</p>;
   if (isError) {
     return (
@@ -4451,7 +4569,22 @@ function PaymentReturnPage() {
       </div>
     );
   }
-  return <div>PaymentReturn</div>;
+  return (
+    <div>
+      <h1>Information about your payment</h1>
+      <p>Order ID: {order?.id}</p>
+      <p>Status: {order?.status}</p>
+      Ordered items:{" "}
+      {order.items.map((item) => (
+        <div key={item.id}>
+          <p>
+            Item: {item.quantity}x {item.productName}
+          </p>
+        </div>
+      ))}
+      <p>Total: €{order.totalCents / 100}</p>
+    </div>
+  );
 }
 export default PaymentReturnPage;
 
@@ -4461,8 +4594,8 @@ export default PaymentReturnPage;
 // ==========================================
 
 import { useState } from "react";
-import type { ShippingAddress } from "../checkout.types";
-import { useCreateOrder } from "../hooks/useCheckout";
+import { useCreateOrder } from "../../orders/hooks/useOrders";
+import type { ShippingAddress } from "../../orders/order.types";
 const initialShippingAddress: ShippingAddress = {
   name: "",
   line1: "",
@@ -4619,6 +4752,85 @@ export async function createPaymentSession(
 
 
 // ==========================================
+// PATH: ui\src\features\favorites\favorites.types.ts
+// ==========================================
+
+import type { WhiskeyProduct } from "../products/product.types";
+export type Favorite = {
+  id: number;
+  userId: number;
+  productId: number;
+  product: WhiskeyProduct;
+};
+
+// ==========================================
+// PATH: ui\src\features\favorites\components\FavoritesPage.tsx
+// ==========================================
+
+function FavoritesPage() {
+  return <div>FavoritesPage</div>;
+}
+export default FavoritesPage;
+
+
+// ==========================================
+// PATH: ui\src\features\favorites\hooks\useFavorites.tsx
+// ==========================================
+
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "../../auth/hooks/useAuth";
+import {
+  addFavorite,
+  getFavorites,
+  removeFavorite,
+} from "../services/favorites.service";
+export function useGetFavorites(userId: number) {
+  return useQuery({
+    queryKey: ["favorites", userId],
+    queryFn: () => getFavorites(),
+  });
+}
+export function useAddFavorite() {
+  const qc = useQueryClient();
+  const { user } = useAuth();
+  return useMutation({
+    mutationFn: addFavorite,
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: ["favorites", user?.id] }),
+  });
+}
+export function useRemoveFavorite(productId: number) {
+  const qc = useQueryClient();
+  const { user } = useAuth();
+  return useMutation({
+    mutationFn: () => removeFavorite(productId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["favorites", user?.id] });
+    },
+  });
+}
+
+
+// ==========================================
+// PATH: ui\src\features\favorites\services\favorites.service.ts
+// ==========================================
+
+import api from "../../../shared/services/api";
+import type { Favorite } from "../favorites.types";
+export async function getFavorites(): Promise<Favorite[]> {
+  const response = await api.get("/favorites");
+  return response.data;
+}
+export async function addFavorite(productId: number): Promise<Favorite> {
+  const response = await api.post("/favorites", { productId });
+  return response.data;
+}
+export async function removeFavorite(productId: number): Promise<void> {
+  await api.delete(`/favorites/${productId}`);
+}
+
+
+// ==========================================
 // PATH: ui\src\features\home\components\Home.tsx
 // ==========================================
 
@@ -4706,6 +4918,70 @@ export type OrderStatus =
 
 
 // ==========================================
+// PATH: ui\src\features\orders\components\OrderDetailsPage.tsx
+// ==========================================
+
+import { useParams } from "react-router-dom";
+import { useGetOrder } from "../hooks/useOrders";
+function OrderDetailsPage() {
+  const { orderId } = useParams<{ orderId: string }>();
+  const { data: order, isLoading, error } = useGetOrder(Number(orderId));
+  if (isLoading) return <p>Loading...</p>;
+  if (error) return <p>Error loading order details</p>;
+  if (!order) return <p>Order not found</p>;
+  return (
+    <div>
+      <h1>Order Details</h1>
+      <p>Order ID: {order?.id}</p>
+      <p>Status: {order?.status}</p>
+      <p>Total: €{order.totalCents / 100}</p>
+      <h2>Shipping Address</h2>
+      <p>{order?.shippingAddress.name}</p>
+      <p>{order?.shippingAddress.line1}</p>
+      {order?.shippingAddress.line2 && <p>{order.shippingAddress.line2}</p>}
+      <p>
+        {order?.shippingAddress.city}, {order?.shippingAddress.postalCode}
+      </p>
+      <p>{order?.shippingAddress.country}</p>
+    </div>
+  );
+}
+export default OrderDetailsPage;
+
+
+// ==========================================
+// PATH: ui\src\features\orders\components\OrdersPage.tsx
+// ==========================================
+
+import { useNavigate } from "react-router-dom";
+import { useGetOrders } from "../hooks/useOrders";
+function OrdersPage() {
+  const navigate = useNavigate();
+  const {data: orders, isLoading, error} = useGetOrders();
+  if (isLoading) return <p>Loading...</p>;
+  if (error) return <p>Error loading orders</p>;
+  return <div>
+    <h1>My Orders</h1>
+    {orders?.length === 0 ? (
+      <p>You have no orders.</p>
+    ) : (
+      <ul>
+        {orders?.map((order) => (
+          <li key={order.id}>
+            <p>Order ID: {order.id}</p>
+            <p>Status: {order.status}</p>
+            <p>Total: €{order.totalCents / 100}</p>
+            <button onClick={() => navigate(`/orders/${order.id}`)}>View Order</button>
+          </li>
+        ))}
+      </ul>
+    )}
+  </div>;
+}
+export default OrdersPage;
+
+
+// ==========================================
 // PATH: ui\src\features\orders\hooks\useOrders.ts
 // ==========================================
 
@@ -4714,7 +4990,12 @@ import { useAuth } from "../../auth/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import type { OrderResponse } from "../order.types";
 import { cartKey } from "../../cart/hooks/useCart";
-import { cancelOrder, createOrder, getOrder, getOrders } from "../services/orders.service";
+import {
+  cancelOrder,
+  createOrder,
+  getOrder,
+  getOrders,
+} from "../services/orders.service";
 export function useCreateOrder() {
   const qc = useQueryClient();
   const { user } = useAuth();
@@ -4725,18 +5006,19 @@ export function useCreateOrder() {
   };
   return useMutation({ mutationFn: createOrder, onSuccess });
 }
-export function useOrder(
+export function useGetOrder(
   orderId: number,
   { refetchInterval = false }: { refetchInterval?: number | false } = {},
 ) {
   return useQuery({
     queryKey: ["order", orderId],
     queryFn: () => getOrder(orderId),
-    refetchInterval,
+    refetchInterval: (query) =>
+      query.state.data?.status === "PENDING" ? refetchInterval : false,
     enabled: !!orderId,
   });
 }
-export function useOrders() {
+export function useGetOrders() {
   return useQuery({
     queryKey: ["orders"],
     queryFn: getOrders,
@@ -4752,6 +5034,7 @@ export function useCancelOrder(orderId: number) {
     },
   });
 }
+
 
 // ==========================================
 // PATH: ui\src\features\orders\services\orders.service.ts
@@ -4774,7 +5057,7 @@ export async function createOrder(
   return response.data;
 }
 export async function cancelOrder(orderId: number): Promise<void> {
-  await api.post(`/orders/${orderId}/cancel`);
+  await api.patch(`/orders/${orderId}/cancel`);
 }
 
 
@@ -5210,13 +5493,57 @@ export async function deleteProduct(
 
 
 // ==========================================
-// PATH: ui\src\features\profile\components\Profile.tsx
+// PATH: ui\src\features\profile\components\ProfileLayout.tsx
 // ==========================================
 
-const Profile = () => {
-  return <div>Profile</div>;
+import { NavLink, Outlet } from "react-router-dom";
+import { useAuthContext } from "../../../shared/context/auth/AuthContext";
+const ProfileLayout = () => {
+  const { user } = useAuthContext();
+  return (
+    <div className="profile-container">
+      <header className="profile-header">
+        <h1>Salut {user?.name}</h1>
+        <p>
+          In sumar cont ai posibilitatea de a vizualiza activitatile recente...
+        </p>
+      </header>
+      <div className="profile-body">
+        <aside className="profile-sidebar">
+          {/* 'end' ensures /profile isn't highlighted when on /profile/orders */}
+          <NavLink to="/profile" end>
+            My profile
+          </NavLink>
+          <NavLink to="/profile/orders">My orders</NavLink>
+          <NavLink to="/profile/favorites">Favorites</NavLink>
+        </aside>
+        <section className="profile-content">
+          {/* Renders ProfileOverview, OrdersPage, or FavoritesPage here */}
+          <Outlet />
+        </section>
+      </div>
+    </div>
+  );
 };
-export default Profile;
+export default ProfileLayout;
+
+
+// ==========================================
+// PATH: ui\src\features\profile\components\ProfileOverview.tsx
+// ==========================================
+
+import { useAuthContext } from "../../../shared/context/auth/AuthContext";
+function ProfileOverview() {
+  const { user } = useAuthContext();
+  return (
+    <div>
+      <h2>My Profile</h2>
+      <p>Name: {user?.name}</p>
+      <p>Email: {user?.email}</p>
+    </div>
+  );
+}
+export default ProfileOverview;
 
 
 // ==========================================
@@ -5236,13 +5563,16 @@ export async function me(): Promise<User> {
 // ==========================================
 
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
-import { useAuth } from "../../features/auth/hooks/useAuth";
-import { NavLink } from "react-router-dom";
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import FavoriteIcon from '@mui/icons-material/Favorite';
 import { IconButton, Paper, Popper } from "@mui/material";
 import { useRef, useState } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
+import { useAuth } from "../../features/auth/hooks/useAuth";
 import CartPreview from "../../features/cart/components/CartPreview";
 function Navbar() {
   const { user, handleLogout } = useAuth();
+  const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
   const closeTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const open = Boolean(anchorEl);
@@ -5293,30 +5623,48 @@ function Navbar() {
               </button>
             </li>
           </ul>
-          <div className="cart">
-            <IconButton
-              onMouseEnter={handleOpen}
-              onMouseLeave={scheduleClose}
-              onFocus={handleOpen}
-              onBlur={scheduleClose}
-              sx={{ color: "white" }}
-              aria-label="Open cart preview"
-              aria-haspopup="dialog"
-              aria-expanded={open}
-              aria-controls={id}
-            >
-              <ShoppingCartIcon />
-            </IconButton>
-            <Popper
-              id={id}
-              open={open}
-              anchorEl={anchorEl}
-              placement="bottom-end"
-            >
-              <Paper onMouseEnter={keepOpen} onMouseLeave={scheduleClose}>
-                <CartPreview onNavigate={closePreview} />
-              </Paper>
-            </Popper>
+          <div className="menu flex gap-2">
+            <div className="menu-item">
+              <IconButton
+                onClick={() => navigate("/profile/favorites")}
+                sx={{ color: "white" }}
+              >
+                <FavoriteIcon />
+              </IconButton>
+            </div>
+            <div className="menu-item">
+              <IconButton
+                onClick={() => navigate("/profile")}
+                sx={{ color: "white" }}
+              >
+                <AccountCircleIcon />
+              </IconButton>
+            </div>
+            <div className="menu-item">
+              <IconButton
+                onMouseEnter={handleOpen}
+                onMouseLeave={scheduleClose}
+                onFocus={handleOpen}
+                onBlur={scheduleClose}
+                sx={{ color: "white" }}
+                aria-label="Open cart preview"
+                aria-haspopup="dialog"
+                aria-expanded={open}
+                aria-controls={id}
+              >
+                <ShoppingCartIcon />
+              </IconButton>
+              <Popper
+                id={id}
+                open={open}
+                anchorEl={anchorEl}
+                placement="bottom-end"
+              >
+                <Paper onMouseEnter={keepOpen} onMouseLeave={scheduleClose}>
+                  <CartPreview onNavigate={closePreview} />
+                </Paper>
+              </Popper>
+            </div>
           </div>
         </div>
       ) : (

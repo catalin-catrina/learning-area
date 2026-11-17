@@ -22,7 +22,7 @@ export function useCreateOrder() {
   return useMutation({ mutationFn: createOrder, onSuccess });
 }
 
-export function useOrder(
+export function useGetOrder(
   orderId: number,
   { refetchInterval = false }: { refetchInterval?: number | false } = {},
 ) {
@@ -35,7 +35,7 @@ export function useOrder(
   });
 }
 
-export function useOrders() {
+export function useGetOrders() {
   return useQuery({
     queryKey: ["orders"],
     queryFn: getOrders,

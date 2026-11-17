@@ -1,5 +1,5 @@
 import { useSearchParams } from "react-router-dom";
-import { useOrder } from "../../orders/hooks/useOrders";
+import { useGetOrder } from "../../orders/hooks/useOrders";
 
 function PaymentReturnPage() {
   const [searchParams] = useSearchParams();
@@ -10,7 +10,7 @@ function PaymentReturnPage() {
     data: order,
     isPending,
     isError,
-  } = useOrder(numericOrderId, { refetchInterval: 2000 });
+  } = useGetOrder(numericOrderId, { refetchInterval: 2000 });
 
   if (isPending) return <p>Loading...</p>;
 
