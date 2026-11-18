@@ -3,6 +3,7 @@ import { useCart, useCartMutations } from "../hooks/useCart";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import { useNavigate } from "react-router-dom";
+import { formatPrice } from "../../../shared/utils/formatPrice";
 
 function Cart() {
   const navigate = useNavigate();
@@ -59,7 +60,7 @@ function Cart() {
             : ""}
         </div>
         <div className="cart-total">
-          TOTAL: {totalItems} products - {cart?.total}
+          TOTAL: {totalItems} products - {cart && formatPrice(cart.totalCents)}
         </div>
       </div>
 

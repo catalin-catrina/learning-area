@@ -1,6 +1,6 @@
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-import FavoriteIcon from '@mui/icons-material/Favorite';
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import FavoriteIcon from "@mui/icons-material/Favorite";
 import { IconButton, Paper, Popper } from "@mui/material";
 
 import { useRef, useState } from "react";
@@ -10,7 +10,7 @@ import { useAuth } from "../../features/auth/hooks/useAuth";
 import CartPreview from "../../features/cart/components/CartPreview";
 
 function Navbar() {
-  const { user, handleLogout } = useAuth();
+  const { user, isInitializing, handleLogout } = useAuth();
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
   const closeTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -53,13 +53,15 @@ function Navbar() {
     handleLogout();
   }
 
+  if (isInitializing) return null;
+
   return (
     <nav className="bg-gray-950 h-15 text-gray-100 p-2">
       {user ? (
         <div className="flex flex-row gap-3 justify-between">
           <ul className="nav-list flex flex-row gap-3">
             <li className="nav-item">
-              <NavLink to="/products" className="nav-link">
+              <NavLink to="/" className="nav-link">
                 Home
               </NavLink>
             </li>
@@ -118,10 +120,18 @@ function Navbar() {
       )}
 
       {!user ? (
-        <ul className="nav-list">
+        <ul className="nav-list flex flex-row gap-3">
+          <NavLink to="/" className="nav-link">
+            Home
+          </NavLink>
           <li className="nav-item">
             <NavLink to="/login" className="nav-link">
               Login
+            </NavLink>
+          </li>
+          <li className="nav-item">
+            <NavLink to="/register" className="nav-link">
+              Register
             </NavLink>
           </li>
         </ul>

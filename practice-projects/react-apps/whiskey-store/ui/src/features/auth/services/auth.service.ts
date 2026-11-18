@@ -2,6 +2,7 @@ import type {
   AccessTokenDto,
   LoginRequest,
   LoginResponseDto,
+  RegisterRequest,
 } from "../auth.types";
 import api from "../../../shared/services/api";
 
@@ -9,6 +10,13 @@ export async function login(
   loginRequest: LoginRequest,
 ): Promise<LoginResponseDto> {
   const response = await api.post("/auth/login", loginRequest);
+  return response.data;
+}
+
+export async function register(
+  registerRequest: RegisterRequest,
+): Promise<LoginResponseDto> {
+  const response = await api.post("/auth/register", registerRequest);
   return response.data;
 }
 

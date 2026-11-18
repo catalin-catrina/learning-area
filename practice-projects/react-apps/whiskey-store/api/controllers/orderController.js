@@ -97,7 +97,7 @@ exports.checkout = async (req, res, next) => {
       const orderItems = cart.items.map((item) => ({
         productId: item.productId,
         productName: item.product.name,
-        unitPriceCents: Math.round(item.product.price * 100),
+        unitPriceCents: item.product.priceCents,
         quantity: item.quantity,
       }));
 

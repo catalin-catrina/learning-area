@@ -1,4 +1,4 @@
-import type { OrderStatus, ProductType } from "../generated/prisma/enums";
+import type { OrderStatus, WhiskyStyle } from "../generated/prisma/enums";
 
 const { prisma } = require("../lib/prisma");
 import bcrypt from "bcrypt";
@@ -10,23 +10,31 @@ type SeedUser = {
   id: number;
   email: string;
   name: string;
+  phone: string;
   role: string;
   password: string;
 };
 
 type SeedProduct = {
   id: number;
+  slug: string;
   name: string;
-  distillery: string;
-  region: string;
+  brand: string;
+  style: WhiskyStyle;
   country: string;
-  type: ProductType;
-  age: number | null;
+  region: string | null;
+  ageYears: number | null;
   abv: number;
-  price: number;
-  description: string;
+  volumeMl: number;
+  priceCents: number;
+  compareAtPriceCents: number | null;
+  peated: boolean;
+  giftBox: boolean;
   inStock: boolean;
-  rating: number;
+  cask: string | null;
+  tastingNotes: string[];
+  description: string;
+  imageUrl: string | null;
   reviews: { userId: number; rating: number; comment: string | null }[];
 };
 
@@ -63,6 +71,7 @@ async function main() {
         id: user.id,
         email: user.email,
         name: user.name,
+        phone: user.phone,
         role: user.role,
         password: passwordHash,
       },
@@ -71,11 +80,21 @@ async function main() {
   // seed products loop
   for (const product of productsData) {
     const { reviews, ...productFields } = product;
+    // rating/reviewCount are derived from the seeded reviews, never typed by hand
+    const reviewCount = reviews.length;
+    const rating = reviewCount
+      ? Math.round(
+          (reviews.reduce((sum, r) => sum + r.rating, 0) / reviewCount) * 10,
+        ) / 10
+      : 0;
+    const fields = { ...productFields, rating, reviewCount };
+
     await prisma.product.upsert({
       where: { id: product.id },
-      update: {},
+      // re-running the seed refreshes catalog fields without duplicating reviews
+      update: fields,
       create: {
-        ...productFields,
+        ...fields,
         reviews: {
           create: reviews.map((r) => ({
             rating: r.rating,
@@ -86,6 +105,7 @@ async function main() {
       },
     });
   }
+
   // seed orders loop
   for (const order of ordersData) {
     const { products, createdAt, ...orderFields } = order;
@@ -102,7 +122,7 @@ async function main() {
         productId: item.productId,
         quantity: item.quantity,
         productName: product.name,
-        unitPriceCents: Math.round(product.price * 100),
+        unitPriceCents: product.priceCents,
       };
     });
     const totalCents = items.reduce(
@@ -118,11 +138,22 @@ async function main() {
         totalCents,
         createdAt: new Date(createdAt),
         shippingAddress: {},
+        // required + unique since the Stripe migration; deterministic so re-seeding is stable
+        checkoutSessionCreationKey: `seed-order-${order.id}`,
         items: {
           create: items,
         },
       },
     });
+  }
+
+  // Seeds insert explicit ids, which bypass Postgres's autoincrement counters.
+  // Move each counter past the seeded rows, or the first user/product/order
+  // created through the API gets id 1 and fails on the primary key.
+  for (const table of ["User", "Product", "Order"]) {
+    await prisma.$executeRawUnsafe(
+      `SELECT setval(pg_get_serial_sequence('"${table}"', 'id'), (SELECT COALESCE(MAX(id), 1) FROM "${table}"))`,
+    );
   }
 }
 

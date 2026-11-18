@@ -7,10 +7,16 @@ import type {
   WhiskeyProduct,
 } from "../product.types";
 
+// Arrays go out as `style=a&style=b` (axios's default is `style[]=a`).
+const repeatArrays = { indexes: null } as const;
+
 export async function getProducts(
   filters: ProductsFilters,
 ): Promise<Paginated<WhiskeyProduct>> {
-  const response = await api.get("/products", { params: filters });
+  const response = await api.get("/products", {
+    params: filters,
+    paramsSerializer: repeatArrays,
+  });
   return response.data;
 }
 
@@ -21,8 +27,14 @@ export async function getProductById(
   return response.data;
 }
 
-export async function getFilters(): Promise<FiltersResponse> {
-  const response = await api.get(`/products/filters`);
+// Send the active filters so facet counts reflect them.
+export async function getFilters(
+  filters: ProductsFilters,
+): Promise<FiltersResponse> {
+  const response = await api.get(`/products/filters`, {
+    params: filters,
+    paramsSerializer: repeatArrays,
+  });
   return response.data;
 }
 

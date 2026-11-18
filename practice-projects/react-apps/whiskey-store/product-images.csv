@@ -1,0 +1,71 @@
+id,slug,file,name,style,age,abv,volume_cl
+1,glenfiddich-12-year-old,glenfiddich-12-year-old.webp,"Glenfiddich 12 Year Old",single_malt,12,40,70
+2,glenfiddich-18-year-old,glenfiddich-18-year-old.webp,"Glenfiddich 18 Year Old",single_malt,18,40,70
+3,glenfiddich-21-year-old-gran-reserva,glenfiddich-21-year-old-gran-reserva.webp,"Glenfiddich 21 Year Old Gran Reserva",single_malt,21,40,70
+4,the-macallan-12-year-old-double-cask,the-macallan-12-year-old-double-cask.webp,"The Macallan 12 Year Old Double Cask",single_malt,12,40,70
+5,the-macallan-18-year-old-sherry-oak,the-macallan-18-year-old-sherry-oak.webp,"The Macallan 18 Year Old Sherry Oak",single_malt,18,43,70
+6,the-glenlivet-12-year-old,the-glenlivet-12-year-old.webp,"The Glenlivet 12 Year Old",single_malt,12,40,70
+7,the-glenlivet-18-year-old,the-glenlivet-18-year-old.webp,"The Glenlivet 18 Year Old",single_malt,18,43,70
+8,the-balvenie-12-year-old-doublewood,the-balvenie-12-year-old-doublewood.webp,"The Balvenie 12 Year Old DoubleWood",single_malt,12,40,70
+9,the-balvenie-14-year-old-caribbean-cask,the-balvenie-14-year-old-caribbean-cask.webp,"The Balvenie 14 Year Old Caribbean Cask",single_malt,14,43,70
+10,aberlour-abunadh,aberlour-abunadh.webp,"Aberlour A'bunadh",single_malt,NAS,60.6,70
+11,craigellachie-13-year-old,craigellachie-13-year-old.webp,"Craigellachie 13 Year Old",single_malt,13,46,70
+12,glendronach-12-year-old-original,glendronach-12-year-old-original.webp,"GlenDronach 12 Year Old Original",single_malt,12,43,70
+13,glendronach-18-year-old-allardice,glendronach-18-year-old-allardice.webp,"GlenDronach 18 Year Old Allardice",single_malt,18,46,70
+14,laphroaig-10-year-old,laphroaig-10-year-old.webp,"Laphroaig 10 Year Old",single_malt,10,40,70
+15,laphroaig-quarter-cask,laphroaig-quarter-cask.webp,"Laphroaig Quarter Cask",single_malt,NAS,48,70
+16,ardbeg-10-year-old,ardbeg-10-year-old.webp,"Ardbeg 10 Year Old",single_malt,10,46,70
+17,ardbeg-uigeadail,ardbeg-uigeadail.webp,"Ardbeg Uigeadail",single_malt,NAS,54.2,70
+18,ardbeg-an-oa,ardbeg-an-oa.webp,"Ardbeg An Oa",single_malt,NAS,46.6,70
+19,lagavulin-16-year-old,lagavulin-16-year-old.webp,"Lagavulin 16 Year Old",single_malt,16,43,70
+20,lagavulin-8-year-old,lagavulin-8-year-old.webp,"Lagavulin 8 Year Old",single_malt,8,48,70
+21,bowmore-12-year-old,bowmore-12-year-old.webp,"Bowmore 12 Year Old",single_malt,12,40,70
+22,bruichladdich-the-classic-laddie,bruichladdich-the-classic-laddie.webp,"Bruichladdich The Classic Laddie",single_malt,NAS,50,70
+23,port-charlotte-10-year-old,port-charlotte-10-year-old.webp,"Port Charlotte 10 Year Old",single_malt,10,50,70
+24,caol-ila-12-year-old,caol-ila-12-year-old.webp,"Caol Ila 12 Year Old",single_malt,12,43,70
+25,kilchoman-machir-bay,kilchoman-machir-bay.webp,"Kilchoman Machir Bay",single_malt,NAS,46,70
+26,glenmorangie-the-original-10-year-old,glenmorangie-the-original-10-year-old.webp,"Glenmorangie The Original 10 Year Old",single_malt,10,40,70
+27,glenmorangie-nectar-dor,glenmorangie-nectar-dor.webp,"Glenmorangie Nectar d'Òr",single_malt,NAS,46,70
+28,oban-14-year-old,oban-14-year-old.webp,"Oban 14 Year Old",single_malt,14,43,70
+29,the-dalmore-12-year-old,the-dalmore-12-year-old.webp,"The Dalmore 12 Year Old",single_malt,12,40,70
+30,the-dalmore-15-year-old,the-dalmore-15-year-old.webp,"The Dalmore 15 Year Old",single_malt,15,40,70
+31,glengoyne-12-year-old,glengoyne-12-year-old.webp,"Glengoyne 12 Year Old",single_malt,12,43,70
+32,glengoyne-21-year-old,glengoyne-21-year-old.webp,"Glengoyne 21 Year Old",single_malt,21,43,70
+33,tomatin-12-year-old,tomatin-12-year-old.webp,"Tomatin 12 Year Old",single_malt,12,43,70
+34,old-pulteney-12-year-old,old-pulteney-12-year-old.webp,"Old Pulteney 12 Year Old",single_malt,12,40,70
+35,johnnie-walker-black-label-12-year-old,johnnie-walker-black-label-12-year-old.webp,"Johnnie Walker Black Label 12 Year Old",blended,12,40,100
+36,johnnie-walker-blue-label,johnnie-walker-blue-label.webp,"Johnnie Walker Blue Label",blended,NAS,40,70
+37,chivas-regal-12-year-old,chivas-regal-12-year-old.webp,"Chivas Regal 12 Year Old",blended,12,40,70
+38,chivas-regal-18-year-old,chivas-regal-18-year-old.webp,"Chivas Regal 18 Year Old",blended,18,40,70
+39,monkey-shoulder,monkey-shoulder.webp,"Monkey Shoulder",blended_malt,NAS,40,70
+40,compass-box-great-king-street-artists-blend,compass-box-great-king-street-artists-blend.webp,"Compass Box Great King Street Artist's Blend",blended,NAS,43,70
+41,buffalo-trace,buffalo-trace.webp,"Buffalo Trace",bourbon,NAS,40,70
+42,eagle-rare-10-year-old,eagle-rare-10-year-old.webp,"Eagle Rare 10 Year Old",bourbon,10,45,70
+43,blantons-original-single-barrel,blantons-original-single-barrel.webp,"Blanton's Original Single Barrel",bourbon,NAS,46.5,70
+44,makers-mark,makers-mark.webp,"Maker's Mark",bourbon,NAS,40,70
+45,knob-creek-9-year-old,knob-creek-9-year-old.webp,"Knob Creek 9 Year Old",bourbon,9,50,70
+46,woodford-reserve-distillers-select,woodford-reserve-distillers-select.webp,"Woodford Reserve Distiller's Select",bourbon,NAS,43.2,70
+47,four-roses-single-barrel,four-roses-single-barrel.webp,"Four Roses Single Barrel",bourbon,NAS,50,70
+48,wild-turkey-101,wild-turkey-101.webp,"Wild Turkey 101",bourbon,NAS,50.5,70
+49,elijah-craig-small-batch,elijah-craig-small-batch.webp,"Elijah Craig Small Batch",bourbon,NAS,47,70
+50,old-forester-86-proof,old-forester-86-proof.webp,"Old Forester 86 Proof",bourbon,NAS,43,70
+51,michters-us1-small-batch-bourbon,michters-us1-small-batch-bourbon.webp,"Michter's US*1 Small Batch Bourbon",bourbon,NAS,45.7,70
+52,bulleit-rye,bulleit-rye.webp,"Bulleit Rye",rye,NAS,45,70
+53,whistlepig-10-year-old-straight-rye,whistlepig-10-year-old-straight-rye.webp,"WhistlePig 10 Year Old Straight Rye",rye,10,50,70
+54,michters-us1-straight-rye,michters-us1-straight-rye.webp,"Michter's US*1 Straight Rye",rye,NAS,42.4,70
+55,sazerac-rye,sazerac-rye.webp,"Sazerac Rye",rye,6,45,70
+56,redbreast-12-year-old,redbreast-12-year-old.webp,"Redbreast 12 Year Old",single_pot_still,12,40,70
+57,redbreast-15-year-old,redbreast-15-year-old.webp,"Redbreast 15 Year Old",single_pot_still,15,46,70
+58,green-spot,green-spot.webp,"Green Spot",single_pot_still,NAS,40,70
+59,jameson-black-barrel,jameson-black-barrel.webp,"Jameson Black Barrel",blended,NAS,40,70
+60,teeling-small-batch,teeling-small-batch.webp,"Teeling Small Batch",blended,NAS,46,70
+61,bushmills-10-year-old,bushmills-10-year-old.webp,"Bushmills 10 Year Old",single_malt,10,40,70
+62,tullamore-dew-12-year-old-special-reserve,tullamore-dew-12-year-old-special-reserve.webp,"Tullamore D.E.W. 12 Year Old Special Reserve",blended,12,40,70
+63,nikka-coffey-grain,nikka-coffey-grain.webp,"Nikka Coffey Grain",single_grain,NAS,45,70
+64,nikka-from-the-barrel,nikka-from-the-barrel.webp,"Nikka From the Barrel",blended,NAS,51.4,50
+65,suntory-toki,suntory-toki.webp,"Suntory Toki",blended,NAS,43,70
+66,hibiki-japanese-harmony,hibiki-japanese-harmony.webp,"Hibiki Japanese Harmony",blended,NAS,43,70
+67,yamazaki-12-year-old,yamazaki-12-year-old.webp,"Yamazaki 12 Year Old",single_malt,12,43,70
+68,hakushu-12-year-old,hakushu-12-year-old.webp,"Hakushu 12 Year Old",single_malt,12,43,70
+69,nikka-yoichi-single-malt,nikka-yoichi-single-malt.webp,"Nikka Yoichi Single Malt",single_malt,NAS,45,70
+70,mars-iwai-tradition,mars-iwai-tradition.webp,"Mars Iwai Tradition",blended,NAS,40,70

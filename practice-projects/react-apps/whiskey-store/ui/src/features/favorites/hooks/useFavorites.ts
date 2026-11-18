@@ -44,5 +44,6 @@ export function useIsFavorite(productId: number) {
   return useQuery({
     queryKey: ["isFavorite", user?.id, productId],
     queryFn: () => isFavorite(productId),
+    enabled: !!user,
   });
 }

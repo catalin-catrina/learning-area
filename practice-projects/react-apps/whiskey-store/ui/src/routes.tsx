@@ -1,14 +1,12 @@
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import PublicRoute from "./shared/components/PublicRoute";
 import ProtectedRoute from "./shared/components/ProtectedRoute";
 import Login from "./features/auth/components/Login";
 import Register from "./features/auth/components/Register";
 import MainLayout from "./features/layouts/MainLayout";
-import Home from "./features/home/components/Home";
 import ProductList from "./features/products/product-list/components/ProductList";
 import ProductDetail from "./features/products/product-detail/components/ProductDetail";
 import Cart from "./features/cart/components/Cart";
-import PublicLayout from "./features/layouts/PublicLayout";
 import CheckoutPage from "./features/checkout/components/CheckoutPage";
 import ShippingPage from "./features/checkout/components/ShippingPage";
 import PaymentReturnPage from "./features/checkout/components/PaymentReturnPage";
@@ -21,31 +19,28 @@ import OrderDetailsPage from "./features/orders/components/OrderDetailsPage";
 function AppRoutes() {
   return (
     <Routes>
-      {/* Public routes — no layout */}
-      <Route element={<PublicRoute />}>
-        <Route element={<PublicLayout />}>
+      <Route element={<MainLayout />}>
+        {/* Public routes */}
+        <Route element={<PublicRoute />}>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
         </Route>
-      </Route>
-
-      {/* Protected routes — shared layout */}
-      <Route element={<ProtectedRoute />}>
-        <Route element={<MainLayout />}>
-          <Route path="/" element={<Home />} />
-          <Route path="/products" element={<ProductList />} />
-          <Route path="/products/:id" element={<ProductDetail />} />
+        <Route path="/" element={<Navigate to="/products" replace />} />
+        <Route path="/products" element={<ProductList />} />
+        <Route path="/products/:id" element={<ProductDetail />} />
+        {/* Protected routes */}
+        <Route element={<ProtectedRoute />}>
           <Route path="/cart" element={<Cart />} />
           <Route path="/profile" element={<ProfileLayout />}>
             <Route index element={<ProfileOverview />} />
             <Route path="orders" element={<OrdersPage />} />
             <Route path="favorites" element={<FavoritesPage />} />
           </Route>
+          <Route path="/orders/:orderId" element={<OrderDetailsPage />} />
+          <Route path="/checkout/" element={<ShippingPage />} />
+          <Route path="/checkout/:orderId" element={<CheckoutPage />} />
+          <Route path="/payment/return" element={<PaymentReturnPage />} />
         </Route>
-        <Route path="/orders/:orderId" element={<OrderDetailsPage />} />
-        <Route path="/checkout/" element={<ShippingPage />} />
-        <Route path="/checkout/:orderId" element={<CheckoutPage />} />
-        <Route path="/payment/return" element={<PaymentReturnPage />} />
       </Route>
     </Routes>
   );

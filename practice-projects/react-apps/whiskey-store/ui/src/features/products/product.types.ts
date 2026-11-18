@@ -1,49 +1,84 @@
+export type WhiskyStyle =
+  | "single_malt"
+  | "blended_malt"
+  | "blended"
+  | "single_grain"
+  | "single_pot_still"
+  | "bourbon"
+  | "rye";
+
 export type WhiskeyProduct = {
   id: number;
+  slug: string;
   name: string;
-  distillery: string;
-  region: string;
+  brand: string;
+  style: WhiskyStyle;
   country: string;
-  type: ProductType;
-  age: number | null;
+  region: string | null;
+  ageYears: number | null; // null = no age statement
   abv: number;
-  price: number;
-  description: string;
+  volumeMl: number;
+  priceCents: number;
+  compareAtPriceCents: number | null; // set = on sale
+  peated: boolean;
+  giftBox: boolean;
   inStock: boolean;
+  cask: string | null;
+  tastingNotes: string[];
+  description: string;
+  imageUrl: string | null;
   rating: number;
+  reviewCount: number;
+  createdAt: string;
 };
 
-export type ProductPayload = Omit<WhiskeyProduct, "id">;
+// rating/reviewCount/createdAt are server-owned
+export type ProductPayload = Omit<
+  WhiskeyProduct,
+  "id" | "rating" | "reviewCount" | "createdAt"
+>;
 
+export type SortOption =
+  | "name_asc"
+  | "name_desc"
+  | "price_asc"
+  | "price_desc"
+  | "age_desc"
+  | "rating_desc"
+  | "newest";
+
+// Mirrors api/validators/productQueryValidator.js
 export type ProductsFilters = {
   page?: number;
   limit?: number;
-  region?: string;
-  type?: ProductType;
-  country?: string;
-  inStock?: boolean;
-  rating?: number;
-  minPrice?: number;
-  maxPrice?: number;
   search?: string;
-  sortOrder?: SortOrder;
-  sortBy?: SortBy;
+  style?: WhiskyStyle[];
+  brand?: string[];
+  country?: string[];
+  region?: string[];
+  age?: number[];
+  volume?: number[];
+  peated?: boolean;
+  giftBox?: boolean;
+  inStock?: boolean;
+  onSale?: boolean;
+  minPrice?: number; // euros
+  maxPrice?: number; // euros
+  sort?: SortOption;
 };
+
+export type FacetKey =
+  | "style"
+  | "brand"
+  | "country"
+  | "region"
+  | "age"
+  | "volume";
+export type BooleanFilterKey = "peated" | "giftBox" | "inStock" | "onSale";
+
+export type FacetOption = { value: string | number; count: number };
 
 export type FiltersResponse = {
-  flatRegions: Array<string>;
-  flatCountries: Array<string>;
-  flatTypes: Array<string>;
+  facets: Record<FacetKey, FacetOption[]>;
+  priceRange: { min: number; max: number }; // euros, whole catalog
 };
-
-export type ProductType =
-  | "single_malt"
-  | "blended_scotch"
-  | "blended_malt"
-  | "bourbon"
-  | "rye"
-  | "irish"
-  | "japanese";
-
-export type SortOrder = "asc" | "desc";
-export type SortBy = "price" | "age";

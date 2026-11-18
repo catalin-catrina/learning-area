@@ -1,6 +1,7 @@
 import { Button } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../hooks/useCart";
+import { formatPrice } from "../../../shared/utils/formatPrice";
 
 type CartPreviewProps = {
   onNavigate: () => void;
@@ -23,13 +24,14 @@ function CartPreview({ onNavigate }: CartPreviewProps) {
         {cart && cart.items
           ? cart.items.map((p) => (
               <div key={p.id}>
-                {p.product.name} - {p.quantity} - {p.product.price * p.quantity}
+                {p.product.name} - {p.quantity} -{" "}
+                {formatPrice(p.product.priceCents * p.quantity)}
               </div>
             ))
           : ""}
       </div>
       <div className="cart-total border border-transparent border-t-gray-300 border-b-gray-300 pt-3 pb-3">
-        TOTAL: {totalItems} products - {cart?.total}
+        TOTAL: {totalItems} products - {cart && formatPrice(cart.totalCents)}
       </div>
       <div className="cart-button">
         <Button

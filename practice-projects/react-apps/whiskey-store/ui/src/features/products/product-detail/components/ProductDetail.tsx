@@ -1,29 +1,56 @@
-import { useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import { useCart, useCartMutations } from "../../../cart/hooks/useCart";
 import { useProduct } from "../../hooks/useProduct";
 import { IconButton } from "@mui/material";
-import { useFavoriteMutations, useIsFavorite } from "../../../favorites/hooks/useFavorites";
+import {
+  useFavoriteMutations,
+  useIsFavorite,
+} from "../../../favorites/hooks/useFavorites";
+import { useAuth } from "../../../auth/hooks/useAuth";
 
 function ProductDetail() {
   const { id } = useParams(); // string | undefined
-
   const {
     data: product,
     isPending: productPending,
     isError: productError,
   } = useProduct(Number(id));
+  const { user } = useAuth();
 
   const { add: addFavorite, remove: removeFavorite } = useFavoriteMutations();
-  const {data: isFavorite, isPending: isFavoritePending} = useIsFavorite(Number(id));
-  
+  const { data: isFavorite } = useIsFavorite(Number(id));
+  const navigate = useNavigate();
+  const location = useLocation();
+
+
   const { add, update, remove } = useCartMutations();
-  const { data: cart, isPending: cartPending, isError: cartError } = useCart();
+  const { data: cart, isError: cartError } = useCart();
   const quantityUpdatePending =
     add.isPending || update.isPending || remove.isPending;
 
-  if (productPending || cartPending || isFavoritePending) return <p>Loading...</p>;
+  const handleAddToCart = (productId: number) => {
+    if (!user) {
+      navigate("/login", { state: { from: location } });
+      return;
+    }
+    add.mutate({ productId, quantity: 1 });
+  };
+
+  const handleFavoriteToggle = (productId: number) => {
+    if (!user) {
+      navigate("/login", { state: { from: location } });
+      return;
+    }
+    if (isFavorite) {
+      removeFavorite.mutate(productId);
+    } else {
+      addFavorite.mutate(productId);
+    }
+  };
+
+  if (productPending) return <p>Loading...</p>;
   if (productError || cartError) return <p>Could not load this page.</p>;
   if (!product) return <p>Product not found.</p>;
 
@@ -32,7 +59,7 @@ function ProductDetail() {
   return (
     <div>
       <h1>{product?.name}</h1>
-      <button onClick={() => isFavorite ? removeFavorite.mutate(product.id) : addFavorite.mutate(product.id)}>
+      <button onClick={() => handleFavoriteToggle(product.id)}>
         {isFavorite ? <RemoveIcon /> : <AddIcon />}
       </button>
       {item ? (
@@ -68,7 +95,7 @@ function ProductDetail() {
       ) : (
         <button
           disabled={quantityUpdatePending}
-          onClick={() => add.mutate({ productId: product.id, quantity: 1 })}
+          onClick={() => handleAddToCart(product.id)}
         >
           Add to cart
         </button>

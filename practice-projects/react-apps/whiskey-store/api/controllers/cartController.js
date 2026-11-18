@@ -19,12 +19,12 @@ const fetchFormattedCart = async (userId) => {
     },
   });
 
-  const total = cart.items.reduce(
-    (sum, curr) => sum + curr.quantity * curr.product.price,
+  const totalCents = cart.items.reduce(
+    (sum, curr) => sum + curr.quantity * curr.product.priceCents,
     0,
   );
 
-  return { ...cart, total };
+  return { ...cart, totalCents };
 };
 
 exports.getCart = async (req, res, next) => {

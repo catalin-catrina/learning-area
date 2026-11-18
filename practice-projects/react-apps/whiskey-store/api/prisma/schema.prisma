@@ -17,6 +17,7 @@ model User {
   id        Int      @id @default(autoincrement())
   name      String
   email     String   @unique
+  phone     String   @unique
   password  String
   role      String   @default("user")
   createdAt DateTime @default(now())
@@ -52,18 +53,28 @@ model CartItem {
 }
 
 model Product {
-  id          Int     @id @default(autoincrement())
-  name        String
-  distillery  String
-  region      String
-  country     String
-  type        ProductType
-  age         Int?
-  abv         Float
-  price       Float
-  description String
-  inStock     Boolean @default(true)
-  rating      Float   @default(0)
+  id                  Int         @id @default(autoincrement())
+  slug                String      @unique
+  name                String
+  brand               String
+  style               WhiskyStyle
+  country             String
+  region              String?
+  ageYears            Int?        // null = no age statement (NAS)
+  abv                 Float
+  volumeMl            Int
+  priceCents          Int
+  compareAtPriceCents Int?        // set = on sale; the struck-through "was" price
+  peated              Boolean     @default(false)
+  giftBox             Boolean     @default(false)
+  inStock             Boolean     @default(true)
+  cask                String?
+  tastingNotes        String[]
+  description         String
+  imageUrl            String?
+  rating              Float       @default(0) // derived from reviews, not editable via the API
+  reviewCount         Int         @default(0)
+  createdAt           DateTime    @default(now())
 
   reviews    Review[]
   orderItems OrderItem[]
@@ -133,14 +144,15 @@ model RefreshToken {
   user   User @relation(fields: [userId], references: [id])
 }
 
-enum ProductType {
+// Style only. Origin lives in `country` (the old enum mixed both: "irish" / "japanese").
+enum WhiskyStyle {
   single_malt
-  blended_scotch
   blended_malt
+  blended
+  single_grain
+  single_pot_still
   bourbon
   rye
-  irish
-  japanese
 }
 
 enum OrderStatus {

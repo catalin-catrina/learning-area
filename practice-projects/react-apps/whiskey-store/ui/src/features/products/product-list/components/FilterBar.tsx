@@ -1,126 +1,204 @@
 import type {
+  BooleanFilterKey,
+  FacetKey,
+  FacetOption,
   FiltersResponse,
   ProductsFilters,
-  SortBy,
-  SortOrder,
+  SortOption,
 } from "../../product.types";
+import { activeFilterCount, type ParamUpdates } from "../productFilters.url";
+
+// Functional, unstyled on purpose: the markup gets restyled in the design pass.
 
 type FilterBarProps = {
   filters: ProductsFilters;
-  filterOptions: FiltersResponse;
-  onParamsChange: (
-    key: keyof ProductsFilters,
-    value: string | undefined,
-  ) => void;
+  options: FiltersResponse;
+  onSet: (updates: ParamUpdates) => void;
+  onToggle: (key: FacetKey, value: string) => void;
+  onClear: () => void;
 };
 
-function FilterBar({ filters, filterOptions, onParamsChange }: FilterBarProps) {
-  const filterFields: {
-    optionsKey: keyof FiltersResponse;
-    filterKey: keyof ProductsFilters;
-    label: string;
-  }[] = [
-    { optionsKey: "flatRegions", filterKey: "region", label: "Region" },
-    { optionsKey: "flatTypes", filterKey: "type", label: "Type" },
-    { optionsKey: "flatCountries", filterKey: "country", label: "Country" },
-  ];
+const STYLE_LABELS: Record<string, string> = {
+  single_malt: "Single Malt",
+  blended_malt: "Blended Malt",
+  blended: "Blended",
+  single_grain: "Single Grain",
+  single_pot_still: "Single Pot Still",
+  bourbon: "Bourbon",
+  rye: "Rye",
+};
 
-  const sortByOptions: { value: SortBy; label: string }[] = [
-    { value: "price", label: "Price" },
-    { value: "age", label: "Age" },
-  ];
+const FACETS: {
+  key: FacetKey;
+  label: string;
+  format: (v: string | number) => string;
+}[] = [
+  { key: "style", label: "Style", format: (v) => STYLE_LABELS[v] ?? String(v) },
+  { key: "brand", label: "Brand", format: String },
+  { key: "country", label: "Country", format: String },
+  { key: "region", label: "Region", format: String },
+  { key: "age", label: "Age", format: (v) => `${v} years` },
+  { key: "volume", label: "Volume", format: (v) => `${Number(v) / 10} cl` },
+];
 
-  const sortOrderOptions: { value: SortOrder; label: string }[] = [
-    { value: "asc", label: "Ascending" },
-    { value: "desc", label: "Descending" },
-  ];
+const TOGGLES: { key: BooleanFilterKey; label: string }[] = [
+  { key: "inStock", label: "In stock only" },
+  { key: "onSale", label: "On sale" },
+  { key: "peated", label: "Peated" },
+  { key: "giftBox", label: "Gift box" },
+];
+
+const SORT_OPTIONS: { value: SortOption; label: string }[] = [
+  { value: "name_asc", label: "Name (A–Z)" },
+  { value: "name_desc", label: "Name (Z–A)" },
+  { value: "price_asc", label: "Price (low to high)" },
+  { value: "price_desc", label: "Price (high to low)" },
+  { value: "age_desc", label: "Oldest first" },
+  { value: "rating_desc", label: "Top rated" },
+  { value: "newest", label: "Newest" },
+];
+
+// A selected value can drop to 0 results when another filter changes, and the
+// API omits it. Keep it in the list (count 0) so it can still be unticked.
+function withSelected(
+  options: FacetOption[],
+  selected: (string | number)[] | undefined,
+): FacetOption[] {
+  const missing = (selected ?? [])
+    .filter((s) => !options.some((o) => String(o.value) === String(s)))
+    .map((value) => ({ value, count: 0 }));
+  return [...options, ...missing];
+}
+
+function FilterBar({
+  filters,
+  options,
+  onSet,
+  onToggle,
+  onClear,
+}: FilterBarProps) {
+  const active = activeFilterCount(filters);
+  const { min, max } = options.priceRange;
 
   return (
-    <div className="filter-bar">
-      <div className="filter">
-        <label htmlFor="minPrice">Min Price: </label>
+    <aside className="filter-bar">
+      {/* Search: submit-based, so typing doesn't fire a request per keystroke */}
+      <form
+        key={filters.search ?? ""}
+        onSubmit={(e) => {
+          e.preventDefault();
+          const value = new FormData(e.currentTarget).get("search");
+          onSet({ search: String(value ?? "").trim() || undefined });
+        }}
+      >
         <input
-          type="range"
-          name="minPrice"
-          id="minPrice"
-          min="0"
-          max="3000"
-          step="50"
-          value={filters.minPrice ?? 0}
-          onChange={(e) => onParamsChange("minPrice", e.target.value)}
+          type="search"
+          name="search"
+          placeholder="Search name, brand, region"
+          defaultValue={filters.search ?? ""}
         />
-      </div>
+        <button type="submit">Search</button>
+      </form>
 
-      <div className="filter">
-        <label htmlFor="maxPrice">Max Price: </label>
-        <input
-          type="range"
-          name="maxPrice"
-          id="maxPrice"
-          min="0"
-          max="3000"
-          step="50"
-          value={filters.maxPrice ?? 0}
-          onChange={(e) => onParamsChange("maxPrice", e.target.value)}
-        />
-      </div>
-
-      {filterFields.map(({ optionsKey, filterKey, label }) => (
-        <div className="filter" key={filterKey}>
-          <label htmlFor={filterKey}>{label}</label>
-          <select
-            id={filterKey}
-            value={String(filters[filterKey] ?? "")}
-            onChange={(e) =>
-              onParamsChange(filterKey, e.target.value || undefined)
-            }
-          >
-            <option value="">All</option>
-            {filterOptions[optionsKey].map((value) => (
-              <option key={value} value={value}>
-                {value}
-              </option>
-            ))}
-          </select>
-        </div>
-      ))}
-
-      <div className="filter">
-        <label htmlFor="sortBy"></label>
+      <label>
+        Sort by{" "}
         <select
-          value={filters.sortBy ?? ""}
-          onChange={(e) =>
-            onParamsChange("sortBy", e.target.value || undefined)
-          }
-          name="sortBy"
-          id="sortBy"
+          value={filters.sort ?? "name_asc"}
+          onChange={(e) => onSet({ sort: e.target.value })}
         >
-          {sortByOptions.map(({ value, label }) => (
-            <option key={value} value={value}>
-              {label}
+          {SORT_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
             </option>
           ))}
         </select>
-      </div>
+      </label>
 
-      <div className="filter">
-        <label htmlFor="sortOrder"></label>
-        <select
-          value={filters.sortOrder ?? ""}
-          onChange={(e) =>
-            onParamsChange("sortOrder", e.target.value || undefined)
-          }
-          name="sortOrder"
-          id="sortOrder"
+      {active > 0 && (
+        <button type="button" onClick={onClear}>
+          Clear filters ({active})
+        </button>
+      )}
+
+      <fieldset>
+        <legend>Availability</legend>
+        {TOGGLES.map(({ key, label }) => (
+          <label key={key}>
+            <input
+              type="checkbox"
+              checked={filters[key] === true}
+              onChange={(e) =>
+                onSet({ [key]: e.target.checked ? "true" : undefined })
+              }
+            />
+            {label}
+          </label>
+        ))}
+      </fieldset>
+
+      {/* Price: applied on submit, not on every slider tick */}
+      <fieldset>
+        <legend>
+          Price (€{min} – €{max})
+        </legend>
+        <form
+          key={`${filters.minPrice}-${filters.maxPrice}`}
+          onSubmit={(e) => {
+            e.preventDefault();
+            const data = new FormData(e.currentTarget);
+            onSet({
+              minPrice: String(data.get("minPrice") ?? "") || undefined,
+              maxPrice: String(data.get("maxPrice") ?? "") || undefined,
+            });
+          }}
         >
-          {sortOrderOptions.map(({ value, label }) => (
-            <option key={value} value={value}>
-              {label}
-            </option>
-          ))}
-        </select>
-      </div>
-    </div>
+          <input
+            type="number"
+            name="minPrice"
+            min={0}
+            placeholder={String(min)}
+            defaultValue={filters.minPrice}
+            aria-label="Minimum price"
+          />
+          <input
+            type="number"
+            name="maxPrice"
+            min={0}
+            placeholder={String(max)}
+            defaultValue={filters.maxPrice}
+            aria-label="Maximum price"
+          />
+          <button type="submit">Apply</button>
+        </form>
+      </fieldset>
+
+      {FACETS.map(({ key, label, format }) => {
+        const selected = filters[key];
+        const list = withSelected(options.facets[key], selected);
+        if (!list.length) return null;
+        return (
+          <fieldset key={key}>
+            <legend>{label}</legend>
+            {list.map(({ value, count }) => {
+              const checked = (selected ?? []).some(
+                (s) => String(s) === String(value),
+              );
+              return (
+                <label key={String(value)}>
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    disabled={!checked && count === 0}
+                    onChange={() => onToggle(key, String(value))}
+                  />
+                  {format(value)} ({count})
+                </label>
+              );
+            })}
+          </fieldset>
+        );
+      })}
+    </aside>
   );
 }
 

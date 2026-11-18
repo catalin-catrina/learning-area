@@ -1,125 +1,154 @@
 const productSchema = require("../validators/productValidator");
+const productQuerySchema = require("../validators/productQueryValidator");
 const CustomError = require("../utils/customError");
 const { prisma } = require("../lib/prisma");
 const logger = require("../utils/logger");
 
+// Every filter the list understands, as [query key, Prisma field].
+const LIST_FACETS = [
+  ["style", "style"],
+  ["brand", "brand"],
+  ["country", "country"],
+  ["region", "region"],
+  ["age", "ageYears"],
+  ["volume", "volumeMl"],
+];
+const BOOLEAN_FILTERS = ["peated", "giftBox", "inStock"];
+
+const SORT_MAP = {
+  name_asc: [{ name: "asc" }],
+  name_desc: [{ name: "desc" }],
+  price_asc: [{ priceCents: "asc" }],
+  price_desc: [{ priceCents: "desc" }],
+  age_desc: [{ ageYears: { sort: "desc", nulls: "last" } }],
+  rating_desc: [{ rating: "desc" }, { reviewCount: "desc" }],
+  newest: [{ createdAt: "desc" }],
+};
+
+// Builds the Prisma `where` from validated query params.
+// `omitFacet` skips one facet, so that facet's counts reflect every OTHER
+// active filter (standard e-commerce behaviour: picking "Islay" doesn't hide
+// the other regions, it just updates their counts).
+function buildWhere(q, omitFacet) {
+  const and = [];
+
+  if (q.search) {
+    const contains = { contains: q.search, mode: "insensitive" };
+    and.push({
+      OR: [{ name: contains }, { brand: contains }, { region: contains }],
+    });
+  }
+
+  for (const [key, field] of LIST_FACETS) {
+    if (key !== omitFacet && q[key]?.length) {
+      and.push({ [field]: { in: q[key] } });
+    }
+  }
+
+  for (const key of BOOLEAN_FILTERS) {
+    if (q[key] !== undefined) and.push({ [key]: q[key] });
+  }
+
+  if (q.onSale !== undefined) {
+    and.push({
+      compareAtPriceCents: q.onSale ? { not: null } : null,
+    });
+  }
+
+  if (q.minPrice !== undefined) {
+    and.push({ priceCents: { gte: Math.round(q.minPrice * 100) } });
+  }
+  if (q.maxPrice !== undefined) {
+    and.push({ priceCents: { lte: Math.round(q.maxPrice * 100) } });
+  }
+
+  return { AND: and };
+}
+
+function validateQuery(query) {
+  return productQuerySchema.validate(query, { abortEarly: false });
+}
+
 exports.getProducts = async (req, res, next) => {
+  const { value: q, error } = validateQuery(req.query);
+  if (error) {
+    return next(new CustomError(error.details[0].message, 400));
+  }
+
   try {
-    const ALLOWED_FILTERS = ["region", "type", "country", "inStock", "rating"];
+    const where = buildWhere(q);
+    const skip = (q.page - 1) * q.limit;
 
-    const where = ALLOWED_FILTERS.reduce((acc, key) => {
-      if (req.query[key]) {
-        if (req.query[key] === "true") {
-          acc[key] = true;
-        } else if (req.query[key] === "false") {
-          acc[key] = false;
-        } else if (key === "rating") {
-          acc[key] = parseFloat(req.query[key]);
-        } else {
-          acc[key] = req.query[key];
-        }
-      }
-      return acc;
-    }, {});
+    const [data, total] = await Promise.all([
+      prisma.product.findMany({
+        where,
+        // `id` as the last key = a stable order, so offset pagination never
+        // shows the same product on two pages when sort values tie.
+        orderBy: [...SORT_MAP[q.sort], { id: "asc" }],
+        skip,
+        take: q.limit,
+      }),
+      prisma.product.count({ where }),
+    ]);
 
-    if (req.query.minPrice) {
-      where.price = { ...where.price, gte: parseFloat(req.query.minPrice) };
-    }
-    if (req.query.maxPrice) {
-      where.price = { ...where.price, lte: parseFloat(req.query.maxPrice) };
-    }
-
-    if (req.query.search) {
-      where.OR = [
-        { name: { contains: req.query.search, mode: "insensitive" } },
-        { distillery: { contains: req.query.search, mode: "insensitive" } },
-      ];
-    }
-
-    const ALLOWED_SORT_ORDER = ["asc", "desc"];
-    const ALLOWED_SORT_BY = ["price", "age"];
-
-    if (req.query.sortBy) {
-      if (
-        !ALLOWED_SORT_BY.includes(req.query.sortBy) ||
-        (req.query.sortOrder &&
-          !ALLOWED_SORT_ORDER.includes(req.query.sortOrder))
-      ) {
-        return next(new CustomError("Invalid sort params", 400));
-      }
-    }
-
-    const orderBy = req.query.sortBy
-      ? [
-          {
-            [req.query.sortBy]: req.query.sortOrder === "desc" ? "desc" : "asc",
-          },
-        ]
-      : undefined;
-
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 20;
-    const skip = (page - 1) * limit;
-
-    const products = prisma.product.findMany({
-      where,
-      orderBy,
-      skip,
-      take: limit,
+    res.json({
+      data,
+      total,
+      page: q.page,
+      limit: q.limit,
+      totalPages: Math.ceil(total / q.limit),
     });
-
-    const count = prisma.product.count({ where });
-
-    const [productsResult, countResult] = await Promise.all([products, count]);
-
-    const response = {
-      data: productsResult,
-      total: countResult,
-      page,
-      limit,
-      totalPages: Math.ceil(countResult / limit),
-    };
-
-    res.json(response);
   } catch (err) {
-    logger.warn("Get products failed", {
-      ip: req.ip,
-    });
+    logger.error("Get products failed", { errorMessage: err.message });
     return next(new CustomError("Get products failed", 500));
   }
 };
 
+// Facet options with counts, computed against the same filters as the list.
+// The UI sends its current filters here too, so counts update as you filter.
 exports.getFilters = async (req, res, next) => {
+  const { value: q, error } = validateQuery(req.query);
+  if (error) {
+    return next(new CustomError(error.details[0].message, 400));
+  }
+
   try {
-    const regions = prisma.product.findMany({
-      distinct: ["region"],
-      select: { region: true },
+    const facetQueries = LIST_FACETS.map(([key, field]) =>
+      prisma.product.groupBy({
+        by: [field],
+        where: buildWhere(q, key),
+        _count: { _all: true },
+        orderBy: { [field]: "asc" },
+      }),
+    );
+
+    // Price bounds come from the whole catalog, so the slider range is stable.
+    const priceBounds = prisma.product.aggregate({
+      _min: { priceCents: true },
+      _max: { priceCents: true },
     });
 
-    const types = prisma.product.findMany({
-      distinct: ["type"],
-      select: { type: true },
-    });
-
-    const countries = prisma.product.findMany({
-      distinct: ["country"],
-      select: { country: true },
-    });
-
-    const [regionsResult, typesResult, countriesResult] = await Promise.all([
-      regions,
-      types,
-      countries,
+    const [groups, bounds] = await Promise.all([
+      Promise.all(facetQueries),
+      priceBounds,
     ]);
 
-    const flatRegions = regionsResult.map((r) => r.region);
-    const flatTypes = typesResult.map((r) => r.type);
-    const flatCountries = countriesResult.map((r) => r.country);
+    const facets = {};
+    LIST_FACETS.forEach(([key, field], i) => {
+      facets[key] = groups[i]
+        .filter((g) => g[field] !== null)
+        .map((g) => ({ value: g[field], count: g._count._all }));
+    });
 
-    const response = { flatRegions, flatTypes, flatCountries };
-
-    res.json(response);
+    res.json({
+      facets,
+      priceRange: {
+        min: Math.floor((bounds._min.priceCents ?? 0) / 100),
+        max: Math.ceil((bounds._max.priceCents ?? 0) / 100),
+      },
+    });
   } catch (err) {
+    logger.error("Get filters failed", { errorMessage: err.message });
     return next(new CustomError("Get filters failed", 500));
   }
 };
@@ -144,7 +173,7 @@ exports.createProduct = async (req, res, next) => {
     const { error, value } = productSchema.validate(req.body);
 
     if (error) {
-      return next(new CustomError("Invalid fields", 400));
+      return next(new CustomError(error.details[0].message, 400));
     }
 
     const product = await prisma.product.create({
@@ -152,6 +181,9 @@ exports.createProduct = async (req, res, next) => {
     });
     res.status(201).json(product);
   } catch (err) {
+    if (err.code === "P2002") {
+      return next(new CustomError("Slug already in use", 409));
+    }
     return next(new CustomError("Create product failed", 500));
   }
 };
@@ -161,7 +193,7 @@ exports.putProduct = async (req, res, next) => {
     const { error, value } = productSchema.validate(req.body);
 
     if (error) {
-      return next(new CustomError("Invalid fields", 400));
+      return next(new CustomError(error.details[0].message, 400));
     }
 
     const product = await prisma.product.update({
@@ -174,6 +206,12 @@ exports.putProduct = async (req, res, next) => {
       product,
     });
   } catch (err) {
+    if (err.code === "P2002") {
+      return next(new CustomError("Slug already in use", 409));
+    }
+    if (err.code === "P2025") {
+      return next(new CustomError("Product not found", 404));
+    }
     return next(new CustomError("Update product failed", 500));
   }
 };
@@ -188,6 +226,9 @@ exports.deleteProduct = async (req, res, next) => {
 
     res.status(200).json({ message: "Product deleted successfully" });
   } catch (err) {
+    if (err.code === "P2025") {
+      return next(new CustomError("Product not found", 404));
+    }
     return next(new CustomError("Delete product failed", 500));
   }
 };
