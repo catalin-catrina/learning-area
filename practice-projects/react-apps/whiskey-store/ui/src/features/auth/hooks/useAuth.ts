@@ -1,10 +1,11 @@
 import { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
+
 import { useAuthContext } from "../../../shared/context/auth/AuthContext";
 import type { LoginRequest, RegisterRequest } from "../auth.types";
 import { login, logout, register } from "../services/auth.service";
 import { setToken } from "../../../shared/services/tokenStore";
-import { useLocation, useNavigate } from "react-router-dom";
-import { useQueryClient } from "@tanstack/react-query";
 
 export function useAuth() {
   const { token, user, isInitializing, setAuth, clearAuth } = useAuthContext();

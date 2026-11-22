@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from "react-router-dom";
+
 import PublicRoute from "./shared/components/PublicRoute";
 import ProtectedRoute from "./shared/components/ProtectedRoute";
 import Login from "./features/auth/components/Login";

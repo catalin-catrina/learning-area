@@ -1,9 +1,11 @@
-import { useLocation, useNavigate, useParams } from "react-router-dom";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
+import { IconButton } from "@mui/material";
+
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+
 import { useCart, useCartMutations } from "../../../cart/hooks/useCart";
 import { useProduct } from "../../hooks/useProduct";
-import { IconButton } from "@mui/material";
 import {
   useFavoriteMutations,
   useIsFavorite,
