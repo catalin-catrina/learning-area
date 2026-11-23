@@ -14,7 +14,8 @@ function FavoritesPage() {
         <p>You have no favorite products.</p>
       ) : (
         <ul>
-          {favorites?.map((favorite: Favorite) => (
+          {/* skip optimistic placeholder rows (no product yet) until the refetch lands */}
+          {favorites?.filter((f) => f.product).map((favorite: Favorite) => (
             <li key={favorite.productId}>
               <h2>{favorite.product.name}</h2>
             </li>

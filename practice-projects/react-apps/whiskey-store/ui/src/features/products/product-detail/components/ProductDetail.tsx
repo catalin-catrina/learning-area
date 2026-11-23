@@ -1,15 +1,14 @@
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import { IconButton } from "@mui/material";
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 
 import { useCart, useCartMutations } from "../../../cart/hooks/useCart";
 import { useProduct } from "../../hooks/useProduct";
-import {
-  useFavoriteMutations,
-  useIsFavorite,
-} from "../../../favorites/hooks/useFavorites";
+import { useToggleFavorite } from "../../../favorites/hooks/useFavorites";
 import { useAuth } from "../../../auth/hooks/useAuth";
 
 function ProductDetail() {
@@ -21,8 +20,7 @@ function ProductDetail() {
   } = useProduct(Number(id));
   const { user } = useAuth();
 
-  const { add: addFavorite, remove: removeFavorite } = useFavoriteMutations();
-  const { data: isFavorite } = useIsFavorite(Number(id));
+  const { isFavorite, toggle: toggleFavorite } = useToggleFavorite(Number(id));
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -39,16 +37,12 @@ function ProductDetail() {
     add.mutate({ productId, quantity: 1 });
   };
 
-  const handleFavoriteToggle = (productId: number) => {
+  const handleFavoriteToggle = () => {
     if (!user) {
       navigate("/login", { state: { from: location } });
       return;
     }
-    if (isFavorite) {
-      removeFavorite.mutate(productId);
-    } else {
-      addFavorite.mutate(productId);
-    }
+    toggleFavorite();
   };
 
   if (productPending) return <p>Loading...</p>;
@@ -56,8 +50,6 @@ function ProductDetail() {
   if (!product) return <p>Product not found.</p>;
 
   const item = cart?.items.find((i) => i.productId === product.id);
-
-  console.log("quantity update pending", quantityUpdatePending);
 
   return (
     <div>
@@ -101,9 +93,13 @@ function ProductDetail() {
         </button>
       )}
 
-      <button onClick={() => handleFavoriteToggle(product.id)}>
-        {isFavorite ? <RemoveIcon /> : <AddIcon />}
-      </button>
+      <IconButton
+        aria-pressed={isFavorite}
+        aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+        onClick={handleFavoriteToggle}
+      >
+        {isFavorite ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+      </IconButton>
     </div>
   );
 }

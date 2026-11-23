@@ -26,7 +26,29 @@ model User {
   reviews       Review[]
   refreshTokens RefreshToken[]
   favorites Favorite[]
+  addresses     Address[]
   cart          Cart?
+}
+
+// Saved shipping addresses. Orders don't point here: checkout copies the
+// address into Order.shippingAddress (a snapshot), so editing or deleting an
+// address later never changes where a past order was shipped.
+// "At most one default per user" is kept by the controller in a transaction.
+model Address {
+  id         Int      @id @default(autoincrement())
+  name       String   // recipient
+  line1      String
+  line2      String?
+  city       String
+  postalCode String
+  country    String
+  isDefault  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model Cart {

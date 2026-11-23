@@ -21,6 +21,7 @@ const ProfileLayout = () => {
           </NavLink>
           <NavLink to="/profile/orders">My orders</NavLink>
           <NavLink to="/profile/favorites">Favorites</NavLink>
+          <NavLink to="/profile/addresses">Addresses</NavLink>
         </aside>
 
         <section className="profile-content">

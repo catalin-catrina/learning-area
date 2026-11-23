@@ -14,3 +14,4 @@ export { default as TastingNoteChip } from "./TastingNoteChip";
 export { default as Spinner } from "./Spinner";
 export { default as Field, FieldError } from "./Field";
 export * from "./icons";
+export { focusRing } from "./styles";

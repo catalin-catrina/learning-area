@@ -1,5 +1,5 @@
 import api from "../../../shared/services/api";
-import type { Order, OrderResponse, ShippingAddress } from "../order.types";
+import type { CheckoutPayload, Order, OrderResponse } from "../order.types";
 
 export async function getOrder(orderId: number): Promise<Order> {
   const response = await api.get(`/orders/${orderId}`);
@@ -12,9 +12,9 @@ export async function getOrders(): Promise<Order[]> {
 }
 
 export async function createOrder(
-  shippingAddress: ShippingAddress,
+  payload: CheckoutPayload,
 ): Promise<OrderResponse> {
-  const response = await api.post(`/orders/checkout`, { shippingAddress });
+  const response = await api.post(`/orders/checkout`, payload);
   return response.data;
 }
 

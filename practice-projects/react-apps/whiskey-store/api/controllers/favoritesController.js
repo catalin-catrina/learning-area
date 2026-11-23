@@ -29,19 +29,21 @@ exports.addFavorite = async (req, res, next) => {
       return next(new CustomError("Product ID is required", 400));
     }
 
-    const favorite = await prisma.favorite.create({
-      data: {
-        userId: req.user.id,
-        productId: parseInt(productId, 10),
-      },
+    const userId = req.user.id;
+    const id = parseInt(productId, 10);
+
+    // Idempotent: adding a product that's already a favorite just returns it,
+    // so a double click (or two tabs) can't produce an error.
+    const favorite = await prisma.favorite.upsert({
+      where: { userId_productId: { userId, productId: id } },
+      update: {},
+      create: { userId, productId: id },
       include: { product: true },
     });
 
     res.status(201).json(favorite);
   } catch (err) {
-    if (err.code === "P2002") {
-      return next(new CustomError("Favorite already exists", 400));
-    } else if (err.code === "P2003") {
+    if (err.code === "P2003") {
       return next(new CustomError("Product not found", 404));
     }
     logger.error("Add favorite failed", { errorMessage: err.message });

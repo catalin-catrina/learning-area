@@ -14,8 +14,3 @@ export async function addFavorite(productId: number): Promise<Favorite> {
 export async function removeFavorite(productId: number): Promise<void> {
   await api.delete(`/favorites/${productId}`);
 }
-
-export async function isFavorite(productId: number): Promise<boolean> {
-  const response = await api.get(`/favorites/${productId}`);
-  return response.data.isFavorite;
-}

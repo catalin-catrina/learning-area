@@ -1,14 +1,16 @@
 const Joi = require("joi");
+const { addressFields } = require("./addressValidator");
 
+// Checkout takes exactly one of:
+// - addressId: one of the user's saved addresses
+// - shippingAddress: a one-off address typed at checkout, plus saveAddress
+//   to also keep it in the user's address book
 const schema = Joi.object({
-  shippingAddress: Joi.object({
-    name: Joi.string().trim().min(1).max(100).required(),
-    line1: Joi.string().trim().min(1).max(200).required(),
-    line2: Joi.string().trim().max(200).allow(""),
-    city: Joi.string().trim().min(1).max(100).required(),
-    postalCode: Joi.string().trim().min(1).max(20).required(),
-    country: Joi.string().trim().min(1).max(100).required(),
-  }).required(),
-});
+  addressId: Joi.number().integer().positive(),
+  shippingAddress: addressFields,
+  saveAddress: Joi.boolean(), // no default: it must stay absent when addressId is used
+})
+  .xor("addressId", "shippingAddress")
+  .without("addressId", "saveAddress");
 
 module.exports = schema;

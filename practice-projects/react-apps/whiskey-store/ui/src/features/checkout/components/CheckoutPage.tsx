@@ -5,6 +5,7 @@ import { environment } from "../../../config/environment";
 import { useParams } from "react-router-dom";
 import { usePaymentSession } from "../hooks/useCheckout";
 import CheckoutForm from "./CheckoutForm";
+import { getStripeAppearance, stripeFonts } from "../stripeAppearance";
 
 const stripePromise = loadStripe(environment.stripePublishableKey);
 
@@ -26,10 +27,15 @@ function CheckoutPage() {
   }
 
   return (
-    <div>
-      <CheckoutElementsProvider  
+    <div className="mx-auto flex max-w-2xl flex-col gap-6 p-6">
+      <h1 className="text-3xl">Payment</h1>
+      <CheckoutElementsProvider
         stripe={stripePromise}
-        options={{ clientSecret: data?.clientSecret }}
+        options={{
+          clientSecret: data.clientSecret,
+          // Read once when the form mounts; CheckoutForm updates it on theme changes
+          elementsOptions: { appearance: getStripeAppearance(), fonts: stripeFonts },
+        }}
       >
         <CheckoutForm />
       </CheckoutElementsProvider>

@@ -89,3 +89,11 @@ export function StarIcon({ filled = false, ...props }: IconProps & { filled?: bo
     </Svg>
   );
 }
+
+export function HeartIcon({ filled = false, ...props }: IconProps & { filled?: boolean }) {
+  return (
+    <Svg fill={filled ? "currentColor" : "none"} {...props}>
+      <path d="M12 20s-7.5-4.6-7.5-10A4.25 4.25 0 0 1 12 7.2 4.25 4.25 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10z" />
+    </Svg>
+  );
+}

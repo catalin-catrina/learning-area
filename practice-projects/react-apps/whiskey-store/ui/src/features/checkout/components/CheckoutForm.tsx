@@ -2,58 +2,69 @@ import {
   useCheckoutElements,
   PaymentElement,
 } from "@stripe/react-stripe-js/checkout";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useAuth } from "../../auth/hooks/useAuth";
+import { Button } from "../../../shared/ui";
+import { getStripeAppearance } from "../stripeAppearance";
 
 function CheckoutForm() {
   const checkoutState = useCheckoutElements();
-  // 1. Track the email in React state (optionally pre-filled from useAuth):
-  const [email, setEmail] = useState("");
+  const { user } = useAuth();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  // Re-theme Stripe's iframe when the user switches light/dark mid-checkout.
+  // A MutationObserver watches the class attribute on <html> (where useTheme
+  // puts "dark"), so this works no matter which component toggles the theme.
+  const checkout = checkoutState.type === "success" ? checkoutState.checkout : null;
+  useEffect(() => {
+    if (!checkout) return;
+    const observer = new MutationObserver(() =>
+      checkout.changeAppearance(getStripeAppearance()),
+    );
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, [checkout]);
+
   if (checkoutState.type === "loading") {
-    return <p>Loading payment form...</p>;
+    return <p className="text-muted">Loading payment form…</p>;
   }
 
   if (checkoutState.type === "error") {
-    return <p>Error: {checkoutState.error.message}</p>;
+    return <p className="text-danger">Error: {checkoutState.error.message}</p>;
   }
 
-  // Once type === "success", checkoutState.checkout is available!
-  const { checkout } = checkoutState;
-
-  const handleSubmit = async (event: React.SubmitEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setErrorMessage(null);
     setIsSubmitting(true);
 
-    const result = await checkout.confirm({email});
+    // No email argument: the backend creates the Checkout Session with the
+    // account email (customer_email), so Stripe already has it.
+    const result = await checkoutState.checkout.confirm();
     if (result.type === "error") {
       setErrorMessage(result.error.message);
-      console.log("Payment confirmation error:", result.error);
     }
     setIsSubmitting(false);
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <input
-        type="email"
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring focus:ring-blue-200"
-      />
+    <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+      {user && (
+        <p className="text-sm text-muted">
+          Receipt goes to <span className="font-semibold text-fg">{user.email}</span>
+        </p>
+      )}
       <PaymentElement />
-      {errorMessage && <div role="alert">{errorMessage}</div>}
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="mt-4 rounded-md bg-blue-600 px-6 py-2 text-white disabled:opacity-40"
-      >
-        Pay
-      </button>
+      {errorMessage && (
+        <p role="alert" className="text-sm text-danger">
+          {errorMessage}
+        </p>
+      )}
+      <Button type="submit" loading={isSubmitting} className="self-start">
+        {isSubmitting ? "Paying…" : "Pay"}
+      </Button>
     </form>
   );
 }

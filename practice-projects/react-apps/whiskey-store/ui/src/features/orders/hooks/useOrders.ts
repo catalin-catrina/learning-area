@@ -3,6 +3,7 @@ import { useAuth } from "../../auth/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import type { OrderResponse } from "../order.types";
 import { cartKey } from "../../cart/hooks/useCart";
+import { addressesKey } from "../../addresses/hooks/useAddresses";
 import {
   cancelOrder,
   createOrder,
@@ -16,6 +17,7 @@ export function useCreateOrder() {
   const navigate = useNavigate();
   const onSuccess = (data: OrderResponse) => {
     qc.invalidateQueries({ queryKey: cartKey(user?.id) });
+    qc.invalidateQueries({ queryKey: addressesKey(user?.id) }); // the order may have saved a new address
     navigate(`/checkout/${data.order.id}`);
   };
 

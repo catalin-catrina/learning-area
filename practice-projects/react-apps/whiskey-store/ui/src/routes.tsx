@@ -16,6 +16,7 @@ import FavoritesPage from "./features/favorites/components/FavoritesPage";
 import ProfileLayout from "./features/profile/components/ProfileLayout";
 import ProfileOverview from "./features/profile/components/ProfileOverview";
 import OrderDetailsPage from "./features/orders/components/OrderDetailsPage";
+import AddressesPage from "./features/addresses/components/AddressesPage";
 import Playground from "./pages/Playground";
 
 function AppRoutes() {
@@ -38,6 +39,7 @@ function AppRoutes() {
             <Route index element={<ProfileOverview />} />
             <Route path="orders" element={<OrdersPage />} />
             <Route path="favorites" element={<FavoritesPage />} />
+            <Route path="addresses" element={<AddressesPage />} />
           </Route>
           <Route path="/orders/:orderId" element={<OrderDetailsPage />} />
           <Route path="/checkout/" element={<ShippingPage />} />

@@ -7,6 +7,41 @@ const orderSchema = require("../validators/orderValidator");
 const CustomError = require("../utils/customError");
 const logger = require("../utils/logger");
 
+// Turns the checkout body into the address snapshot stored on the order.
+// Runs inside the order transaction: if the order fails (empty cart, out of
+// stock), a "save this address" from the same request is rolled back too.
+async function resolveShippingAddress(tx, userId, { addressId, shippingAddress, saveAddress }) {
+  const pick = (a) => ({
+    name: a.name,
+    line1: a.line1,
+    line2: a.line2 || "",
+    city: a.city,
+    postalCode: a.postalCode,
+    country: a.country,
+  });
+
+  if (addressId) {
+    const saved = await tx.address.findUnique({ where: { id: addressId } });
+    if (!saved) throw new CustomError("Address not found", 404);
+    if (saved.userId !== userId) throw new CustomError("Operation not permitted", 403);
+    return pick(saved);
+  }
+
+  if (saveAddress) {
+    const count = await tx.address.count({ where: { userId } });
+    await tx.address.create({
+      data: {
+        ...pick(shippingAddress),
+        line2: shippingAddress.line2 || null,
+        isDefault: count === 0, // the first saved address becomes the default
+        userId,
+      },
+    });
+  }
+
+  return pick(shippingAddress);
+}
+
 exports.getAllOrders = async (req, res, next) => {
   try {
     const orders =
@@ -50,13 +85,15 @@ exports.checkout = async (req, res, next) => {
   try {
     const { error, value } = orderSchema.validate(req.body);
     if (error) {
-      return next(new CustomError("Invalid fields", 400));
+      return next(new CustomError(error.details[0].message, 400));
     }
 
     const userId = req.user.id;
 
     const order = await prisma.$transaction(async (tx) => {
       // everything in here uses `tx`, never `prisma`
+      const shippingAddress = await resolveShippingAddress(tx, userId, value);
+
       const cart = await tx.cart.findUnique({
         where: { userId },
         include: {
@@ -110,7 +147,7 @@ exports.checkout = async (req, res, next) => {
         data: {
           userId,
           status: "PENDING",
-          shippingAddress: value.shippingAddress,
+          shippingAddress, // a copy, so later address edits never change past orders
           totalCents,
           checkoutSessionCreationKey: v4(),
           items: {
@@ -152,6 +189,11 @@ exports.createPaymentSession = async (req, res, next) => {
       return next(new CustomError("Operation not permitted", 403));
     }
 
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.id },
+      select: { email: true },
+    });
+
     if (order.status !== "PENDING") {
       return next(
         new CustomError(
@@ -168,6 +210,14 @@ exports.createPaymentSession = async (req, res, next) => {
       const retrievedSession = await stripe.checkout.sessions.retrieve(
         order.stripeCheckoutSessionId,
       );
+
+      // Sessions created before the account email was passed to Stripe would
+      // still ask for an email the page no longer collects. Expire them so a
+      // fresh one (with the email) is created below.
+      if (retrievedSession.status === "open" && !retrievedSession.customer_email) {
+        await stripe.checkout.sessions.expire(retrievedSession.id);
+        retrievedSession.status = "expired";
+      }
 
       switch (retrievedSession.status) {
         case "open":
@@ -222,6 +272,9 @@ exports.createPaymentSession = async (req, res, next) => {
             },
           })),
           client_reference_id: String(order.id),
+          // The account email: Stripe sends the receipt there, and the payment
+          // page doesn't need its own email field.
+          customer_email: user.email,
           return_url: `http://localhost:5173/payment/return?order_id=${order.id}&session_id={CHECKOUT_SESSION_ID}`,
         },
         {

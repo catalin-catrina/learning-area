@@ -150,6 +150,7 @@ exports.registerUser = async (req, res, next) => {
     const newUser = {
       name: value.name,
       email: value.email,
+      phone: value.phone, // required (and unique) on User; was missing, so every register failed
       password: hashed,
       role: "user",
     };
@@ -188,6 +189,9 @@ exports.registerUser = async (req, res, next) => {
       refreshToken,
     });
   } catch (err) {
+    if (err.code === "P2002") {
+      return next(new CustomError("Email or phone number already in use", 409));
+    }
     logger.warn("Register failed", {
       email: req.body?.email,
       ip: req.ip,

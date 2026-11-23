@@ -7,6 +7,11 @@ export type ShippingAddress = {
   country: string;
 };
 
+// Checkout body: a saved address, or a one-off address (optionally saved to the profile)
+export type CheckoutPayload =
+  | { addressId: number }
+  | { shippingAddress: ShippingAddress; saveAddress?: boolean };
+
 export type OrderResponse = {
   message: string;
   order: Order;
