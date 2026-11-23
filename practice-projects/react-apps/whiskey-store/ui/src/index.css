@@ -4,6 +4,8 @@
 
 /* Light · Distillery paper */
 :root {
+  color-scheme: light; /* native scrollbars, autofill and date pickers follow the theme */
+
   --bg: #f5f1e8;
   --surface: #fffdf8;
   --surface-2: #ece6d9;
@@ -15,8 +17,13 @@
   --accent-fg: #fffdf8;
   --sale: #a3362a;
   --sale-fg: #ffffff;
+  --danger: #a3362a; /* NEW: errors. Same value as sale today, kept separate on purpose */
   --success: #2f6b3f;
   --ring: #3a7a58;
+
+  /* NEW: computed from accent + fg, so it follows the theme on its own.
+     84% accent, the remaining 16% is fg. */
+  --accent-hover: color-mix(in oklab, var(--accent) 84%, var(--fg));
 
   --elevation-sm:
     0 1px 2px rgba(28, 36, 32, 0.06), 0 1px 1px rgba(28, 36, 32, 0.04);
@@ -28,6 +35,8 @@
 
 /* Dark · Cask copper */
 .dark {
+  color-scheme: dark;
+
   --bg: #14110f;
   --surface: #1e1a17;
   --surface-2: #29231f;
@@ -39,6 +48,7 @@
   --accent-fg: #14110f;
   --sale: #e4775f;
   --sale-fg: #14110f;
+  --danger: #e4775f;
   --success: #84b98a;
   --ring: #e3a56b;
 
@@ -59,8 +69,10 @@
   --color-input: var(--input);
   --color-accent: var(--accent);
   --color-accent-fg: var(--accent-fg);
+  --color-accent-hover: var(--accent-hover);
   --color-sale: var(--sale);
   --color-sale-fg: var(--sale-fg);
+  --color-danger: var(--danger);
   --color-success: var(--success);
   --color-ring: var(--ring);
 
@@ -98,6 +110,14 @@
   --shadow-sm: var(--elevation-sm);
   --shadow-md: var(--elevation-md);
   --shadow-lg: var(--elevation-lg);
+
+  /* NEW: the spinner turns once every 800ms (creates the class animate-spinner) */
+  --animate-spinner: spinner 800ms linear infinite;
+  @keyframes spinner {
+    to {
+      transform: rotate(360deg);
+    }
+  }
 }
 
 @layer base {

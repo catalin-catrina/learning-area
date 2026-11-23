@@ -16,11 +16,13 @@ import FavoritesPage from "./features/favorites/components/FavoritesPage";
 import ProfileLayout from "./features/profile/components/ProfileLayout";
 import ProfileOverview from "./features/profile/components/ProfileOverview";
 import OrderDetailsPage from "./features/orders/components/OrderDetailsPage";
+import Playground from "./pages/Playground";
 
 function AppRoutes() {
   return (
     <Routes>
       <Route element={<MainLayout />}>
+        <Route path="/playground" element={<Playground />} />
         {/* Public routes */}
         <Route element={<PublicRoute />}>
           <Route path="/login" element={<Login />} />

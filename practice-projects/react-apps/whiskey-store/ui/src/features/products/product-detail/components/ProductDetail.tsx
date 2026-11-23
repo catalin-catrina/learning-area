@@ -26,7 +26,6 @@ function ProductDetail() {
   const navigate = useNavigate();
   const location = useLocation();
 
-
   const { add, update, remove } = useCartMutations();
   const { data: cart, isError: cartError } = useCart();
   const quantityUpdatePending =
@@ -58,12 +57,11 @@ function ProductDetail() {
 
   const item = cart?.items.find((i) => i.productId === product.id);
 
+  console.log("quantity update pending", quantityUpdatePending);
+
   return (
     <div>
       <h1>{product?.name}</h1>
-      <button onClick={() => handleFavoriteToggle(product.id)}>
-        {isFavorite ? <RemoveIcon /> : <AddIcon />}
-      </button>
       {item ? (
         <>
           <IconButton
@@ -102,6 +100,10 @@ function ProductDetail() {
           Add to cart
         </button>
       )}
+
+      <button onClick={() => handleFavoriteToggle(product.id)}>
+        {isFavorite ? <RemoveIcon /> : <AddIcon />}
+      </button>
     </div>
   );
 }
