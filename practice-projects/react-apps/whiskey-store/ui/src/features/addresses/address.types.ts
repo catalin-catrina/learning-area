@@ -15,6 +15,7 @@ export type Address = Omit<ShippingAddress, "line2"> & {
 export type AddressErrors = Partial<Record<keyof AddressInput, string>>;
 
 export const emptyAddress: AddressInput = {
+  label: "",
   name: "",
   line1: "",
   line2: "",
@@ -37,6 +38,7 @@ export function validateAddress(a: AddressInput): AddressErrors {
 /** Saved address → form value (null line2 → ""). */
 export function toInput(a: Address): AddressInput {
   return {
+    label: a.label ?? "",
     name: a.name,
     line1: a.line1,
     line2: a.line2 ?? "",

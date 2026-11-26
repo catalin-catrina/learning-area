@@ -15,6 +15,7 @@ export const FACET_KEYS: FacetKey[] = [
   "region",
   "age",
   "volume",
+  "tastingNotes",
 ];
 export const BOOLEAN_KEYS: BooleanFilterKey[] = [
   "inStock",
@@ -62,6 +63,9 @@ export function parseFilters(params: URLSearchParams): ProductsFilters {
 
   return filters;
 }
+
+/** No sort in the URL = "Featured", which is best rated first. */
+export const DEFAULT_SORT: SortOption = "rating_desc";
 
 // Facet counts don't depend on paging or sorting, so they get their own
 // cache key without them (changing page doesn't refetch the facets).

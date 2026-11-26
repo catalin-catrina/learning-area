@@ -7,7 +7,11 @@ const CustomError = require("../utils/customError");
 const logger = require("../utils/logger");
 
 // Empty optional line → null in the DB
-const clean = (fields) => ({ ...fields, line2: fields.line2 || null });
+const clean = (fields) => ({
+  ...fields,
+  line2: fields.line2 || null,
+  label: fields.label || null,
+});
 
 function parseId(raw) {
   const id = Number(raw);

@@ -7,7 +7,7 @@ exports.getProfile = async (req, res, next) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.user.id },
-      select: { id: true, name: true, email: true, role: true, createdAt: true },
+      select: { id: true, name: true, email: true, phone: true, role: true, createdAt: true },
     });
     if (!user) {
       return next(new CustomError("User not found", 404));

@@ -1,4 +1,6 @@
 export type ShippingAddress = {
+  /** Only on saved addresses ("Home"); order snapshots don't keep it. */
+  label?: string | null;
   name: string;
   line1: string;
   line2?: string;
@@ -10,7 +12,7 @@ export type ShippingAddress = {
 // Checkout body: a saved address, or a one-off address (optionally saved to the profile)
 export type CheckoutPayload =
   | { addressId: number }
-  | { shippingAddress: ShippingAddress; saveAddress?: boolean };
+  | { shippingAddress: ShippingAddress; saveAddress?: boolean; makeDefault?: boolean };
 
 export type OrderResponse = {
   message: string;
@@ -23,6 +25,7 @@ export type Order = {
   status: OrderStatus;
   shippingAddress: ShippingAddress;
   totalCents: number;
+  createdAt: string;
   checkoutSessionCreationKey: string;
   items: OrderItem[];
 };
@@ -35,6 +38,8 @@ export type OrderItem = {
 
   orderId: number;
   productId: number;
+  /** A few product fields for thumbnails (null if the product was deleted). */
+  product?: { imageUrl: string | null; brand: string; slug: string } | null;
 };
 
 export type OrderStatus =

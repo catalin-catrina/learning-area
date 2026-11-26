@@ -6,7 +6,7 @@ import { ChevronDownIcon } from "./icons";
 import { fieldBorder, fieldBox } from "./styles";
 
 type SelectProps = React.ComponentProps<"select"> & {
-  label?: string;
+  label?: React.ReactNode;
   error?: string;
   /** Options are loading: shows "Loading…", blocks the select, keeps normal colors. */
   loading?: boolean;
@@ -36,6 +36,7 @@ function Select({
       label={label}
       error={error}
       errorId={errorId}
+      hintId={`${selectId}-hint`}
       disabled={disabled}
       className={className}
     >

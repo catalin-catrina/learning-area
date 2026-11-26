@@ -46,7 +46,12 @@ export function useAuth() {
       const data = await register(registerReq);
       setAuth(data.accessToken, data.payload);
       setToken(data.accessToken);
-      navigate("/products", { replace: true });
+      // like login: back to the page that sent them here (e.g. a product)
+      const redirectTo =
+        from && from.pathname !== "/login" && from.pathname !== "/register"
+          ? `${from.pathname}${from.search}${from.hash}`
+          : "/products";
+      navigate(redirectTo, { replace: true });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       setError(e.response?.data?.error);

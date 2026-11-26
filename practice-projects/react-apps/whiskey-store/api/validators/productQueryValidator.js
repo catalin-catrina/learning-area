@@ -24,6 +24,7 @@ const productQuerySchema = Joi.object({
   region: many(Joi.string().max(60)),
   age: many(Joi.number().integer().min(0).max(100)),
   volume: many(Joi.number().integer().positive()),
+  tastingNotes: many(Joi.string().max(40)),
   peated: Joi.boolean(),
   giftBox: Joi.boolean(),
   inStock: Joi.boolean(),

@@ -36,6 +36,7 @@ model User {
 // "At most one default per user" is kept by the controller in a transaction.
 model Address {
   id         Int      @id @default(autoincrement())
+  label      String?  // "Home", "Office"…
   name       String   // recipient
   line1      String
   line2      String?

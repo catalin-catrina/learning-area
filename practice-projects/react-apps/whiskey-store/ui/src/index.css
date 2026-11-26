@@ -121,6 +121,10 @@
 }
 
 @layer base {
+  /* An open modal <dialog> (cart drawer, filter sheet) stops the page behind it scrolling */
+  :root:has(dialog[open]) {
+    overflow: hidden;
+  }
   body {
     @apply bg-bg text-fg font-sans antialiased;
   }
