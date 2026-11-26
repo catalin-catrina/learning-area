@@ -17,10 +17,12 @@ type RatingProps = {
   reviewsHref?: string;
   /** "Write one" link when there are no reviews yet. */
   writeHref?: string;
+  /** Cards: "4.5 (2)" instead of "4.5 · 2 reviews". */
+  compact?: boolean;
   className?: string;
 };
 
-export function Rating({ rating, reviewCount, reviewsHref, writeHref, className }: RatingProps) {
+export function Rating({ rating, reviewCount, reviewsHref, writeHref, compact = false, className }: RatingProps) {
   if (reviewCount === 0) {
     return (
       <p className={cn("text-sm text-muted", className)}>
@@ -42,7 +44,11 @@ export function Rating({ rating, reviewCount, reviewsHref, writeHref, className 
 
   return (
     <div className={cn("flex items-center gap-2 text-sm", className)}>
-      <span role="img" aria-label={`Rated ${rating.toFixed(1)} out of 5`} className="flex gap-1">
+      <span
+        role="img"
+        aria-label={`Rated ${rating.toFixed(1)} out of 5 from ${countText}`}
+        className="flex gap-1"
+      >
         {STARS.map((n) => (
           <StarIcon
             key={n}
@@ -54,15 +60,23 @@ export function Rating({ rating, reviewCount, reviewsHref, writeHref, className 
       <span className="font-semibold text-fg" aria-hidden="true">
         {rating.toFixed(1)}
       </span>
-      <span className="text-muted" aria-hidden="true">
-        ·
-      </span>
-      {reviewsHref ? (
+      {compact ? (
+        <span className="text-muted" aria-hidden="true">
+          ({reviewCount})
+        </span>
+      ) : (
+        <>
+          <span className="text-muted" aria-hidden="true">
+            ·
+          </span>
+          {reviewsHref ? (
         <a href={reviewsHref} className={link}>
           {countText}
         </a>
-      ) : (
-        <span className="text-fg">{countText}</span>
+          ) : (
+            <span className="text-fg">{countText}</span>
+          )}
+        </>
       )}
     </div>
   );

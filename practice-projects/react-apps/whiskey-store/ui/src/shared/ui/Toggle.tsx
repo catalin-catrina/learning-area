@@ -7,16 +7,21 @@ type ToggleProps = Omit<React.ComponentProps<"button">, "onChange" | "children">
   onCheckedChange: (checked: boolean) => void;
   /** Saving the change: spinner in the knob, blocked until it finishes. */
   loading?: boolean;
+  /** Number shown after the label in muted, e.g. how many products match. */
+  count?: number;
   /** The label text. It's also what screen readers announce. */
   children: React.ReactNode;
 };
 
 // One <button role="switch">: label + track, so the whole row is clickable
 // and the label is the accessible name. Controlled: the parent owns `checked`.
+// The row fills its container (track pushed to the right), with a -8px margin
+// on both sides so the hover/focus shape extends past the text column.
 function Toggle({
   checked,
   onCheckedChange,
   loading = false,
+  count,
   disabled,
   className,
   children,
@@ -33,7 +38,7 @@ function Toggle({
       disabled={disabled || loading}
       onClick={() => onCheckedChange(!checked)}
       className={cn(
-        "group relative -mx-2 inline-flex min-h-7 items-center gap-3 rounded-md px-2 py-1 text-sm pointer-coarse:min-h-11",
+        "group relative -mx-2 flex min-h-7 w-[calc(100%+16px)] items-center gap-3 rounded-md px-2 py-1 text-left text-sm pointer-coarse:min-h-11",
         focusRing,
         disabled ? "cursor-not-allowed text-muted" : "text-fg",
         loading && "cursor-progress",
@@ -43,12 +48,13 @@ function Toggle({
       {...rest}
     >
       <span>{children}</span>
+      {count !== undefined && <span className="tabular-nums text-muted">{count}</span>}
 
       {/* Track */}
       <span
         aria-hidden="true"
         className={cn(
-          "relative h-5 w-9 shrink-0 rounded-full transition-colors",
+          "relative ml-auto h-5 w-9 shrink-0 rounded-full transition-colors",
           disabled
             ? "bg-surface-2 inset-ring inset-ring-border" // 1px inner line, doesn't change size
             : checked

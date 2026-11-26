@@ -1,13 +1,17 @@
 import { Outlet } from "react-router-dom";
-import Navbar from "../../shared/components/Navbar";
+import Header from "../../shared/layout/Header";
+import Footer from "../../shared/layout/Footer";
+import CartDrawer from "../cart/components/CartDrawer";
 
 const MainLayout = () => {
   return (
-    <div>
-      <Navbar/>
-      <div className="w-full max-w-350 mx-auto">
+    <div className="flex min-h-dvh flex-col">
+      <Header />
+      <main className="flex-1">
         <Outlet />
-      </div>
+      </main>
+      <Footer />
+      <CartDrawer />
     </div>
   );
 };

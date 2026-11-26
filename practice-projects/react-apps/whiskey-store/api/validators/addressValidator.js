@@ -3,6 +3,7 @@ const Joi = require("joi");
 // The address fields on their own. Reused by the order validator, so a saved
 // address and a one-off checkout address follow exactly the same rules.
 const addressFields = Joi.object({
+  label: Joi.string().trim().max(40).allow("", null),
   name: Joi.string().trim().min(1).max(100).required(),
   line1: Joi.string().trim().min(1).max(200).required(),
   line2: Joi.string().trim().max(200).allow("", null),

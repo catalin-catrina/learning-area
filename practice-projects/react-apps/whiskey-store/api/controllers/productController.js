@@ -49,6 +49,11 @@ function buildWhere(q, omitFacet) {
     if (q[key] !== undefined) and.push({ [key]: q[key] });
   }
 
+  // A product matches if it has ANY of the picked notes (OR inside the filter)
+  if (omitFacet !== "tastingNotes" && q.tastingNotes?.length) {
+    and.push({ tastingNotes: { hasSome: q.tastingNotes } });
+  }
+
   if (q.onSale !== undefined) {
     and.push({
       compareAtPriceCents: q.onSale ? { not: null } : null,
@@ -122,15 +127,23 @@ exports.getFilters = async (req, res, next) => {
       }),
     );
 
+    // Tasting notes are a String[] column, which groupBy can't group by,
+    // so count them in JS (the catalog is small).
+    const notesQuery = prisma.product.findMany({
+      where: buildWhere(q, "tastingNotes"),
+      select: { tastingNotes: true },
+    });
+
     // Price bounds come from the whole catalog, so the slider range is stable.
     const priceBounds = prisma.product.aggregate({
       _min: { priceCents: true },
       _max: { priceCents: true },
     });
 
-    const [groups, bounds] = await Promise.all([
+    const [groups, bounds, noteRows] = await Promise.all([
       Promise.all(facetQueries),
       priceBounds,
+      notesQuery,
     ]);
 
     const facets = {};
@@ -139,6 +152,16 @@ exports.getFilters = async (req, res, next) => {
         .filter((g) => g[field] !== null)
         .map((g) => ({ value: g[field], count: g._count._all }));
     });
+
+    const noteCounts = new Map();
+    for (const row of noteRows) {
+      for (const note of row.tastingNotes) {
+        noteCounts.set(note, (noteCounts.get(note) ?? 0) + 1);
+      }
+    }
+    facets.tastingNotes = [...noteCounts]
+      .map(([value, count]) => ({ value, count }))
+      .sort((a, b) => b.count - a.count || a.value.localeCompare(b.value));
 
     res.json({
       facets,

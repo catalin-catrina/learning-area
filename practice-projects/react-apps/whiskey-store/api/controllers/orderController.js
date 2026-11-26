@@ -10,7 +10,11 @@ const logger = require("../utils/logger");
 // Turns the checkout body into the address snapshot stored on the order.
 // Runs inside the order transaction: if the order fails (empty cart, out of
 // stock), a "save this address" from the same request is rolled back too.
-async function resolveShippingAddress(tx, userId, { addressId, shippingAddress, saveAddress }) {
+async function resolveShippingAddress(
+  tx,
+  userId,
+  { addressId, shippingAddress, saveAddress, makeDefault },
+) {
   const pick = (a) => ({
     name: a.name,
     line1: a.line1,
@@ -29,11 +33,19 @@ async function resolveShippingAddress(tx, userId, { addressId, shippingAddress, 
 
   if (saveAddress) {
     const count = await tx.address.count({ where: { userId } });
+    const isDefault = makeDefault || count === 0; // the first saved address becomes the default
+    if (isDefault) {
+      await tx.address.updateMany({
+        where: { userId, isDefault: true },
+        data: { isDefault: false },
+      });
+    }
     await tx.address.create({
       data: {
         ...pick(shippingAddress),
         line2: shippingAddress.line2 || null,
-        isDefault: count === 0, // the first saved address becomes the default
+        label: shippingAddress.label || null,
+        isDefault,
         userId,
       },
     });
@@ -42,14 +54,24 @@ async function resolveShippingAddress(tx, userId, { addressId, shippingAddress, 
   return pick(shippingAddress);
 }
 
+// Items come with a few product fields so the UI can show thumbnails.
+const ORDER_INCLUDE = {
+  items: {
+    include: {
+      product: { select: { imageUrl: true, brand: true, slug: true } },
+    },
+  },
+};
+
 exports.getAllOrders = async (req, res, next) => {
   try {
     const orders =
       req.user.role === "admin"
-        ? await prisma.order.findMany({ include: { items: true } })
+        ? await prisma.order.findMany({ include: ORDER_INCLUDE, orderBy: { createdAt: "desc" } })
         : await prisma.order.findMany({
             where: { userId: req.user.id },
-            include: { items: true },
+            include: ORDER_INCLUDE,
+            orderBy: { createdAt: "desc" },
           });
 
     res.json(orders);
@@ -63,7 +85,7 @@ exports.getOrderById = async (req, res, next) => {
   try {
     const order = await prisma.order.findUnique({
       where: { id: parseInt(req.params.id) },
-      include: { items: true },
+      include: ORDER_INCLUDE,
     });
 
     if (!order) {

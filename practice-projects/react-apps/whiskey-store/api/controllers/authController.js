@@ -55,7 +55,8 @@ exports.login = async (req, res, next) => {
 
     res.status(200).json({
       message: "Login successful",
-      payload,
+      // the JWT payload stays small; the client also gets the phone
+      payload: { ...payload, phone: user.phone },
       accessToken,
     });
   } catch (err) {
@@ -185,6 +186,14 @@ exports.registerUser = async (req, res, next) => {
     res.status(201).json({
       message: "User created",
       user: safeUser,
+      // same shape as login, which is what the client reads
+      payload: {
+        id: userRecord.id,
+        name: userRecord.name,
+        email: userRecord.email,
+        phone: userRecord.phone,
+        role: userRecord.role,
+      },
       accessToken,
       refreshToken,
     });

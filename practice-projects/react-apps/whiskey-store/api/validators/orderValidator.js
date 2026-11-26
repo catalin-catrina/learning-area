@@ -9,8 +9,9 @@ const schema = Joi.object({
   addressId: Joi.number().integer().positive(),
   shippingAddress: addressFields,
   saveAddress: Joi.boolean(), // no default: it must stay absent when addressId is used
+  makeDefault: Joi.boolean(), // only meaningful together with saveAddress
 })
   .xor("addressId", "shippingAddress")
-  .without("addressId", "saveAddress");
+  .without("addressId", ["saveAddress", "makeDefault"]);
 
 module.exports = schema;

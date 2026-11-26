@@ -58,6 +58,7 @@ export type ProductsFilters = {
   region?: string[];
   age?: number[];
   volume?: number[];
+  tastingNotes?: string[];
   peated?: boolean;
   giftBox?: boolean;
   inStock?: boolean;
@@ -73,7 +74,8 @@ export type FacetKey =
   | "country"
   | "region"
   | "age"
-  | "volume";
+  | "volume"
+  | "tastingNotes";
 export type BooleanFilterKey = "peated" | "giftBox" | "inStock" | "onSale";
 
 export type FacetOption = { value: string | number; count: number };

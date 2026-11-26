@@ -1,7 +1,7 @@
 import { cn } from "cn";
 import { GiftIcon } from "./icons";
 
-type BadgeVariant = "sale" | "gift" | "outOfStock" | "inStock";
+type BadgeVariant = "sale" | "gift" | "neutral" | "outOfStock" | "inStock";
 
 type BadgeProps = {
   variant: BadgeVariant;
@@ -15,6 +15,8 @@ const pill = "inline-flex h-6 items-center gap-1 whitespace-nowrap rounded-sm px
 const variants: Record<BadgeVariant, string> = {
   sale: cn(pill, "bg-sale font-bold text-sale-fg"),
   gift: cn(pill, "border border-border bg-surface font-semibold text-fg"),
+  // Same look as gift, no icon: "Default" on an address card
+  neutral: cn(pill, "border border-border bg-surface font-semibold text-fg"),
   outOfStock: cn(pill, "bg-surface-2 font-semibold text-muted"),
   // Not a pill: a dot + text. The text always shows; color never carries the meaning alone.
   inStock: "inline-flex items-center gap-2 whitespace-nowrap text-sm font-semibold text-success",
