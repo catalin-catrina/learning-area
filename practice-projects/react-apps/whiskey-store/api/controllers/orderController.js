@@ -1,4 +1,5 @@
 const { prisma } = require("../lib/prisma");
+const { clientUrl } = require("../config/env");
 const { stripe } = require("../lib/stripe");
 const { v4 } = require("uuid");
 
@@ -297,7 +298,7 @@ exports.createPaymentSession = async (req, res, next) => {
           // The account email: Stripe sends the receipt there, and the payment
           // page doesn't need its own email field.
           customer_email: user.email,
-          return_url: `http://localhost:5173/payment/return?order_id=${order.id}&session_id={CHECKOUT_SESSION_ID}`,
+          return_url: `${clientUrl}/payment/return?order_id=${order.id}&session_id={CHECKOUT_SESSION_ID}`,
         },
         {
           idempotencyKey: creationKey,
