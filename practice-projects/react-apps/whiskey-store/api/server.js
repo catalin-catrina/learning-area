@@ -3,10 +3,12 @@ const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const errorHandler = require("./middleware/errorHandler");
+const { port, clientUrls } = require("./config/env");
 
 const app = express();
-const PORT = 3000;
-const SPA_ORIGIN = "http://localhost:5173";
+// Behind Render's (and Vercel's) proxy: trust the first hop so req.ip is the
+// visitor's address, not the proxy's (used in the auth logs).
+app.set("trust proxy", 1);
 
 // Webhook: preserve the body for signature verification by putting it before app.use(express.json());
 const stripeRoute = require("./routes/stripe");
@@ -17,10 +19,15 @@ app.use(express.json()); // to parse JSON bodies
 app.use(cookieParser());
 app.use(
   cors({
-    origin: SPA_ORIGIN,
+    origin: clientUrls,
     credentials: true,
   }),
-); // for CORS so browser is allowed to send and receive cookies with our API
+); // Only needed when the browser calls the API on another origin (local dev:
+// 5173 → 3000). In production Vercel proxies /api, so requests are same-origin.
+
+// Health check for uptime pings: answers without touching the database, so
+// pinging it doesn't keep the database awake.
+app.get("/api/health", (req, res) => res.json({ ok: true }));
 
 const productsRoute = require("./routes/products");
 const usersRoute = require("./routes/users");
@@ -45,6 +52,6 @@ app.get("/", (req, res) => {
 });
 
 // Starting the server
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
 });
