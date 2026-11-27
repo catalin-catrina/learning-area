@@ -9,7 +9,7 @@ function CheckoutHeader() {
   return (
     <header className="border-b border-border bg-bg">
       <Container className="flex h-14 items-center gap-4 lg:h-18 lg:gap-8">
-        <Link to="/products" className="shrink-0 font-heading text-xl font-medium tracking-[-0.01em] lg:text-2xl">
+        <Link to="/" className="shrink-0 font-heading text-xl font-medium tracking-[-0.01em] lg:text-2xl">
           Dramshop
         </Link>
         <span className="flex items-center gap-2 text-sm font-semibold text-muted">

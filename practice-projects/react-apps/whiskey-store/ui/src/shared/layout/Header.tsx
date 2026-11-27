@@ -8,7 +8,7 @@ import { BagIcon, Button, HeartIcon, LogOutIcon, MenuIcon, Search, SearchIcon, f
 import { useAuth } from "../../features/auth/hooks/useAuth";
 import { useCart } from "../../features/cart/hooks/useCart";
 import { useGetFavorites } from "../../features/favorites/hooks/useFavorites";
-import { CATEGORY_LINKS } from "../../features/products/productLabels";
+import { NAV_LINKS } from "../../features/products/productLabels";
 import { useUiStore } from "../stores/uiStore";
 
 const iconLink = cn(
@@ -76,14 +76,14 @@ function Header() {
         </Button>
 
         <Link
-          to="/products"
+          to="/"
           className="ml-1 shrink-0 font-heading text-xl font-medium tracking-[-0.01em] lg:ml-0 lg:text-2xl"
         >
           Dramshop
         </Link>
 
         <nav aria-label="Main" className="hidden gap-6 text-sm font-semibold lg:flex">
-          {CATEGORY_LINKS.map((l) => (
+          {NAV_LINKS.map((l) => (
             <Link
               key={l.to}
               to={l.to}
@@ -178,7 +178,7 @@ function Header() {
           if ((e.target as HTMLElement).closest("a")) setMenuOpen(false);
         }}>
           <ul className="flex flex-col">
-            {CATEGORY_LINKS.map((l) => (
+            {NAV_LINKS.map((l) => (
               <li key={l.to}>
                 <Link to={l.to} className="flex h-11 items-center text-lg">
                   {l.label}

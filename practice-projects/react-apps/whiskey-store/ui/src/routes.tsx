@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 
 import PublicRoute from "./shared/components/PublicRoute";
 import ProtectedRoute from "./shared/components/ProtectedRoute";
@@ -19,6 +19,7 @@ import ProfileOverview from "./features/profile/components/ProfileOverview";
 import OrderDetailsPage from "./features/orders/components/OrderDetailsPage";
 import AddressesPage from "./features/addresses/components/AddressesPage";
 import Playground from "./pages/Playground";
+import HomePage from "./features/home/components/HomePage";
 
 function AppRoutes() {
   return (
@@ -30,7 +31,7 @@ function AppRoutes() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
         </Route>
-        <Route path="/" element={<Navigate to="/products" replace />} />
+        <Route path="/" element={<HomePage />} />
         <Route path="/products" element={<ProductList />} />
         <Route path="/products/:id" element={<ProductDetail />} />
         {/* Protected routes */}

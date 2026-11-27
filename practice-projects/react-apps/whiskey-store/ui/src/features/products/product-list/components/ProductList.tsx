@@ -100,7 +100,7 @@ const ProductList = () => {
     <Container className="pb-16">
       <Breadcrumbs
         items={[
-          { label: "Home", to: "/products" },
+          { label: "Home", to: "/" },
           ...(title === "All whisky" ? [{ label: "Whisky" }] : [{ label: "Whisky", to: "/products" }, { label: title }]),
         ]}
       />
@@ -108,6 +108,13 @@ const ProductList = () => {
       <div className="grid gap-12 pt-4 lg:grid-cols-[240px_minmax(0,1fr)] lg:pt-6">
         {/* Desktop filters */}
         <aside aria-label="Filters" className="hidden pt-2 lg:block">
+          {/* Always here, so clearing never depends on scrolling to the chips */}
+          <div className="mb-4 flex items-center justify-between border-b border-border pb-3">
+            <h2 className="text-lg">Filters</h2>
+            <Button variant="ghost" size="sm" disabled={activeCount === 0} onClick={onClear}>
+              Clear all{activeCount > 0 && ` (${activeCount})`}
+            </Button>
+          </div>
           {filterPanel}
         </aside>
 
