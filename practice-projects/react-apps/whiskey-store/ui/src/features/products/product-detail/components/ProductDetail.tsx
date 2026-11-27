@@ -4,7 +4,9 @@ import { cn } from "cn";
 import { useProduct } from "../../hooks/useProduct";
 import { useProducts } from "../../hooks/useProducts";
 import { useAuth } from "../../../auth/hooks/useAuth";
-import { useCart, useCartMutations } from "../../../cart/hooks/useCart";
+import { useCart } from "../../../cart/hooks/useCart";
+import { useAddToCart } from "../../../cart/hooks/useAddToCart";
+import { ReviewsSection } from "../../../reviews/components/ReviewsSection";
 import { useToggleFavorite } from "../../../favorites/hooks/useFavorites";
 import { useUiStore } from "../../../../shared/stores/uiStore";
 import Container from "../../../../shared/layout/Container";
@@ -69,7 +71,7 @@ function ProductView({ product }: { product: WhiskeyProduct }) {
   const location = useLocation();
   const openCart = useUiStore((s) => s.openCart);
   const { data: cart } = useCart();
-  const { add } = useCartMutations();
+  const { addToCart, isPending: adding } = useAddToCart();
   const { isFavorite, toggle } = useToggleFavorite(product.id);
   const [quantity, setQuantity] = useState(1);
   const [imageBroken, setImageBroken] = useState(false);
@@ -83,18 +85,8 @@ function ProductView({ product }: { product: WhiskeyProduct }) {
     return true;
   };
 
-  const onAdd = () => {
-    if (requireLogin()) return;
-    add.mutate(
-      { productId: product.id, quantity },
-      {
-        onSuccess: () => {
-          setQuantity(1);
-          openCart();
-        },
-      },
-    );
-  };
+  // The toast confirms it and offers "View cart"; quantity resets for the next add.
+  const onAdd = () => addToCart(product, quantity, () => setQuantity(1));
 
   const specs = [
     { label: "Region", value: product.region ?? product.country },
@@ -107,7 +99,7 @@ function ProductView({ product }: { product: WhiskeyProduct }) {
     <Container className="pb-16">
       <Breadcrumbs
         items={[
-          { label: "Home", to: "/products" },
+          { label: "Home", to: "/" },
           { label: STYLE_LABELS[product.style], to: `/products?style=${product.style}` },
           { label: product.name },
         ]}
@@ -124,7 +116,7 @@ function ProductView({ product }: { product: WhiskeyProduct }) {
               className={cn("max-h-full max-w-full object-contain", !product.inStock && "opacity-45")}
             />
           ) : (
-            <BottleIcon className="size-32 text-border" strokeWidth={1.25} />
+            <BottleIcon className="size-32 text-border" />
           )}
           <div className="absolute left-4 top-4 flex flex-wrap gap-2">
             {discount && product.inStock && <Badge variant="sale">{discount}</Badge>}
@@ -138,7 +130,7 @@ function ProductView({ product }: { product: WhiskeyProduct }) {
             <p className="text-2xs font-semibold uppercase tracking-[0.12em] text-muted">{originLine(product)}</p>
             <h1 className="text-4xl text-balance lg:text-5xl">{product.name}</h1>
             {/* Reviews list + "Write a review" are post-release; the summary stays */}
-            <Rating rating={product.rating} reviewCount={product.reviewCount} />
+            <Rating rating={product.rating} reviewCount={product.reviewCount} reviewsHref="#reviews" writeHref="#reviews" />
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
@@ -206,11 +198,11 @@ function ProductView({ product }: { product: WhiskeyProduct }) {
               {product.inStock && (
                 <QuantityStepper value={quantity} onChange={setQuantity} max={99} label="Quantity" />
               )}
-              <Button className="min-w-0 flex-1 pointer-coarse:h-11" onClick={onAdd} loading={add.isPending} disabled={!product.inStock}>
-                {!add.isPending && <BagIcon />}
+              <Button className="min-w-0 flex-1 pointer-coarse:h-11" onClick={onAdd} loading={adding} disabled={!product.inStock}>
+                {!adding && <BagIcon />}
                 {!product.inStock ? (
                   "Out of stock"
-                ) : add.isPending ? (
+                ) : adding ? (
                   "Adding…"
                 ) : (
                   <>
@@ -259,6 +251,7 @@ function ProductView({ product }: { product: WhiskeyProduct }) {
         </div>
       </div>
 
+      <ReviewsSection product={product} />
       <YouMayAlsoLike product={product} />
     </Container>
   );

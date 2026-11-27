@@ -180,7 +180,7 @@ exports.getProductById = async (req, res, next) => {
   try {
     const product = await prisma.product.findUnique({
       where: { id: parseInt(req.params.id) },
-      include: { reviews: true },
+      // reviews come paginated from GET /products/:id/reviews
     });
     if (!product) {
       return next(new CustomError("Product not found", 404));

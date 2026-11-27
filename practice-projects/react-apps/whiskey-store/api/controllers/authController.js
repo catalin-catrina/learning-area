@@ -173,12 +173,19 @@ exports.registerUser = async (req, res, next) => {
       expiresIn: "7d",
     });
 
-    const refreshTokenRecord = await prisma.refreshToken.create({
+    await prisma.refreshToken.create({
       data: {
         token: refreshToken,
         userId: userRecord.id,
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       },
+    });
+
+    // Same as login: the refresh token lives only in an httpOnly cookie, never
+    // in the body, so page scripts can't read it and a reload stays signed in.
+    res.cookie("refresh_token", refreshToken, {
+      ...cookieOptions,
+      path: "/api/auth",
     });
 
     const { password, ...safeUser } = userRecord;
@@ -195,7 +202,6 @@ exports.registerUser = async (req, res, next) => {
         role: userRecord.role,
       },
       accessToken,
-      refreshToken,
     });
   } catch (err) {
     if (err.code === "P2002") {

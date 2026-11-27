@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "cn";
-import { Badge, BottleIcon, Button, HeartIcon, Price, Rating, Skeleton } from "../../../shared/ui";
+import { Badge, BottleIcon, Button, CartAddIcon, HeartIcon, Price, Rating, Skeleton } from "../../../shared/ui";
 import { useAuth } from "../../auth/hooks/useAuth";
 import { useToggleFavorite } from "../../favorites/hooks/useFavorites";
+import { useAddToCart } from "../../cart/hooks/useAddToCart";
 import type { WhiskeyProduct } from "../product.types";
 import { discountLabel, productMeta, productPath } from "../productLabels";
 
@@ -19,12 +20,13 @@ type ProductCardProps = {
 // ::after layer stretches over the card ("stretched link"). The heart sits
 // above that layer (z-10), so it stays its own button. Wrapping the whole card
 // in <a> would put a button inside a link (invalid HTML, and a click on the
-// heart would also open the product).
+// heart would also open the product). The cart button works the same way.
 export function ProductCard({ product, headingLevel: Heading = "h3" }: ProductCardProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { isFavorite, toggle } = useToggleFavorite(product.id);
+  const { addToCart, isPending: adding } = useAddToCart();
   const [imageBroken, setImageBroken] = useState(false);
 
   const discount = discountLabel(product);
@@ -57,7 +59,7 @@ export function ProductCard({ product, headingLevel: Heading = "h3" }: ProductCa
             className={cn("max-h-full max-w-full object-contain", soldOut && "opacity-45")}
           />
         ) : (
-          <BottleIcon className="size-16 text-border lg:size-24" strokeWidth={1.25} />
+          <BottleIcon className="size-16 text-border lg:size-24" />
         )}
 
         <div className="absolute left-2 top-2 flex max-w-[calc(100%-64px)] flex-wrap gap-1 lg:left-3 lg:top-3 lg:gap-2">
@@ -92,13 +94,26 @@ export function ProductCard({ product, headingLevel: Heading = "h3" }: ProductCa
           </Link>
         </Heading>
         <p className="text-xs text-muted">{productMeta(product)}</p>
-        <Rating rating={product.rating} reviewCount={product.reviewCount} compact />
-        <div className="mt-auto pt-2">
+        <Rating rating={product.rating} reviewCount={product.reviewCount} compact className="flex-wrap gap-x-2 gap-y-0" />
+        <div className="mt-auto flex items-end justify-between gap-2 pt-2">
           <Price
             priceCents={product.priceCents}
             compareAtPriceCents={product.compareAtPriceCents}
             outOfStock={soldOut}
+            className="min-w-0 flex-wrap gap-y-0" // narrow phones: the old price drops under
           />
+          {/* Adds exactly one; the toast confirms it */}
+          {!soldOut && (
+            <Button
+              variant="secondary"
+              aria-label={`Add ${product.name} to cart`}
+              loading={adding}
+              onClick={() => addToCart(product)}
+              className="relative z-10 w-10 shrink-0 px-0 [&_svg]:size-5"
+            >
+              {!adding && <CartAddIcon />}
+            </Button>
+          )}
         </div>
       </div>
     </article>

@@ -41,9 +41,14 @@ export function discountLabel(p: Pick<WhiskeyProduct, "priceCents" | "compareAtP
 export const productPath = (p: Pick<WhiskeyProduct, "id">) => `/products/${p.id}`;
 
 // Header + footer category links (decided in the design map)
+// Header nav: the whole shop first, then the categories.
+export const SHOP_ALL_LINK = { label: "Shop all", to: "/products" };
+
 export const CATEGORY_LINKS = [
   { label: "Single malt", to: "/products?style=single_malt" },
   { label: "Blends", to: "/products?style=blended&style=blended_malt" },
   { label: "Gifts", to: "/products?giftBox=true" },
   { label: "Offers", to: "/products?onSale=true" },
 ];
+
+export const NAV_LINKS = [SHOP_ALL_LINK, ...CATEGORY_LINKS];

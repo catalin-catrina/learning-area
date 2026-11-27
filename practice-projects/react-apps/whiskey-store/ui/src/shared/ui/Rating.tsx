@@ -44,19 +44,7 @@ export function Rating({ rating, reviewCount, reviewsHref, writeHref, compact = 
 
   return (
     <div className={cn("flex items-center gap-2 text-sm", className)}>
-      <span
-        role="img"
-        aria-label={`Rated ${rating.toFixed(1)} out of 5 from ${countText}`}
-        className="flex gap-1"
-      >
-        {STARS.map((n) => (
-          <StarIcon
-            key={n}
-            filled={n <= filled}
-            className={cn("size-4", n <= filled ? "text-accent" : "text-input")}
-          />
-        ))}
-      </span>
+      <Stars value={filled} label={`Rated ${rating.toFixed(1)} out of 5 from ${countText}`} />
       <span className="font-semibold text-fg" aria-hidden="true">
         {rating.toFixed(1)}
       </span>
@@ -79,6 +67,18 @@ export function Rating({ rating, reviewCount, reviewsHref, writeHref, compact = 
         </>
       )}
     </div>
+  );
+}
+
+/** Just the five stars (a review row). `value` is rounded to whole stars. */
+export function Stars({ value, label, className }: { value: number; label: string; className?: string }) {
+  const filled = Math.round(value);
+  return (
+    <span role="img" aria-label={label} className={cn("flex gap-1", className)}>
+      {STARS.map((n) => (
+        <StarIcon key={n} filled={n <= filled} className={cn("size-4", n <= filled ? "text-accent" : "text-input")} />
+      ))}
+    </span>
   );
 }
 
